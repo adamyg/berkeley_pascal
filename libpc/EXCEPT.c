@@ -31,29 +31,33 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)EXCEPT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include	<signal.h>
+#include "h00vars.h"
+
+#include <signal.h>
 
 /*
- * catch runtime arithmetic errors
+ *      catch runtime arithmetic errors
  */
-EXCEPT(signum, type)
-	int signum, type;
+void
+EXCEPT(signum)
+        int signum;
 {
-	signal(SIGFPE, EXCEPT);
 #ifndef vax
+        (void) signum;
 	ERROR("Overflow, underflow, or division by zero in arithmetic operation\n");
 	return;
-#endif notvax
-#ifdef vax
+#endif /*!vax*/
+
+#ifdef  vax
 	/*
 	 * The values for this switch statement come from page 12-5 of
 	 * Volume 1 of the 1978 VAX 11/780 Architecture Handbook
 	 */
-	switch (type) {
+	switch (signum) {
 	case FPE_INTOVF_TRAP:
 		ERROR("Integer overflow\n");
 		return;
@@ -75,8 +79,8 @@ EXCEPT(signum, type)
 	case FPE_DECOVF_TRAP:
 	case FPE_SUBRNG_TRAP:
 	default:
-		ERROR("Undefined arithmetic exception type (%d)\n", type);
+		ERROR("Undefined arithmetic exception type (%d)\n", signum);
 		return;
 	}
-#endif vax
+#endif /*vax*/
 }

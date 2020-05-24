@@ -31,13 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PRED.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include "h00vars.h"
+
 long
 PRED(value, lower, upper)
-
 	long	value;
 	long	lower;
 	long	upper;
@@ -47,7 +48,7 @@ PRED(value, lower, upper)
 	}
 	value--;
 	if (value < lower || value > upper) {
-		ERROR("Value of %D is out of range\n", value);
+		ERROR("Value of %d is out of range\n", value);
 	}
 	return	value;
 }

@@ -31,9 +31,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)UNPACK.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
+
+#include "h00vars.h"
 
 /*
  * unpack(z,a,i)
@@ -44,8 +46,8 @@ static char sccsid[] = "@(#)UNPACK.c	8.1 (Berkeley) 6/6/93";
  *			a[j-u+i] := z[j]
  */
 
+void
 UNPACK(i, a, z, size_a, lb_a, ub_a, size_z)
-
 	long	i;	/* subscript into a to begin packing */
 	char	*a;	/* pointer to structure a */
 	char	*z;	/* pointer to structure z */
@@ -61,7 +63,7 @@ UNPACK(i, a, z, size_a, lb_a, ub_a, size_z)
 
 	subscr = i - lb_a;
 	if (subscr < 0 || subscr > ub_a) {
-		ERROR("i = %D: Bad i to unpack(z,a,i)\n", i);
+		ERROR("i = %d: Bad i to unpack(z,a,i)\n", i);
 		return;
 	}
 	cp = &a[subscr * size_a];

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)VWRITEF.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,6 +39,7 @@ static char sccsid[] = "@(#)VWRITEF.c	8.1 (Berkeley) 6/6/93";
 
 #include <stdarg.h>
 
+void
 VWRITEF(curfile, file, format, args)
 
 	register struct iorec	*curfile;

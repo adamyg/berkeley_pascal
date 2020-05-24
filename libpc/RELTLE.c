@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RELTLE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)RELTLE.c	8.1 (Berkeley) 6/6/93";
 
 bool
 RELTLE(bytecnt, left, right)
-
 	long		bytecnt;
 	register long	*left;
 	register long	*right;

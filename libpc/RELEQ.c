@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RELEQ.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)RELEQ.c	8.1 (Berkeley) 6/6/93";
 
 bool
 RELEQ(siz, str1, str2)
-
 	long		siz;
 	register char	*str1;
 	register char	*str2;

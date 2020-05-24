@@ -31,24 +31,29 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)blkcpy.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-blkcpy(from, to, siz)
-	register char	*from;
-	register char	*to;
-	long		siz;
-{
-	register int	size = siz;
+#include "h00vars.h"
 
-	if (to < from)
+void
+BLKCPY(from, to, siz)
+	const void *from;
+	void *to;
+	long siz;
+{
+	register int size = siz;
+    register const char *f = from;
+    register char *t = to;
+
+	if (t < f)
 		while(size-- > 0)
-			*to++ = *from++;
+			*t++ = *f++;
 	else {
-		to += size;
-		from += size;
+		t += size;
+		f += size;
 		while(size-- > 0)
-			*--to = *--from;
+			*--t = *--f;
 	}
 }

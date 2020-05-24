@@ -31,12 +31,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ATAN.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include "h00vars.h"
+
 #include <math.h>
-extern int errno;
+
+#ifndef errno
+extern int      errno;
+#endif
 
 double
 ATAN(value)

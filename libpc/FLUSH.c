@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)FLUSH.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 FLUSH(curfile)
-
 	register struct iorec	*curfile;
 {
 	if (curfile->fblk >= MAXFILES || _actfile[curfile->fblk] != curfile) {

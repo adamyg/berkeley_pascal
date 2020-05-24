@@ -31,16 +31,16 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)NIL.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
-char ENIL[] = "Pointer value out of legal range\n";
+static const char ENIL[]  = "Pointer value out of legal range\n";
 
 char *
-NIL(ptr)
+NILPTR(ptr)			/* XXX - was NIL() */
 	char	*ptr;		/* pointer to struct */
 {
 	if (ptr > _maxptr || ptr < _minptr) {

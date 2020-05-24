@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)MAX.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,13 +39,12 @@ static char sccsid[] = "@(#)MAX.c	8.1 (Berkeley) 6/6/93";
 
 long
 MAX(width, reduce, min)
-
 	register long	width;		/* requested width */
 	long		reduce;		/* amount of extra space required */
 	long		min;		/* minimum amount of space needed */
 {
 	if (width <= 0) {
-		ERROR("Non-positive format width: %D\n", width);
+		ERROR("Non-positive format width: %d\n", width);
 	}
 	if ((width -= reduce) >= min)
 		return width;

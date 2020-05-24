@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)REMOVE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 REMOVE(name, namlim)
-
 	char			*name;
 	long			namlim;
 {
@@ -64,6 +64,19 @@ REMOVE(name, namlim)
 	for (cnt = 0; cnt < maxnamlen; cnt++)
 		namebuf[cnt] = name[cnt];
 	namebuf[cnt] = '\0';
+
+#if defined(WIN32)
+	/*
+	 * unlink the file
+	 */
+	if (unlink(namebuf)) {
+		int x_errno = errno;
+
+		fputs("(w) Could not remove", _ERROUT);
+		fprintf(_ERROUT, "%s: %s\n", namebuf, strerror(x_errno));
+		return;
+	}
+#else
 	/*
 	 * unlink the file
 	 */
@@ -71,4 +84,5 @@ REMOVE(name, namlim)
 		PERROR("Could not remove ", namebuf);
 		return;
 	}
+#endif
 }

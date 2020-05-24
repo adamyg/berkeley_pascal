@@ -31,13 +31,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)READ8.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
+
+#include <math.h>
 #include <errno.h>
+
+#ifndef errno
 extern int errno;
+#endif
+
+static int readreal(struct iorec *, double *doublep);
 
 double
 READ8(curfile)
@@ -85,6 +92,7 @@ READ8(curfile)
  *	side effects:
  *	      errno	may be set to ERANGE if atof() sets it.
  */
+static int
 readreal(curfile, doublep)
 	struct iorec	*curfile;
 	double		*doublep;
@@ -93,7 +101,6 @@ readreal(curfile, doublep)
 	char	*sequencep;		/* a pointer into sequence */
 	int	read;			/* return value from fscanf() */
 	char	sequence[BUFSIZ];	/* the character sequence */
-	double	atof();
 
 #define PUSHBACK(curfile, sequencep) \
 	if (ungetc(*--(sequencep), (curfile)->fbuf) != EOF) { \

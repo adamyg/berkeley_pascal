@@ -31,11 +31,13 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)CARD.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char _cntbl[] = {
+#include "h00vars.h"
+
+static const char _cntbl[] = {
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -56,7 +58,6 @@ char _cntbl[] = {
 
 long
 CARD(setptr, siz)
-
 	register unsigned char	*setptr;
 	long		siz;
 {

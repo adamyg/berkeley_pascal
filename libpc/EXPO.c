@@ -31,24 +31,27 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)EXPO.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include "h00vars.h"
+
+
 long
 EXPO(value)
-
 	double	value;
 {
 	register int retval;
 	register char *cp;
 	char sign, buf[30];
-	extern char *index();
+/*	extern char *index();*/
 
 	if (value == 0.0)
 		return 0;
 	sprintf(buf, "%.1e", value);
-	cp = index(buf, 'e') + 1;
+/*	cp = index(buf, 'e') + 1;*/
+	cp = strchr(buf, 'e') + 1;
 	sign = *cp++;
 	retval = 0;
 	while (*cp)

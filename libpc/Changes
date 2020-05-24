@@ -1,0 +1,33 @@
+Sun May 24 13:36:18 2020 adamy
+
+	* Summary of previous changes;
+
+	  o WIN32 support, changes marked with either "ifdef WIN32" or "ifndef unix".
+
+	  o Globals _argc and _argv renamed to _pcargc and _pcargv;
+	    avoids stdlib symbol clashes plus allows px (via lixpx) to be embedded within pxd.
+
+	  o Function prototypes, explicit return types.
+
+	  o Public definitions relocated into "libpc.h", inc prototypes.
+
+	  o Optional sccsid definition.
+
+	  o Initialise references to stdio, stdout and stderr at runtime.
+
+	  o ANSI/C variable arguments.
+
+	  o Conversion of printf '%D' to '%d'.
+
+	  o const parameters for diagnostics and copy interfaces.
+
+	  o time_t
+
+	  o static or const static declarations of suitable variables.
+
+	  o Obey TEXT/BINARY mode selection on streams.
+
+
+
+
+

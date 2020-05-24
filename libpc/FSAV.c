@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)FSAV.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,7 +45,7 @@ FSAV(entryaddr, cbn, frtn)
 {
 	frtn->fentryaddr = entryaddr;
 	frtn->fbn = cbn;
-	blkcpy(&_disply[1], &frtn->fdisp[0],
-		frtn->fbn * sizeof(struct display));
+	blkcpy((char *)&_disply[1], (char *)&frtn->fdisp[0],
+	    frtn->fbn * sizeof(struct display));
 	return frtn;
 }

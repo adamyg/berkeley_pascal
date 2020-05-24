@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)INCT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)INCT.c	8.1 (Berkeley) 6/6/93";
 
 bool
 INCT(element, paircnt, singcnt, data)
-
 	register long	element;	/* element to find */
 	long		paircnt;	/* number of pairs to check */
 	long		singcnt;	/* number of singles to check */

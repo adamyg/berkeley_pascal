@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)IOSYNC.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -40,11 +40,11 @@ static char sccsid[] = "@(#)IOSYNC.c	8.1 (Berkeley) 6/6/93";
 /*
  * insure that a usable image is in the buffer window
  */
+void
 IOSYNC(curfile)
-
-	register struct iorec	*curfile;
+	register struct iorec *curfile;
 {
-	char			*limit, *ptr;
+	char *limit, *ptr;
 
 	if (curfile->funit & FWRITE) {
 		ERROR("%s: Attempt to read, but open for writing\n",
@@ -87,6 +87,11 @@ IOSYNC(curfile)
 		return;
 	}
 	if (curfile->funit & FTEXT) {
+#ifdef DEBUG
+		if (*curfile->fileptr == '\r') {
+			printf("WARNING: \\r encountered\n");
+		}
+#endif
 		if (*curfile->fileptr == '\n') {
 			curfile->funit |= EOLN;
 			*curfile->fileptr = ' ';

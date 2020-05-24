@@ -31,12 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ASRT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char EASRT[] = "Assertion failed\n";
+#include "h00vars.h"
 
+static const char EASRT[] = "Assertion failed\n";
+
+void
 ASRT(cond)
 	short	cond;
 {

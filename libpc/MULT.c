@@ -31,13 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)MULT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include "h00vars.h"
+
 long *
 MULT(result0, left, right, siz)
-
 	long		*result0;
 	register long	*left;
 	register long	*right;

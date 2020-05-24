@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ARGV.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 ARGV(subscript, var, siz)
-
 	long		subscript;	/* subscript into argv */
 	register char	*var;		/* pointer to pascal char array */
 	long		siz;		/* sizeof(var) */
@@ -46,12 +46,12 @@ ARGV(subscript, var, siz)
 	register char	*cp;
 	register int	size = siz;
 
-	if ((unsigned)subscript >= _argc) {
-		ERROR("Argument to argv of %D is out of range\n", subscript);
+	if ((int)subscript >= _pcargc) {
+		ERROR("Argument to argv of %ld is out of range\n", subscript);
 		return;
 	}
-	cp = _argv[subscript];
-	do	{
+	cp = _pcargv[subscript];
+	do {
 		*var++ = *cp++;
 	} while (--size && *cp);
 	while (size--)

@@ -31,22 +31,26 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)DATE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char	_pd_date[] = {
+#include "h00vars.h"
+
+#include <stdlib.h>
+#include <time.h>
+
+static const char	_pd_date[] = {
 	8, 9, 10, 4, 5, 6, 10, 22, 23, 10, 0
 };
 
-extern char *ctime();
-
+void
 DATE(alfap)
-
 	register char *alfap;
 {
-	register char *ap, *cp, *dp;
-	long a;
+	register const char *dp;
+	register char *ap, *cp;
+	time_t a;
 
 	time(&a);
 	cp = ctime(&a);

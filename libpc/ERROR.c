@@ -31,12 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ERROR.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include	<stdio.h>
-#include	<signal.h>
+#include "h00vars.h"
+
+#include <stdio.h>
+#include <signal.h>
+#include <stdarg.h>
 
 /*
  * Routine ERROR is called from the runtime library when a runtime
@@ -44,14 +47,26 @@ static char sccsid[] = "@(#)ERROR.c	8.1 (Berkeley) 6/6/93";
  * an error specific piece of data.
  */
 long
-ERROR(msg, d1, d2)
-
-	char	*msg;
-	long	d1, d2;
+ERROR(const char *msg, ...)
 {
+	va_list ap;
+	long ret;
+
 	PFLUSH();
-	fputc('\n',stderr);
-	fprintf(stderr, msg, d1, d2);
-	kill(getpid(), SIGTRAP);
-	return d1;
+	fputc('\n',_ERROUT);
+	va_start(ap, msg);
+	vfprintf(_ERROUT, msg, ap);
+	fflush(_ERROUT);
+
+#if defined(unix)
+	raise(SIGUSR2);
+#else
+	px_raise(PXSIGERR);
+	px_backtrace("error");
+	px_exit(-1);
+#endif
+
+	ret = va_arg(ap, long);
+	va_end(ap);
+        return (ret);
 }

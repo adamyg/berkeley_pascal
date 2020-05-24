@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1982, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,12 +32,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ASRTS.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char EASRTS[] = "Assertion failed: %s\n";
+#include "h00vars.h"
 
+static const char EASRTS[] = "Assertion failed: %s\n";
+
+void
 ASRTS(cond, stmt)
 	short	cond;
 	char	*stmt;

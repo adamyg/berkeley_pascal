@@ -31,15 +31,16 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)SQRT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
+
+#include "h00vars.h"
 
 #include <math.h>
 
 double
 SQRT(value)
-
 	double	value;
 {
 	if (value < 0) {

@@ -31,16 +31,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)blkclr.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-blkclr(at, siz)
-	register char	*at;
-	long		siz;
-{
-	register int	size = siz;
+#include "h00vars.h"
 
-	while(size-- > 0)
-		*at++ = 0;
+void
+BLKCLR(at, siz)
+	void *at;
+	long siz;
+{
+	register int size = siz;
+    register char *p = at;
+
+	while (size-- > 0)
+		*p++ = 0;
 }

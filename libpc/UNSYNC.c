@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)UNSYNC.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -40,8 +40,8 @@ static char sccsid[] = "@(#)UNSYNC.c	8.1 (Berkeley) 6/6/93";
 /*
  * push back last char read to prepare for formatted read
  */
+void
 UNSYNC(curfile)
-
 	register struct iorec	*curfile;
 {
 	if (curfile->funit & FWRITE) {

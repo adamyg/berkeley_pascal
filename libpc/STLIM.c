@@ -31,18 +31,18 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)STLIM.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 STLIM(limit)
-
 	long	limit;
 {
 	if (_stcnt >= limit) {
-		ERROR("Statement count limit of %D exceeded\n", _stcnt);
+		ERROR("Statement count limit of %d exceeded\n", _stcnt);
 		return;
 	}
 	_stlim = limit;

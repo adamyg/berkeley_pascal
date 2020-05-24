@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PFCLOSE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -58,7 +58,7 @@ PFCLOSE(filep, lastuse)
 		fclose(filep->fbuf);
 		if (ferror(filep->fbuf)) {
 			ERROR("%s: Close failed\n", filep->pfname);
-			return;
+			return NULL;
 		}
 		/*
 		 * Temporary files are discarded.
@@ -66,7 +66,7 @@ PFCLOSE(filep, lastuse)
 		if ((filep->funit & TEMP) != 0 && lastuse &&
 		    unlink(filep->pfname)) {
 			PERROR("Could not remove ", filep->pfname);
-			return;
+			return NULL;
 		}
 	}
 	_actfile[filep->fblk] = FILNIL;

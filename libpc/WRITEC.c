@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)WRITEC.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 WRITEC(curfile, d1, d2)
-
 	register struct iorec	*curfile;
 	char			d1;
 	FILE			*d2;

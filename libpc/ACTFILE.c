@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ACTFILE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)ACTFILE.c	8.1 (Berkeley) 6/6/93";
 
 FILE *
 ACTFILE(curfile)
-
 	struct iorec	*curfile;
 {
 	return curfile->fbuf;

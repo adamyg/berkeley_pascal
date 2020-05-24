@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)GETNAME.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -53,7 +53,6 @@ static char *tmpname = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 struct iorec *
 GETNAME(filep, name, namlim, datasize)
-
 	register struct iorec	*filep;
 	char			*name;
 	long			namlim;
@@ -86,7 +85,7 @@ GETNAME(filep, name, namlim, datasize)
 		filep->lcount = 0;
 		filep->llimit = 0x7fffffff;
 		filep->fileptr = &filep->window[0];
-		*filep->fname = NULL;
+		*filep->fname = '\0';
 		/*
 		 * Check to see if file is global, or allocated in
 		 * the stack by checking its address against the
@@ -103,9 +102,9 @@ GETNAME(filep, name, namlim, datasize)
 			if (_actfile[_filefre] == FILNIL)
 				goto gotone;
 		ERROR("File table overflow\n");
-		return;
+		return NULL;
 gotone:
-		filep->fblk = _filefre;
+		filep->fblk = (unsigned short)_filefre;
 		_actfile[_filefre] = filep;
 		/*
 		 * Link the new record into the file chain.
@@ -134,7 +133,7 @@ gotone:
 	 * Get the filename associated with the buffer.
 	 */
 	if (name == NULL) {
-		if (*filep->fname != NULL) {
+		if (*filep->fname != '\0') {
 			return(filep);
 		}
 		/*
@@ -142,8 +141,7 @@ gotone:
 		 * a new one of the form #tmp.xxxxxx.
 		 */
 		filep->funit |= TEMP;
-		sprintf(filep->fname, "#tmp.%c%d", tmpname[filep->fblk],
-		    getpid());
+		sprintf(filep->fname, "#tmp.%c%d", tmpname[filep->fblk], getpid());
 		filep->pfname = &filep->fname[0];
 		return(filep);
 	}
@@ -156,7 +154,7 @@ gotone:
 			break;
 	if (cnt >= NAMSIZ) {
 		ERROR("%s: File name too long\n", name);
-		return;
+		return NULL;
 	}
 	maxnamlen = cnt;
 	filep->funit &= ~TEMP;

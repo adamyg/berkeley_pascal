@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RESET.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 RESET(filep, name, maxnamlen, datasize)
-
 	register struct iorec	*filep;
 	char			*name;
 	long			maxnamlen;
@@ -54,7 +54,11 @@ RESET(filep, name, maxnamlen, datasize)
 		return;
 	}
 	filep = GETNAME(filep, name, maxnamlen, datasize);
+#ifdef unix
 	filep->fbuf = fopen(filep->fname, "r");
+#else
+	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "rt" : "rb"));
+#endif
 	if (filep->fbuf == NULL) {
 		/*
 		 * This allows unnamed temp files to be opened even if

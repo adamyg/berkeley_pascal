@@ -31,15 +31,19 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)READE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+#ifndef ITOA
+#define __ITOA(s)	# s
+#define ITOA(d)		__ITOA(d)
+#endif
+
 long
 READE(curfile, name)
-
 	register struct iorec	*curfile;
 	char			*name;
 {
@@ -48,7 +52,7 @@ READE(curfile, name)
 	register int	nextlen;
 	register int	cnt;
 	char		*cp;
-	char		namebuf[NAMSIZ];
+	char		namebuf[NAMSIZ+2];
 	int		retval;
 
 	if (curfile->funit & FWRITE) {
@@ -56,8 +60,10 @@ READE(curfile, name)
 			curfile->pfname);
 	}
 	UNSYNC(curfile);
+	namebuf[0] = '\0';
+	(void) fscanf(curfile->fbuf, "%*[ \t\n\r]");
 	retval = fscanf(curfile->fbuf,
-	    "%*[ \t\n]%74[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]",
+	    "%" ITOA(NAMSIZ) "[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]",
 	    namebuf);
 	if (retval == EOF) {
 		ERROR("%s: Tried to read past end of file\n", curfile->pfname);
@@ -70,7 +76,7 @@ READE(curfile, name)
 	sptr = (short *)name;
 	cnt = *sptr++;
 	cp = name + sizeof (short) + *sptr;
-	do	{
+	do {
 		nextlen = *sptr++;
 		nextlen = *sptr - nextlen;
 		if (nextlen == len && RELEQ(len, namebuf, cp)) {

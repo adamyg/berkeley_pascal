@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)NAM.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)NAM.c	8.1 (Berkeley) 6/6/93";
 
 char *
 NAM(val, name)
-
 	long		val;	/* internal enumerated type value */
 	char		*name;	/* ptr to enumerated type name descriptor */
 {
@@ -48,7 +47,7 @@ NAM(val, name)
 
 	sptr = (short *)name;
 	if (value < 0 || value >= *sptr) {
-		ERROR("Enumerated type value of %D is out of range on output\n",
+		ERROR("Enumerated type value of %d is out of range on output\n",
 			val);
 	}
 	sptr++;

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)FNIL.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)FNIL.c	8.1 (Berkeley) 6/6/93";
 
 char *
 FNIL(curfile)
-
 	register struct iorec	*curfile;
 {
 	if (curfile->fblk >= MAXFILES || _actfile[curfile->fblk] != curfile) {

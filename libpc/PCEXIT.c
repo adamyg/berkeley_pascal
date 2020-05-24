@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1979, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1979 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,31 +31,46 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)PCEXIT.c	8.1 (Berkeley) 6/6/93";
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)PCEXIT.c	1.3 (Berkeley) 6/29/90";
 #endif /* not lint */
 
-#include "h00vars.h"
+#if defined(unix)
 #include <sys/time.h>
 #include <sys/resource.h>
+#else
+#include <time.h>
+#endif
+#include "h00vars.h"
 
+void
 PCEXIT(code)
-
 	int	code;
 {
-	double l;
-	struct rusage ru;
-
 	PCLOSE(GLVL);
 	PFLUSH();
+
 	if (_stcnt > 0) {
-		if (getrusage(RUSAGE_SELF, &ru) < 0)
-			exit(code);
-		l = ru.ru_utime.tv_usec;
-		l /= 1000000;
-		l += ru.ru_utime.tv_sec;
-		fprintf(stderr, "\n%1ld %s %04.2f seconds cpu time.\n",
-				_stcnt, "statements executed in", l);
-	}
+#if defined(unix)
+        struct rusage ru;
+        double l;
+
+        if (getrusage(RUSAGE_SELF, &ru) < 0)
+	        exit(code);
+        l = ru.ru_utime.tv_usec;
+	l /= 1000000;
+	l += ru.ru_utime.tv_sec;
+	fprintf(_ERROUT, 
+               "\n%1ld statements executed in %04.2f seconds cpu time.\n",
+	        _stcnt, l);
+#else
+        clock_t clk = clock();
+
+	fprintf(_ERROUT, 
+               "\n%1ld statements executed in %01d.%02d seconds cpu time.\n",
+	       _stcnt, clk / CLOCKS_PER_SEC, clk % CLOCKS_PER_SEC );
+#endif
+        }
+
 	exit(code);
 }

@@ -31,21 +31,21 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)NEW.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 NEW(var, size)
 	char	**var;	/* pointer to item being deallocated */
 	long	size;	/* sizeof struct pointed to by var */
 {
-	extern	char *malloc();
 	char 	*memblk;
 
-	memblk = malloc((int)size);
-	if (memblk == 0) {
+	memblk = (char *)calloc((int)size, 1);
+	if (memblk == NULL) {
 		ERROR("Ran out of memory\n", 0);
 		return;
 	}

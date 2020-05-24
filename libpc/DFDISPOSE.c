@@ -31,18 +31,18 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)DFDISPOSE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-/*
+ /*
  * Close all active files within a dynamic record,
  * then dispose of the record.
  */
-
 #include "h00vars.h"
 #include "libpc.h"
 
+void
 DFDISPOSE(var, size)
 	char	**var;	/* pointer to pointer being deallocated */
 	long	size;	/* sizeof(bletch) */

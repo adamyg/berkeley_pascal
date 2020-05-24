@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PFLUSH.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -40,6 +40,7 @@ static char sccsid[] = "@(#)PFLUSH.c	8.1 (Berkeley) 6/6/93";
 /*
  * insure that a usable image is in the buffer window
  */
+void
 PFLUSH()
 {
 	register struct iorec	*next;

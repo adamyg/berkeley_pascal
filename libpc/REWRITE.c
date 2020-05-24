@@ -31,21 +31,26 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)REWRITE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+
 #include "h00vars.h"
 
+void
 REWRITE(filep, name, maxnamlen, datasize)
-
 	register struct iorec	*filep;
 	char			*name;
 	long			maxnamlen;
 	long			datasize;
 {
 	filep = GETNAME (filep, name, maxnamlen, datasize);
+#ifdef unix
 	filep->fbuf = fopen(filep->fname, "w");
+#else
+	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "wt" : "wb"));
+#endif
 	if (filep->fbuf == NULL) {
 		PERROR("Could not create ",filep->pfname);
 		return;

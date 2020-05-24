@@ -31,13 +31,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RANDOM.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
-
-extern long RAND();
 
 double
 RANDOM()
@@ -49,9 +47,9 @@ RANDOM()
 	 * calculate (1103515245 * seed) mod 2^31-1
 	 */
 	d = 1103515245.0 * _seed / 2147483647.0;
-	l = d;
+	l = (long)d;
 	d = d - l;
-	_seed = d * 2147483647.0;
+	_seed = (long)(d * 2147483647.0);
 	/*
 	 * want a value in the range 0..1
 	 */

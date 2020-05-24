@@ -31,25 +31,33 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PMFLUSH.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
+#include "../src/pmon.h"
 
+void
 PMFLUSH(cntrs, rtns, bufaddr)
-
-	long cntrs;	/* total number of counters (stmt + routine) */
-	long rtns;	/* number of func and proc counters */
-	long *bufaddr;	/* address of count buffers */
+	long cntrs;		/* total number of counters (stmt + routine) */
+	long rtns;		/* number of func and proc counters */
+	long *bufaddr;		/* address of count buffers */
 {
-	register FILE	*filep;
+	register FILE *filep;
+	struct pmon_header *zmagic;
 
-	bufaddr[0] = 0426;
-	time(&bufaddr[1]);
-	bufaddr[2] = cntrs;
-	bufaddr[3] = rtns;
+	zmagic = (struct pmon_header *)bufaddr;
+	zmagic->magic = PMONMAGIC;
+	zmagic->tim = (long)time(NULL);
+	zmagic->cntrs = cntrs;
+	zmagic->rtns = rtns;
+
+#ifdef unix
 	filep = fopen(PXPFILE, "w");
+#else
+	filep = fopen(PXPFILE, "wb");
+#endif
 	if (filep == NULL)
 		goto ioerr;
 	fwrite(bufaddr, (int)(cntrs + 1), sizeof(long), filep);

@@ -31,15 +31,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)CHR.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char ECHR[] = "Argument to chr of %D is out of range\n";
+#include "h00vars.h"
+
+static const char ECHR[] = "Argument to chr of %ld is out of range\n";
 
 char
 CHR(value)
-	unsigned long	value;
+	unsigned long value;
 {
 	if (value > 127) {
 		ERROR(ECHR, value);

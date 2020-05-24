@@ -31,12 +31,13 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)DISPOSE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include	"h00vars.h"
+#include "h00vars.h"
 
+void
 DISPOSE(var, siz)
 	register char	**var;	/* pointer to pointer being deallocated */
 	long		siz;	/* sizeof(bletch) */

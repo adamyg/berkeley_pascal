@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)READC.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,11 +39,8 @@ static char sccsid[] = "@(#)READC.c	8.1 (Berkeley) 6/6/93";
 
 char
 READC(curfile)
-
 	register struct iorec	*curfile;
 {
-	char			data;
-
 	if (curfile->funit & FWRITE) {
 		ERROR("%s: Attempt to read, but open for writing\n",
 			curfile->pfname);

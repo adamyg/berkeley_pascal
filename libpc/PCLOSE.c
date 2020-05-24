@@ -31,22 +31,21 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PCLOSE.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 /*
  * Close all files associated with the topmost stack frame.
  */
-
 #include "h00vars.h"
 #include "libpc.h"
 
+void
 PCLOSE(level)
-
 	struct iorec		*level;
 {
-	register struct iorec	*next;
+	register struct iorec *next;
 
 	next = _fchain.fchain;
 	while(next != FILNIL && next->flev <= level) {

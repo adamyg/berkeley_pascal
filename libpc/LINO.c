@@ -31,14 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)LINO.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
-char ELINO[] = "Statement count limit of %D exceeded\n";
+static const char ELINO[] = "Statement count limit of %d exceeded\n";
 
+void
 LINO()
 {
 	if (++_stcnt >= _stlim) {

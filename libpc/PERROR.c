@@ -31,12 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PERROR.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include	<stdio.h>
-#include	<signal.h>
+#include "h00vars.h"
+
+#include <stdio.h>
+#include <signal.h>
 
 /*
  * Routine PERROR is called from the runtime library when a runtime
@@ -45,13 +47,22 @@ static char sccsid[] = "@(#)PERROR.c	8.1 (Berkeley) 6/6/93";
  */
 long
 PERROR(msg, fname)
-
-	char	*msg, *fname;
+	const char *msg, *fname;
 {
+	int x_errno = errno;
+
 	PFLUSH();
-	fputc('\n',stderr);
+	fputc('\n', stderr);
 	fputs(msg, stderr);
-	perror(fname);
+	fprintf(stderr, "%s: %s\n", fname, strerror(x_errno));
+	fflush(stderr);
+
+#if defined(unix)
 	kill(getpid(), SIGTRAP);
+#else
+	px_raise(PXSIGIO);
+	px_backtrace("perror");
+	px_exit(-1);
+#endif
 	return 0;
 }

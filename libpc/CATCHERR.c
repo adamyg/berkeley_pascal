@@ -31,12 +31,13 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)CATCHERR.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 CATCHERR(err, todo)
 	long err;		/* error to be caught */
 	struct formalrtn todo;	/* procedure to call to catch error */

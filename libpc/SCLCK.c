@@ -31,20 +31,30 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)SCLCK.c	8.2 (Berkeley) 5/23/94";
 #endif /* not lint */
 
-#include <sys/types.h>
+#if defined(unix)
 #include <sys/time.h>
 #include <sys/resource.h>
+#else
+#include <time.h>
+#endif
+#include "h00vars.h"
 
 long
 SCLCK()
 {
+#if defined(unix)
 	struct rusage ru;
 
 	if (getrusage(RUSAGE_SELF, &ru) < 0)
 		return (-1);
 	return (ru.ru_stime.tv_sec * 1000 + ru.ru_stime.tv_usec / 1000);
+#else
+	long clk = (long)clock();
+
+	return (clk / CLOCKS_PER_SEC) + (clk % CLOCKS_PER_SEC);
+#endif
 }

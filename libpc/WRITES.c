@@ -31,25 +31,25 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)WRITES.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
-WRITES(curfile, d1, d2, d3, d4)
-
+void
+WRITES(curfile, buf, elsize, nelem, fp)
 	register struct iorec	*curfile;
-	FILE			*d1;
-	int			d2, d3;
-	char			*d4;
+	char			*buf;
+	int			elsize, nelem;
+	FILE			*fp;
 {
 	if (curfile->funit & FREAD) {
 		ERROR("%s: Attempt to write, but open for reading\n",
 			curfile->pfname);
 		return;
 	}
-	fwrite(d1, d2, d3, d4);
+	fwrite(buf, elsize, nelem, fp);
 	if (ferror(curfile->fbuf)) {
 		PERROR("Could not write to ", curfile->pfname);
 		return;

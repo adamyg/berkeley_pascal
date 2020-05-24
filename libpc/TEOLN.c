@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)TEOLN.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,24 +39,23 @@ static char sccsid[] = "@(#)TEOLN.c	8.1 (Berkeley) 6/6/93";
 
 bool
 TEOLN(filep)
-
 	register struct iorec	*filep;
 {
 	if (filep->fblk >= MAXFILES || _actfile[filep->fblk] != filep ||
 	    (filep->funit & FDEF)) {
 		ERROR("Reference to an inactive file\n", 0);
-		return;
+		return FALSE;
 	}
 	if (filep->funit & FWRITE) {
 		ERROR("%s: eoln is undefined on files open for writing\n",
 		    filep->pfname);
-		return;
+		return FALSE;
 	}
 	IOSYNC(filep);
 	if (filep->funit & EOFF) {
 		ERROR("%s: eoln is undefined when eof is true\n",
 		    filep->pfname);
-		return;
+		return FALSE;
 	}
 	if (filep->funit & EOLN)
 		return TRUE;

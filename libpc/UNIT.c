@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)UNIT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -44,11 +44,11 @@ UNIT(curfile)
 {
 	if (curfile->fblk >= MAXFILES || _actfile[curfile->fblk] != curfile) {
 		ERROR("Reference to an inactive file\n", 0);
-		return;
+		return NULL;
 	}
 	if (curfile->funit & FDEF) {
 		ERROR("%s: Reference to an inactive file\n", curfile->pfname);
-		return;
+		return NULL;
 	}
 	return curfile;
 }

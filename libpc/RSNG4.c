@@ -31,9 +31,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RSNG4.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
+
+#include "h00vars.h"
 
 extern char ERANG[];	/* ERANG is defined in RANG4.c */
 
@@ -42,7 +44,7 @@ RSNG4(value, upper)
 	long		value;
 	unsigned long	upper;
 {
-	if (value > upper) {
+	if ((unsigned long)value > upper) {
 		ERROR(ERANG, value);
 	}
 	return	value;

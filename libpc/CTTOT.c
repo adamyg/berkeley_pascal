@@ -31,15 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)CTTOT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "whoami.h"
 #include "h00vars.h"
 
-long	_mask[] = {	
-#		ifdef DEC11
+static const long	_mask[] = {	
+#ifdef DEC11
 		    0xffffffff , 0xfffffffe , 0xfffffffc , 0xfffffff8 ,
 		    0xfffffff0 , 0xffffffe0 , 0xffffffc0 , 0xffffff80 ,
 		    0xffffff00 , 0xfffffe00 , 0xfffffc00 , 0xfffff800 ,
@@ -49,7 +49,7 @@ long	_mask[] = {
 		    0xff000000 , 0xfe000000 , 0xfc000000 , 0xf8000000 ,
 		    0xf0000000 , 0xe0000000 , 0xc0000000 , 0x80000000 ,
 		    0x00000000
-#		else
+#else
 		    0xffffffff , 0xfeffffff , 0xfcffffff , 0xf8ffffff ,
 		    0xf0ffffff , 0xe0ffffff , 0xc0ffffff , 0x80ffffff ,
 		    0x00ffffff , 0x00feffff , 0x00fcffff , 0x00f8ffff ,
@@ -59,8 +59,9 @@ long	_mask[] = {
 		    0x000000ff , 0x000000fe , 0x000000fc , 0x000000f8 ,
 		    0x000000f0 , 0x000000e0 , 0x000000c0 , 0x00000080 ,
 		    0x00000000
-#		endif DEC11
+#endif /*DEC11*/
 	    };
+
 /*
  * Constant set constructors.
  *
@@ -73,12 +74,8 @@ long	_mask[] = {
  * This was easier than changing the compiler to pass a pointer into
  * its own partially-constructed stack, while working to make px portable.
  */
-
-long *CTTOTA();
-
 long *
 CTTOT(result, lwrbnd, uprbnd, paircnt, singcnt, data)
-
 	long	*result;	/* pointer to final set */
 	long	lwrbnd;		/* lower bound of set */
 	long	uprbnd;		/* upper - lower of set */
@@ -91,7 +88,6 @@ CTTOT(result, lwrbnd, uprbnd, paircnt, singcnt, data)
 
 long *
 CTTOTA(result, lwrbnd, uprbnd, paircnt, singcnt, dataptr)
-
 	register long	*result;	/* pointer to final set */
 	long	lwrbnd;			/* lower bound of set */
 	long	uprbnd;			/* upper - lower of set */
@@ -119,12 +115,12 @@ CTTOTA(result, lwrbnd, uprbnd, paircnt, singcnt, dataptr)
 	for (cnt = 0; cnt < paircnt; cnt++) {
 		upper = *dataptr++ - lowerbnd;
 		if (upper < 0 || upper > upperbnd) {
-			ERROR("Range upper bound of %D out of set bounds\n",
+			ERROR("Range upper bound of %d out of set bounds\n",
 				*--dataptr);
 		}
 		lower = *dataptr++ - lowerbnd;
 		if (lower < 0 || lower > upperbnd) {
-			ERROR("Range lower bound of %D out of set bounds\n",
+			ERROR("Range lower bound of %d out of set bounds\n",
 				*--dataptr);
 		}
 		if (lower > upper) {
@@ -150,7 +146,7 @@ CTTOTA(result, lwrbnd, uprbnd, paircnt, singcnt, dataptr)
 	for (cnt = 0, cp = (char *)result; cnt < singcnt; cnt++) {
 		lower = *dataptr++ - lowerbnd;
 		if (lower < 0 || lower > upperbnd) {
-			ERROR("Value of %D out of set bounds\n", *--dataptr);
+			ERROR("Value of %d out of set bounds\n", *--dataptr);
 		}
 		cp[ lower >> LG2BITSBYTE ] |= (1 << (lower & MSKBITSBYTE));
 	}

@@ -31,9 +31,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)PACK.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
+
+#include "h00vars.h"
 
 /*
  * pack(a,i,z)
@@ -53,8 +55,8 @@ static char sccsid[] = "@(#)PACK.c	8.1 (Berkeley) 6/6/93";
  * move w(t)*(v-u+1) bytes from lv(a)+w(t)*(i-m) to lv(z)
  */
 
+void
 PACK(i, a, z, size_a, lb_a, ub_a, size_z)
-
 	long	i;	/* subscript into a to begin packing */
 	char	*a;	/* pointer to structure a */
 	char	*z;	/* pointer to structure z */
@@ -70,7 +72,7 @@ PACK(i, a, z, size_a, lb_a, ub_a, size_z)
 
 	subscr = i - lb_a;
 	if (subscr < 0 || subscr > ub_a) {
-		ERROR("i = %D: Bad i to pack(a,i,z)\n", i);
+		ERROR("i = %d: Bad i to pack(a,i,z)\n", i);
 		return;
 	}
 	cp = &a[subscr * size_a];

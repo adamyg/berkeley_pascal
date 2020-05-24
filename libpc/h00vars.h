@@ -1,6 +1,7 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
- * Copyright (c) 1979, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1979 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,8 +13,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -30,25 +31,42 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)h00vars.h	8.1 (Berkeley) 6/6/93
+ *      @(#)h00vars.h   1.12 (Berkeley) 4/9/90
  */
 
-#include <stdio.h>
+#if defined(_MSC_VER)
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#endif
+
 #include "whoami.h"
 
+#include "../src/common.h"			/* common definitions */
+#include "../px/px.h"				/* px interface */
+#include "libpc.h"				/* public interface */
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#define unlink(__x)	_unlink(__x)
+#endif
+
+#if (0)
 #define PXPFILE		"pmon.out"
 #define	BITSPERBYTE	8
 #define	BITSPERLONG	(BITSPERBYTE * sizeof(long))
+
 #define LG2BITSBYTE	03
 #define MSKBITSBYTE	07
 #define LG2BITSLONG	05
 #define MSKBITSLONG	037
+
 #define HZ		60
 #define	MAXLVL		20
 #define MAXERRS		75
 #define NAMSIZ		76
 #define MAXFILES	32
 #define PREDEF		2
+
 #ifdef ADDR32
 #ifndef tahoe
 #define STDLVL		((struct iorec *)(0x7ffffff1))
@@ -62,19 +80,22 @@
 #define STDLVL		((struct iorec *)(0xfff1))
 #define GLVL		((struct iorec *)(0xfff0))
 #endif ADDR16
+
 #define FILNIL		((struct iorec *)(0))
 #define INPUT		((struct iorec *)(&input))
 #define OUTPUT		((struct iorec *)(&output))
 #define ERR		((struct iorec *)(&_err))
 typedef enum {FALSE, TRUE} bool;
+#endif
 
 /*
  * runtime display structure
  */
 struct display {
-	char	*ap;
-	char	*fp;
+	char		*ap;
+	char		*fp;
 };
+
 
 /*
  * formal routine structure
@@ -85,89 +106,19 @@ struct formalrtn {
 	struct display	fdisp[ MAXLVL ];	/* saved at first passing */
 };
 
+
 /*
  * program variables
  */
 extern struct display	_disply[MAXLVL];/* runtime display */
-extern int		_argc;		/* number of passed args */
-extern char		**_argv;	/* values of passed args */
-extern long		_stlim;		/* statement limit */
-extern long		_stcnt;		/* statement count */
-extern long		_seed;		/* random number seed */
-extern char		*_maxptr;	/* maximum valid pointer */
-extern char		*_minptr;	/* minimum valid pointer */
-extern long		_pcpcount[];	/* pxp buffer */
+
 
 /*
- * file structures
+ * support functions
  */
-struct iorechd {
-	char		*fileptr;	/* ptr to file window */
-	long		lcount;		/* number of lines printed */
-	long		llimit;		/* maximum number of text lines */
-	FILE		*fbuf;		/* FILE ptr */
-	struct iorec	*fchain;	/* chain to next file */
-	struct iorec	*flev;		/* ptr to associated file variable */
-	char		*pfname;	/* ptr to name of file */
-	short		funit;		/* file status flags */
-	unsigned short	fblk;		/* index into active file table */
-	long		fsize;		/* size of elements in the file */
-	char		fname[NAMSIZ];	/* name of associated UNIX file */
-};
+extern void		FCALL(char *save, struct formalrtn *);
+extern void		FRTN(struct formalrtn *, char *);
+extern struct formalrtn *FSAV(long (*entryaddr)(), long, struct formalrtn *);
 
-struct iorec {
-	char		*fileptr;	/* ptr to file window */
-	long		lcount;		/* number of lines printed */
-	long		llimit;		/* maximum number of text lines */
-	FILE		*fbuf;		/* FILE ptr */
-	struct iorec	*fchain;	/* chain to next file */
-	struct iorec	*flev;		/* ptr to associated file variable */
-	char		*pfname;	/* ptr to name of file */
-	short		funit;		/* file status flags */
-	unsigned short	fblk;		/* index into active file table */
-	long		fsize;		/* size of elements in the file */
-	char		fname[NAMSIZ];	/* name of associated UNIX file */
-	char		buf[BUFSIZ];	/* I/O buffer */
-	char		window[1];	/* file window element */
-};
 
-/*
- * unit flags
- */
-#define SPEOLN	0x100	/* 1 => pseudo EOLN char read at EOF */
-#define	FDEF	0x080	/* 1 => reserved file name */
-#define	FTEXT	0x040	/* 1 => text file, process EOLN */
-#define	FWRITE	0x020	/* 1 => open for writing */
-#define	FREAD	0x010	/* 1 => open for reading */
-#define	TEMP	0x008	/* 1 => temporary file */
-#define	SYNC	0x004	/* 1 => window is out of sync */
-#define	EOLN	0x002	/* 1 => at end of line */
-#define	EOFF	0x001	/* 1 => at end of file */
 
-/*
- * file routines
- */
-extern struct iorec	*GETNAME();
-extern char		*MKTEMP();
-extern char		*PALLOC();
-
-/*
- * file record variables
- */
-extern struct iorechd	_fchain;	/* head of active file chain */
-extern struct iorec	*_actfile[];	/* table of active files */
-extern long		_filefre;	/* last used entry in _actfile */
-
-/*
- * standard files
- */
-extern struct iorechd	input;
-extern struct iorechd	output;
-extern struct iorechd	_err;
-
-/*
- * seek pointer struct for TELL, SEEK extensions
- */
-struct seekptr {
-	long	cnt;
-};

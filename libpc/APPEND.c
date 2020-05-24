@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1979, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1979 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,18 +31,22 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)APPEND.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 APPEND(filep)
-
 	register struct iorec	*filep;
 {
 	filep = GETNAME (filep, 0, 0, 0);
+#ifdef unix
 	filep->fbuf = fopen(filep->fname, "a");
+#else
+	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "at" : "ab"));
+#endif
 	if (filep->fbuf == NULL) {
 		PERROR("Could not open ", filep->pfname);
 		return;

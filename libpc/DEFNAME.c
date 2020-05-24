@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)DEFNAME.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"
 
+void
 DEFNAME(filep, name, maxnamlen, datasize)
-
 	register struct iorec	*filep;
 	char			*name;
 	long			maxnamlen;

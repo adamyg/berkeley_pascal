@@ -31,12 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)CASERNG.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include "h00vars.h"
+
+void
 CASERNG(val)
 	int val;
 {
-	ERROR("Label of %D not found in case\n", val);
+	ERROR("Label of %d not found in case\n", val);
 }

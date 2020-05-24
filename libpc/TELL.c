@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)TELL.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,7 +42,6 @@ static char sccsid[] = "@(#)TELL.c	8.1 (Berkeley) 6/6/93";
  */
 struct seekptr
 TELL(curfile)
-
 	register struct iorec	*curfile;
 {
 	struct seekptr loc;

@@ -31,11 +31,13 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)RANG4.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-char ERANG[] = "Value of %D is out of range\n";
+#include "h00vars.h"
+
+static const char ERANG[] = "Value of %d is out of range\n";
 
 long
 RANG4(value, lower, upper)

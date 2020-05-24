@@ -31,19 +31,19 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)TIME.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-extern char *ctime();
+#include "h00vars.h"
 
+void
 TIME(alfap)
-
 	register char *alfap;
 {
 	register char *ap, *cp;
 	register int i;
-	long a;
+	time_t a;
 
 	time(&a);
 	cp = ctime(&a);

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)IN.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,6 @@ static char sccsid[] = "@(#)IN.c	8.1 (Berkeley) 6/6/93";
 
 bool
 IN(element, lower, upper, setptr)
-
 	long	element;	/* element to check */
 	long	lower;		/* lowest element of set */
 	long	upper;		/* upper - lower of set */
