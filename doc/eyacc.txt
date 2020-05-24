@@ -1,0 +1,555 @@
+
+              EEEErrrrrrrroooorrrr RRRReeeeccccoooovvvveeeerrrryyyy ffffoooorrrr YYYYaaaacccccccc PPPPaaaarrrrsssseeeerrrrssss
+
+
+                         Julia Dain
+
+                 Dept. of Computer Science
+                   University of Warwick
+                      Coventry CV4 7AL
+                             UK
+
+
+
+                          _A_B_S_T_R_A_C_T
+
+          We aim to improve error recovery  in  parsers
+     generated  by  the LALR parser-generator _Y_a_c_c.  We
+     describe an error recovery scheme which a new ver-
+     sion   of   _Y_a_c_c  automatically  builds  into  its
+     parsers.  The scheme  uses  state  information  to
+     attempt  to  repair  input  which is syntactically
+     incorrect.  Repair by alteration of a single token
+     is  attempted  first, followed by replacement of a
+     phrase of the input.  A parser for the C  language
+     is  generated  from  existing  specifications  and
+     tested on a collection of student  programs.   The
+     quality  of error recovery and diagnostic messages
+     is found to be higher than that  of  the  existing
+     portable  C compiler.  The new version of _Y_a_c_c may
+     be used by any current user of  _Y_a_c_c,  with  minor
+     modifications to their existing specifications, to
+     produce  systems  with   enhanced   syntax   error
+     recovery.
+
+
+
+March 17, 1999
+
+
+
+
+
+              EEEErrrrrrrroooorrrr RRRReeeeccccoooovvvveeeerrrryyyy ffffoooorrrr YYYYaaaacccccccc PPPPaaaarrrrsssseeeerrrrssss
+
+
+                         Julia Dain
+
+                 Dept. of Computer Science
+                   University of Warwick
+                      Coventry CV4 7AL
+                             UK
+
+
+
+_1.  _I_n_t_r_o_d_u_c_t_i_o_n
+
+     The portable C compiler _p_c_c [Johnson78b] is widely used
+in UNIX|- environments but its diagnostic messages are  poor.
+The  parser  for  _p_c_c  is built by the LALR parser-generator
+_Y_a_c_c  [Johnson78a]  which  automatically   generates   error
+recovery  routines.   Many other popular UNIX utilities con-
+tain syntax analysers built by _Y_a_c_c,  such  as  the  pattern
+matchers  _l_e_x,  _a_w_k and _g_r_e_p and the FORTRAN 77 and C++ com-
+pilers, and these utilities would also be easier to  use  if
+they   had  improved  diagnostics.   The  aim  of  the  work
+presented here is to improve the error recovery scheme which
+_Y_a_c_c  builds  into its parsers and thus to improve the error
+handling in _p_c_c.
+
+     This paper describes the old method for error  recovery
+in  parsers  built by _Y_a_c_c, and a new general-purpose method
+which is independent of source language  and  which  may  be
+used  with  existing  _Y_a_c_c  input  specifications with minor
+changes.  We present tests on the resulting C compiler which
+show  an improvement in error handling.  We assume familiar-
+ity with LR parsing as described in [Aho77] for example.
+
+_2.  _T_h_e _p_o_r_t_a_b_l_e _C _c_o_m_p_i_l_e_r _a_n_d _Y_a_c_c
+
+     In some computing environments, for example  a  univer-
+sity where many students are learning to use a new language,
+the quality of error diagnostics produced by a  compiler  is
+at  least  as important as the efficiency of generated code.
+Students using a UNIX environment who learn C  after  Pascal
+often  ask  why  the portable C compiler is so poor compared
+with the Berkeley Pascal system [Joy80].  A reason for their
+dissatisfaction  is that _p_c_c is unable to diagnose many sim-
+ple syntax errors and produces  misleading  error  messages,
+whereas  the  authors  of  the Berkeley Pascal compiler paid
+particular attention to developing  a  good  error  recovery
+_________________________
+|- UNIX is a trademark of Bell Laboratories.
+
+
+
+
+                       March 17, 1999
+
+
+                           - 2 -
+
+
+scheme, presented in [Graham79].
+
+     _Y_a_c_c produces LALR(1) parsers from  a  set  of  grammar
+rules   (productions)  and  actions.   The  parsers  contain
+default reductions, that is any state of  the  parser  which
+has  a  unique reduction in its actions is given that reduc-
+tion as entry for all symbols which cannot be  shifted.   To
+make  use  of  the existing automatic error recovery scheme,
+described in [Aho74], the productions of the grammar  should
+contain  error  productions  of  the  form $A~->~A~eeeerrrrrrrroooorrrr~B$,
+where $A$ denotes a non-terminal, $A , B$ denote strings  of
+grammar  symbols,  and  eeeerrrrrrrroooorrrr  denotes the token reserved by
+_Y_a_c_c for error handling.  When the parser is presented  with
+an  input  token which is not a legal symbol for the current
+state, it enters error recovery mode and inserts  the  eeeerrrrrrrroooorrrr
+token  on  the input.  The parser pops states from the stack
+until the top state is one which can shift  eeeerrrrrrrroooorrrr.   Parsing
+then  continues as dictated by the parse tables, except that
+any token for which there is no parsing  action  is  deleted
+from  the input.  When three input tokens have been shifted,
+the parser assumes recovery is  complete  and  leaves  error
+recovery  mode.   In effect the parser assumes that an error
+has occurred while  looking  for  a  derivation  of  a  non-
+terminal  $A$ and that a series of tokens approximating to a
+derivation of $A$ has been consumed from the input.
+
+     _Y_a_c_c allows the user some control over  error  recovery
+actions  by  permitting  error  productions to have semantic
+actions associated with them.  These can be used to  specify
+actions  to  be taken in particular cases.  _Y_a_c_c also allows
+the user to force the parser  out  of  error  recovery  mode
+before three tokens have been shifted, and to clear the loo-
+kahead token.
+
+     The grammar for _p_c_c contains eight  error  productions,
+one for the external definition construct (the highest-level
+block of which C programs are composed, that is function and
+data  definitions),  five  for various forms of declarations
+and two for the statement construct.  Only  three  of  these
+productions  have  semantic  actions,  and these only change
+local variables.  The productions  for  the  statement  con-
+struct are
+$statement~->~eeeerrrrrrrroooorrrr~';'~|~eeeerrrrrrrroooorrrr~'"}"'$
+These productions mean that if the parser detects  an  error
+in a statement it will skip all input to the next semi-colon
+or right curly bracket.  All  the  other  error  productions
+have the form
+$declaration~->~eeeerrrrrrrroooorrrr$
+These cause the parser to skip input to anything  which  can
+follow the declaration.  No use is made of the facilities to
+force the parser out of error recovery  mode  or  clear  the
+lookahead token.
+
+     In general, the method for error recovery in  _Y_a_c_c  has
+
+
+
+                       March 17, 1999
+
+
+                           - 3 -
+
+
+some disadvantages.  The user has to write error productions
+which will control error recovery to  an  extent  which  the
+user may not realise.  These productions may introduct ambi-
+guities into the grammar.  During recovery, input and  stack
+states  are  deleted  silently.   No  information  about the
+nature of an error is  available.   The  advantages  of  the
+method  are  that it is simple to implement and efficient to
+run.  In the particular case of _p_c_c, the  main  disadvantage
+is  the  poor  quality  of  diagnostic  messages, which is a
+result of the lack of information about errors.
+
+_3.  _T_h_e _n_e_w _m_e_t_h_o_d
+
+     The new method for error recovery in parsers  generated
+by _Y_a_c_c uses two techniques, local correction with a forward
+move, and phrase-level recovery as presented in [Leinius70].
+When the parser meets an illegal input token, it first tries
+to make a local correction to the input string by changes of
+a single token.  If no local correction is successful, where
+success is judged by the number of moves which can  then  be
+made  by  the  parser,  a  phrase-level  recovery is made by
+replacing a part of the input  with  a  non-terminal.   Both
+already  parsed  input  and  input  still  remaining  may be
+replaced.
+
+_3._1.  _L_o_c_a_l _c_o_r_r_e_c_t_i_o_n
+
+     The set of tokens which are legal shift symbols for the
+current  configuration  is  determined by the current state.
+The parser attempts to repair the input by  actions  in  the
+following  order:   inserting  a  token from this set on the
+input before the next token, deleting  the  next  token,  or
+replacing  it  with  one  from  the set of legal tokens.  In
+order to determine whether a repair  is  "good"  the  parser
+runs a forward move on the repaired input.  This is achieved
+by copying some of the parse  stack  onto  an  error  stack,
+buffering  the  input  and turning off the semantic actions.
+The parser then restarts from the error state (the state  in
+which  it  detected  error), with the altered input.  If the
+parser can  continue  to  make  moves  without  detecting  a
+further  error  before  five  input  tokens  are shifted, or
+before accepting, the alteration  is  taken  to  be  a  good
+repair.   The  parser is returned to the error state and the
+parse stack, the input is backed up to  the  chosen  altera-
+tion,  and  semantic  actions  are  turned  on again.  If an
+alteration does not allow the parser to run a  forward  move
+which consumes five tokens from the input, a forward move is
+run with the next altered configuration from the set above.
+
+_3._2.  _P_h_r_a_s_e-_l_e_v_e_l _r_e_c_o_v_e_r_y
+
+     If no local correction succeeds, the parser is restored
+to the error state and the input is backed up to the illegal
+token.  The parser chooses a goal non-terminal from the  set
+
+
+
+                       March 17, 1999
+
+
+                           - 4 -
+
+
+of  kernel  items  for  the current state.  Its item has the
+form
+$A~->~v sub 1 ... v sub m ~.~v sub m+1 ... v sub n$
+where the $v sub i$ are grammar symbols.  The phrase  to  be
+replaced  by the goal non-terminal $A$ is $v sub 1 ... v sub
+n$.  $v sub 1 ... v sub m$ have been parsed, so  the  parser
+pops $m$ states from the stack and pushes the goto state for
+the new top of stack and $A$.  Further  reductions  may  now
+take  place.   To  complete the recovery, input is discarded
+until the next input token is legal for the  current  state.
+In effect, a reduction by the production $A~->~v sub 1 ... v
+sub m v sub m+1 ... v sub n$ has taken place.
+
+     A heuristic rule is used to choose the goal phrase from
+the kernel items of the error state, namely the last item to
+have been added to the kernel  during  construction  of  the
+item sets, except for the special case of state 0, where the
+first item is chosen.
+
+     The scheme  is  guaranteed  to  terminate,  because  it
+always consumes input tokens during a successful repair.
+
+_3._3.  _C_h_a_n_g_e_s _t_o _Y_a_c_c _i_n_p_u_t _s_p_e_c_i_f_i_c_a_t_i_o_n_s
+
+     Error productions are  no  longer  required  for  error
+recovery and so may be deleted from grammar rules.  The user
+must supply a routine _y_y_e_r_r_l_v_a_l as part of the _Y_a_c_c environ-
+ment.   The  purpose  of this routine is to supply a default
+semantic value which is required for tokens inserted  during
+local  correction  and  for  non-terminals used as goals for
+phrase-level recovery.  This semantic value  will  typically
+be a leaf of the syntax tree, suitably tagged.
+
+_3._4.  _E_r_r_o_r _m_e_s_s_a_g_e_s
+
+     The  parser  synthesises  an  error  message  from  the
+recovery action taken in each case.  It use the terminal and
+non-terminal names from the input grammar to _Y_a_c_c.  Examples
+of messages are
+            SEMICOLON inserted before RIGHTCURLY
+for a successful local repair and
+               e ASSIGN IF NAME replaced by e
+for replacement of a phrase.
+
+_3._5.  _S_p_a_c_e _r_e_q_u_i_r_e_m_e_n_t_s
+
+     Parsers generated by the new _Y_a_c_c require  extra  space
+for  information  for  phrase-level  recovery and diagnostic
+messages.  No extra space is required for local recovery, as
+the  information  required, the valid shift symbols for each
+state, is present in the existing tables.  For  phrase-level
+recovery,  two  extra words are required for each state, the
+goal non-terminal and the number of symbols to pop from  the
+stack.   Tables  of  strings  are  needed  for  synthesizing
+
+
+
+                       March 17, 1999
+
+
+                           - 5 -
+
+
+diagnostic messages; one string is required for a meaningful
+name for each grammar symbol, excluding literal tokens.
+
+     The parser generated by the new _Y_a_c_c  will  have  fewer
+states than the equivalent parser generated by the old _Y_a_c_c,
+because there are no error productions in its grammar.   The
+space-saving  device  of  default  reductions for all states
+with a single reduction is still used.
+
+_4.  _T_h_e _C _c_o_m_p_i_l_e_r
+
+     The existing C compiler _p_c_c contains a syntax  analyzer
+which is generated by _Y_a_c_c.  We took the source of this com-
+piler, removed the error productions from the _Y_a_c_c  specifi-
+cations  and included a new function _y_y_e_r_r_l_v_a_l which returns
+a semantic value  for  inserted  tokens  and  non-terminals.
+This value is a new leaf of the syntax tree.  The only other
+changes made were to the names of  some  of  the  terminals,
+such  as  changing  SM to SEMICOLON and RC to RIGHTCURLY, to
+improve the error messages.
+
+     The relative sizes of the old and new C  compilers  are
+shown in Figure 1.
+
+
+box center; l | c | c l | n | n .  pcc new version _ Size in
+bytes  of binary (ccom) 86776 98312 _ Parser only: Number of
+grammar rules 187 179 Number of states 312 303 Size in chars
+of source (y.tab.c) 42980 54617
+
+        Figure 1. Space required by the C compilers
+
+
+     It is obvious that the compiler performs identically to
+_p_c_c  on  C  programs which are syntactically correct.  Error
+recovery for incorrect programs consists of repairs  to  the
+input and error messages.  For the new compiler, repairs may
+be simple changes of one token or replacement of  a  phrase,
+and  error  messages describe the repairs.  For the old com-
+piler, error messages do not describe the  action  taken  by
+the parser to recover, but are either uninformative ("Syntax
+error") or indicate what the parser finds incorrect.
+
+     In  order  to  test  the  compiler's   performance   on
+incorrect  programs,  we made a collection of all C programs
+submitted by undergraduate students  in  the  Department  of
+Computer  Science  at  the  University of Warwick to _p_c_c for
+compilation over three twenty-four hour periods, October  9,
+10  and  16,  1984.  Duplicate programs were removed and the
+programs were run through _p_c_c and  the  new  compiler.   The
+code generated for syntactically correct programs was ident-
+ical.  Error recovery was evaluated according  to  the  cri-
+teria used by Sippu [Sippu83], rating a correction as excel-
+lent if it was the same  as  a  competent  programmer  might
+
+
+
+                       March 17, 1999
+
+
+                           - 6 -
+
+
+make, good if it introduced no spurious errors and missed no
+actual errors, fair if it introduced one spurious  error  or
+if  it missed one error, and poor otherwise, or if the error
+message generated was meaningless.  Missed errors,  that  is
+syntax  errors  that were present in the source code but not
+reported by the compiler, were counted.   Also  counted  was
+the  number of extra messages, that is messages about errors
+introduced into the  source  by  incorrect  recovery  action
+taken  by the compiler.  A comparison of the performances of
+the two compilers, evaluated according to these criteria, is
+shown  in  Figure  2.  Figure 3 shows a sample C program and
+its diagnostics.
+
+
+center box; c | c s | c s l | r l | r l .  pcc new version _
+Quality  of recovery action:  Excellent 1% (1) 54% (64) Good
+3% (3) 11% (13) Fair 54% (64) 13% (15)  Poor  27%  (32)  19%
+(22)  _  Missed  errors  15%  (18)  3% (4) _ Total number of
+errors 118 118 _ Extra messages 127 82
+
+ Figure 2. Comparison of the performance of the C compilers
+
+
+
+n l .  1 /* Kernighan and Ritchie p. 102 - mutilated */ 2  3
+strcmp(s, t) 4 char *s, *t 5 { 6 for ( ; *s == *t; s++, t++)
+7 if *s == ' ' 8 return(0)!  9 return(*s - *t); 10 ? }
+
+
+l .  Diagnostics from pcc:  Line 5: Syntax error Diagnostics
+from  new version:  Line 6: SEMICOLON inserted before LCURLY
+Line 7: LPAREN inserted before MUL Line 8:  RPAREN  inserted
+before  RETURN  Line  9: UNOP replaced by SEMICOLON Line 11:
+QUEST deleted
+
+                Figure 3. A sample C program
+
+
+_5.  _D_i_s_c_u_s_s_i_o_n
+
+     The C compiler generated  by  the  new  _Y_a_c_c  performed
+better  on  the  collection  of incorrect programs than _p_c_c.
+The majority of the errors were simple ones  which  occurred
+sparsely, and were therefore amenable to repair by the local
+recovery tactic.   This  pattern  of  occurrence  of  simple
+errors concurs with Ripley and Druseikis' analysis of syntax
+errors in Pascal programs [Ripley78], which showed that  the
+majority  of  these are single-token errors and occur infre-
+quently.  Clusters of errors and complicated errors were not
+handled so well by the phrase-level recovery, and these were
+responsible for the large  number  of  extra  messages  gen-
+erated.
+
+
+
+
+                       March 17, 1999
+
+
+                           - 7 -
+
+
+     The diagnostic messages produced depend  on  the  names
+for  the  terminals and non-terminals, which should be care-
+fully  chosen  by  the  grammar-writer.   Ideally,  messages
+should  be  at source level rather than lexical token level,
+as the user will understand a message of the form
+
+        Line 16: x = y
+        Semi-colon inserted ...... |
+
+better than one of the form
+
+        Line 16: SEMICOLON inserted after ID
+
+More communication between  the  lexical  analyzer  and  the
+parser may be needed for this sort of message.  Line numbers
+at present are occasionally out by one because of  buffering
+of the lexical tokens.
+
+     A disadvantage is that the scheme  shows  bias  towards
+assuming  correctness  of  the left context.  Local recovery
+assumes a single error  in  the  current  input  token,  and
+secondary  recovery  makes  an arbitrary choice of item from
+the error state which takes no account of the right context.
+
+     Several other error recovery schemes for LR(1)  parsers
+have  been described.  [Sippu81] and [Dain84] contain recent
+reviews of the literature.  The scheme presented here  bears
+resemblance  to  that devised by Graham, Haley and Joy for a
+Pascal compiler [Graham79], in that a two-stage recovery  is
+attempted.  There are several differences to note.  Firstly,
+our scheme is a general-purpose recovery scheme incorporated
+in  a  new  version  of _Y_a_c_c, and is used by any parser gen-
+erated by the new _Y_a_c_c.   Graham  requires  special  purpose
+error  recovery routines and cost vectors to be supplied for
+use by their parser generator _E_y_a_c_c which contains no  error
+recovery scheme.  Secondly, _E_y_a_c_c produces parsers with cer-
+tain states calling for reductions  having  their  lookahead
+tokens  enumerated,  i.e.  some  default  reductions are not
+made.  Our _Y_a_c_c has the usual default reductions.   Thirdly,
+Graham  requires the user to supply error productions in the
+grammar, to  control  secondary  recovery.   These  are  not
+required for our scheme.
+
+     The error recovery scheme for the compiler-writing sys-
+tem  HLP [Raiha83] incorporates a local recovery tactic into
+the phrase-level recovery scheme [Sippu83].  No forward move
+is  made  on  the  input  and  there  is  less  check on the
+"correctness" of a local correction; the  user  must  supply
+costs  for  deletion and insertion of each terminal in local
+correction.  Different criteria are used for identifying and
+replacing the error phrase in phrase-level recovery.
+
+     A two-stage  recovery  scheme  for  LL(1)  and  LALR(1)
+parsers   which  uses  the  concept  of  _s_c_o_p_e  _r_e_c_o_v_e_r_y  is
+
+
+
+                       March 17, 1999
+
+
+                           - 8 -
+
+
+implemented by Burke and Fisher [Burke82].  The scheme  can-
+not  be  used however in LR parsers with default reductions.
+The user must supply additional language information such as
+constructs which open and close scope in the language, lists
+of tokens which cannot be inserted between a given  pair  of
+tokens,  and lists of tokens which cannot be substituted for
+a given  token.   Pai  and  Kieburtz  [Pai80]  use  _f_i_d_u_c_i_a_l
+(trustworthy) symbols, typically reserved words, in a scheme
+for LL(1) parsers which they suggest as suitable for extend-
+ing to LR parsers.
+
+     Requiring the user  of  a  parser-generator  to  supply
+information to aid error recovery in addition to the grammar
+may result  in  recovery  which  is  more  tailored  to  the
+language,  but  imposes an extra burden on the user, who may
+not have a full understanding of the mechanism of the parser
+and  its  error  handling.   The scheme which we have imple-
+mented in _Y_a_c_c makes few  demands  of  this  nature  on  its
+users,  yet  improves  the  quality of error recovery in its
+parsers.
+
+_6.  _R_e_f_e_r_e_n_c_e_s
+
+[Aho74] Aho, A. V. and Johnson, S. C. LR Parsing.  _C_o_m_p_u_t_i_n_g
+_S_u_r_v_e_y_s _6, 2 (June 1974), 99-124.
+[Aho77] Aho, A. V. and Ullman, J. D.  _P_r_i_n_c_i_p_l_e_s _o_f _C_o_m_p_i_l_e_r
+_D_e_s_i_g_n.  Addison Wesley, 1977.
+[Burke82] Burke, M. and Fisher, G. A. A practical method for
+syntactic error diagnosis and recovery.  _A_C_M _S_I_G_P_L_A_N _N_o_t_i_c_e_s
+_1_7, _6 (June 1982), 67-78.
+[Dain84] Dain, J. A. Error recovery schemes in  LR  parsers.
+Theory  of Computation Report No. 71, Dept. of Computer Sci-
+ence, University of Warwick, Coventry, December 1984.
+[Graham79] Graham, S. L., Haley, C. B. and Joy, W. N.  Prac-
+tical  LR error recovery.  _A_C_M _S_I_G_P_L_A_N _N_o_t_i_c_e_s _1_4, 8 (August
+1979), 168-175.
+[Johnson78a] Johnson, S. C. Yacc  -  Yet  Another  Compiler-
+Compiler.  Bell Laboratories, Murray Hill, New Jersey, 1978.
+[Johnson78b] Johnson, S. C. A portable compiler: theory  and
+practice.   _P_r_o_c. _5_t_h _A_C_M _S_y_m_p. _o_n _P_r_i_n_c_i_p_l_e_s _o_f _P_r_o_g_r_a_m_m_i_n_g
+_L_a_n_g_u_a_g_e_s (January 1978), 97-104.
+[Joy80] Joy, W. N., Graham, S. L. and Haley, C. B.  Berkeley
+Pascal  User's  Manual.  Computer Science Division, Dept. of
+Electrical Engineering and Computer Science,  University  of
+California, Berkeley, California, 1980.
+[Leinius70] Leinius, R. P. Error detection and recovery  for
+syntax directed compiler systems.  Ph. D. Th., Computer Sci-
+ence Dept., University of Wisconsin, Madison, 1970.
+[Pai80] Pai, A.  B.  and  Kieburtz,  R.  B.  Global  context
+recovery:  a  new  strategy  for parser recovery from syntax
+errors.  _A_C_M _T_r_a_n_s. _o_n _P_r_o_g_r_a_m_m_i_n_g _L_a_n_g_u_a_g_e_s _a_n_d _S_y_s_t_e_m_s  _2,
+1 (January 1980), 18-41.
+[Raiha83] Raiha, K-J., Saarinen, M., Sarjakoski, M.,  Sippu,
+S.,  Soisalon-Soininen, E. and Tienari, M. Revised Report on
+
+
+
+                       March 17, 1999
+
+
+                           - 9 -
+
+
+the Compiler Writing System HLP78. Report A-1983-1, Dept. of
+Computer  Science,  University of Helsinki, Finland, January
+1983.
+[Ripley78] Ripley, G. D. and  Druseikis,  F.  A  statistical
+analysis  of syntax errors.  _C_o_m_p_u_t_e_r _L_a_n_g_u_a_g_e_s _3, 4 (1978),
+227-240.
+[Sippu81] Sippu, S.  Syntax  Error  Handling  in  Compilers.
+Report  A-1981-1,  Dept.  of Computer Science, University of
+Helsinki, Finland, March 1981.
+[Sippu83] Sippu, S.  and  Soisalon-Soininen,  E.  A  syntax-
+error-handling technique and its experimental analysis.  _A_C_M
+_T_r_a_n_s. _o_n _P_r_o_g_r_a_m_m_i_n_g _L_a_n_g_u_a_g_e_s _a_n_d _S_y_s_t_e_m_s  _5,  4  (October
+1983), 656-679.  --
