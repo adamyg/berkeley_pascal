@@ -1,12 +1,12 @@
-# BYACC(1)                July 15, 1990                       BYACC(6)
+BYACC(1)                July 15, 1990                       BYACC(6)
 
-##  NAME
+#  NAME
         byacc - (Berkeley Yacc) an LALR(1) parser generator
 
-##  SYNOPSIS
+#  SYNOPSIS
         byacc [-dlrtv] [-b file_prefix] [-p symbol_prefix] filename
 
-##  DESCRIPTION
+#  DESCRIPTION
         Yacc reads the grammar specification in the file 'filename'
         and generates an LR(1) parser for it.  The parsers consist
         of a set of LALR(1) parsing tables and a driver routine written
@@ -55,14 +55,14 @@
         by TMPDIR will be used as the name of the directory where
         the temporary files are created.
 
-## FILES
+# FILES
         y.code.c, y.tab.c, y.tab.h and y.output (UNIX)
         ycode.c, ytab.c, ytab.h and y.out (MSDOS)
         /tmp/yacc.aXXXXXX
         /tmp/yacc.tXXXXXX
         /tmp/yacc.uXXXXXX
 
-##   DIAGNOSTICS
+#   DIAGNOSTICS
         If there are rules that are never reduced, the number of
         such rules is reported on standard error.  If there are any
         LALR(1) conflicts, the number of conflicts is reported on
