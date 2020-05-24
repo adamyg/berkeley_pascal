@@ -1,0 +1,8 @@
+CVS/
+pascal.ref/
+.makelib/
+objects.*/
+lib.*/
+bin.*/
+Makefile
+*.err

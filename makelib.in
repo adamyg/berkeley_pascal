@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+# $Id: $
+# -*- mode: perl; tabs: 8; indent-width: 4; -*-
+# makelib configuration
+#
+# The applications are free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# The applications are distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Notice: Portions of this text are reprinted and reproduced in electronic form. from
+# IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
+# 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
+# Group. Copyright remains with the authors and the original Standard can be obtained
+# online at http://www.opengroup.org/unix/online.html.
+# ==end==
+#
+
+$PACKAGE        = 'Berkeley_Pascal';
+$PACKAGE_PATH   = 'include';
+$PACKAGE_H      = 'package.h';
+
+@x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
+
+@x_libraries2   = (     # local libraries -l<xxx> xxx.lib
+        'libpc',
+        'libpx'
+        );
+
+@x_optlibraries  = ();  # optional libraries
+
+@x_makefiles     = (    # local makefiles
+        '.',
+        'byacc',
+        'eyacc',
+        'ex37',
+        'libpc',
+        'pi',
+        'px',
+        'pdx',
+        'pxheader',
+        'pmerge'
+        );
+
+##      'pc',
+##      'pc0',
+##      'pc2',
+##      'pc3'
+
+1;
+
+
