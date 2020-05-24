@@ -45,7 +45,7 @@ FSAV(entryaddr, cbn, frtn)
 {
 	frtn->fentryaddr = entryaddr;
 	frtn->fbn = cbn;
-	blkcpy((char *)&_disply[1], (char *)&frtn->fdisp[0],
+	BLKCPY((char *)&_disply[1], (char *)&frtn->fdisp[0],
 	    frtn->fbn * sizeof(struct display));
 	return frtn;
 }

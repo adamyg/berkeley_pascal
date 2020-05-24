@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)RSNG4.c	8.1 (Berkeley) 6/6/93";
 
 #include "h00vars.h"
 
-extern char ERANG[];	/* ERANG is defined in RANG4.c */
+extern const char ERANG[]; /* ERANG is defined in RANG4.c */
 
 long
 RSNG4(value, upper)

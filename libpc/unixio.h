@@ -1,4 +1,4 @@
-/*-
+(*
  * Copyright (c) 1979, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -29,44 +29,31 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- */
+ *
+ *	@(#)unixio.h	8.1 (Berkeley) 6/6/93
+ *)
 
-#if !defined(lint) && defined(sccs)
-static char sccsid[] = "@(#)ERROR.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+const
+sccsid = '@(#)unixio.h 8.1 6/6/93';
 
-#include "h00vars.h"
+type
+fileptr = record
+	cnt :integer
+	end;
 
-#include <stdio.h>
-#include <signal.h>
-#include <stdarg.h>
+function TELL(
+var	fptr :text)
+{returns} :fileptr;
 
-/*
- * Routine ERROR is called from the runtime library when a runtime
- * error occurs. Its arguments are a pointer to an error message and 
- * an error specific piece of data.
- */
-long
-ERROR(const char *msg, ...)
-{
-	va_list ap;
-	long ret;
+  external;
 
-	PFLUSH();
-	fputc('\n',stderr);
-	va_start(ap, msg);
-	vfprintf(stderr, msg, ap);
-	fflush(stderr);
+procedure SEEK(
+ var	fptr :text;
+ var	cnt :fileptr);
 
-#if defined(unix)
-	raise(SIGUSR2);
-#else
-	px_raise(PXSIGERR);
-	px_backtrace("error");
-	px_exit(-1);
-#endif
+  external;
 
-	ret = va_arg(ap, long);
-	va_end(ap);
-        return (ret);
-}
+procedure APPEND(
+ var	fptr :text);
+
+   external;

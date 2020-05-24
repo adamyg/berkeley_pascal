@@ -162,9 +162,6 @@ extern struct iorechd	input;
 extern struct iorechd	output;
 extern struct iorechd	_err;
 
-extern FILE *		_ERROUT; 		/* ERROR outout stream */
-
-
 /*
  * Function prototypes
  */

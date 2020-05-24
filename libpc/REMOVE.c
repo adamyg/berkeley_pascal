@@ -72,8 +72,8 @@ REMOVE(name, namlim)
 	if (unlink(namebuf)) {
 		int x_errno = errno;
 
-		fputs("(w) Could not remove", _ERROUT);
-		fprintf(_ERROUT, "%s: %s\n", namebuf, strerror(x_errno));
+		fputs("(w) Could not remove", stderr);
+		fprintf(stderr, "%s: %s\n", namebuf, strerror(x_errno));
 		return;
 	}
 #else

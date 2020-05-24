@@ -52,25 +52,25 @@ PCEXIT(code)
 
 	if (_stcnt > 0) {
 #if defined(unix)
-        struct rusage ru;
-        double l;
+	struct rusage ru;
+	double l;
 
-        if (getrusage(RUSAGE_SELF, &ru) < 0)
-	        exit(code);
-        l = ru.ru_utime.tv_usec;
+	if (getrusage(RUSAGE_SELF, &ru) < 0)
+		exit(code);
+	l = ru.ru_utime.tv_usec;
 	l /= 1000000;
 	l += ru.ru_utime.tv_sec;
-	fprintf(_ERROUT, 
-               "\n%1ld statements executed in %04.2f seconds cpu time.\n",
-	        _stcnt, l);
+	fprintf(stderr,
+		"\n%1ld statements executed in %04.2f seconds cpu time.\n",
+		_stcnt, l);
 #else
-        clock_t clk = clock();
+	clock_t clk = clock();
 
-	fprintf(_ERROUT, 
-               "\n%1ld statements executed in %01d.%02d seconds cpu time.\n",
-	       _stcnt, clk / CLOCKS_PER_SEC, clk % CLOCKS_PER_SEC );
+	fprintf(stderr,
+		"\n%1ld statements executed in %01d.%02d seconds cpu time.\n",
+		_stcnt, clk / CLOCKS_PER_SEC, clk % CLOCKS_PER_SEC );
 #endif
-        }
+	}
 
 	exit(code);
 }

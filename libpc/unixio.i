@@ -1,4 +1,4 @@
-/*-
+(*
  * Copyright (c) 1979, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -29,44 +29,81 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- */
+ *
+ *	@(#)unixio.i	8.1 (Berkeley) 6/6/93
+ *)
 
-#if !defined(lint) && defined(sccs)
-static char sccsid[] = "@(#)ERROR.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+const
+sccsid = '@(#)unixio.i 8.1 6/6/93';
 
-#include "h00vars.h"
+type
+fileptr = record
+	cnt :integer
+	end;
 
-#include <stdio.h>
-#include <signal.h>
-#include <stdarg.h>
+function TELL(
+var	fptr :text)
+{returns} :fileptr;
 
-/*
- * Routine ERROR is called from the runtime library when a runtime
- * error occurs. Its arguments are a pointer to an error message and 
- * an error specific piece of data.
- */
-long
-ERROR(const char *msg, ...)
-{
-	va_list ap;
-	long ret;
+var
+filesize, headsize, tailsize :integer;
+result :fileptr;
 
-	PFLUSH();
-	fputc('\n',stderr);
-	va_start(ap, msg);
-	vfprintf(stderr, msg, ap);
-	fflush(stderr);
+begin
+tailsize := 0;
+while not eof(fptr) do begin
+	get(fptr);
+	tailsize := tailsize + 1
+	end;
+filesize := 0;
+reset(fptr);
+while not eof(fptr) do begin
+	get(fptr);
+	filesize := filesize + 1
+	end;
+reset(fptr);
+for headsize := 1 to filesize - tailsize do
+	get(fptr);
+result.cnt := headsize;
+TELL := result
+end;
 
-#if defined(unix)
-	raise(SIGUSR2);
-#else
-	px_raise(PXSIGERR);
-	px_backtrace("error");
-	px_exit(-1);
-#endif
+procedure SEEK(
+ var	fptr :text;
+ var	cnt :fileptr);
 
-	ret = va_arg(ap, long);
-	va_end(ap);
-        return (ret);
-}
+var
+i :integer;
+
+begin
+reset(fptr);
+for i := 1 to cnt.cnt do
+	get(fptr)
+end;
+
+procedure APPEND(
+ var	fptr :text);
+
+var
+tmp :text;
+
+begin
+rewrite(tmp);
+reset(fptr);
+while not eof(fptr) do begin
+	if eoln(fptr) then
+		writeln(tmp)
+	else
+		write(tmp, fptr^);
+	get(fptr)
+	end;
+reset(tmp);
+rewrite(fptr);
+while not eof(tmp) do begin
+	if eoln(tmp) then
+		writeln(fptr)
+	else
+		write(fptr, tmp^);
+	get(tmp)
+	end
+end;

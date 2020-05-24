@@ -43,7 +43,7 @@ BLKCLR(at, siz)
 	long siz;
 {
 	register int size = siz;
-    register char *p = at;
+	register char *p = at;
 
 	while (size-- > 0)
 		*p++ = 0;

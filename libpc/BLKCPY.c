@@ -44,8 +44,8 @@ BLKCPY(from, to, siz)
 	long siz;
 {
 	register int size = siz;
-    register const char *f = from;
-    register char *t = to;
+	register const char *f = from;
+	register char *t = to;
 
 	if (t < f)
 		while(size-- > 0)
