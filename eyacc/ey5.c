@@ -22,8 +22,8 @@ extern FILE *cin;
 extern FILE *cout;
 
 FILE *copen( s, c )
-    char *s;
-    char c;
+  char *s;
+  int c;
   {
   FILE *f;
 
