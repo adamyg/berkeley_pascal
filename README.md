@@ -51,7 +51,7 @@ The following source modules are included for reference:
 ## Install
  
 Initial port has been retargeted to Windows (32-bit), using either Open Watcom or Microsoft Visual C/C++.
-Additional targets, includes Linux are roadmapped, yet should be cleaner objective.
+Additional targets, including Linux are roadmapped, yet should simplier once retargeted.
   
 * Install the gnuwin32 tool set or similar; for example Source, http://unxutils.sourceforge.net/.
 
