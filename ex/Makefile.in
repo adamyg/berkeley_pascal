@@ -1,0 +1,145 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/25 00:21:59 cvsuser Exp $
+# ex makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# You can redistribute it and/or modify it under the terms of
+# the project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+E=
+O=		.o
+H=		.h
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+RM=		@RM@
+RMDIR=		@RMDIR@
+PERL=		@PERL@
+
+# Common flags
+
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I./win32 @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/ex
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+TARGET=		ex$(E)
+
+CFLAGS+=	-DTRACE -DADEBUG -DMDEBUG -DTDEBUG -DIDEBUG -DRDEBUG -DFDEBUG -DLISPCODE -DFASTTAG -DVMUNIX -DCHDIR
+
+CSOURCES=\
+	ex.c\
+	ex_addr.c\
+	ex_cmds.c\
+	ex_cmds2.c\
+	ex_cmdsub.c\
+	ex_data.c\
+	ex_extern.c\
+	ex_get.c\
+	ex_io.c\
+	ex_printf.c\
+	ex_put.c\
+	ex_re.c\
+	ex_set.c\
+	ex_subr.c\
+	ex_tagio.c\
+	ex_temp.c\
+	ex_tty.c\
+	ex_v.c\
+	ex_vadj.c\
+	ex_vget.c\
+	ex_vmain.c\
+	ex_voper.c\
+	ex_vops.c\
+	ex_vops2.c\
+	ex_vops3.c\
+	ex_vput.c\
+	ex_vwind.c
+
+CSOURCES+=\
+	win32/ex_term.c\
+	win32/ex_win32.c
+
+VPATH=		
+
+OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+
+unique_words=	$(if $(1),$(call unique_words,$(wordlist 2,$(words $(1)),$(1)),$(if $(filter $(firstword $(1)),$(2)),$(2),$(firstword $(1)) $(2))),$(2))
+
+OBJDIRS=	$(call unique_words, $(dir $(OBJS)))
+
+CLEANOBJS=	$(OBJS)
+CLEANFILES=
+
+LDLIBS=		-L$(D_LIB)
+
+all:		directories $(D_BIN)/$(TARGET)
+
+$(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
+$(D_BIN)/$(TARGET):	$(OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LXFLAGS) @LDMAPFILE@
+
+directories:		$(addsuffix /.created, $(OBJDIRS))
+
+%/.created:
+		-@$(PERL) ../mkdir_p.pl $(@D)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(D_BIN)/$(TARGET) $(TARGET) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
+		-@$(PERL) ../rmdir_p.pl $(OBJDIRS)
+		
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end
+

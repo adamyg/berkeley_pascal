@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 # -*- mode: perl; -*-
 # $Id: $
-# "mkdir -p" emulation for WIN32 builds.
+#
+# "mkdir -p" emulation.
 #
 use strict;
 use warnings 'all';
@@ -26,7 +27,7 @@ sub mkdir_p {
     print "created directory `$dir'\n";
 }
 
-my  $arg;
+my $arg;
 
 foreach $arg (@ARGV) {
     $arg =~ tr|\\|/|;

@@ -156,7 +156,7 @@ endif
 BINS=\
 	$(D_BIN)/eyacc$(E)		\
 	$(D_BIN)/byacc$(E)		\
-	$(D_BIN)/ex37$(E)		\
+	$(D_BIN)/ex$(E)			\
 	$(D_BIN)/pi$(E) 		\
 	$(D_BIN)/px$(E) 		\
 	$(D_BIN)/pdx$(E) 		\
@@ -259,7 +259,7 @@ install:		all
 clean:
 		$(MAKE) -C byacc clean
 		$(MAKE) -C eyacc clean
-		$(MAKE) -C ex37 clean
+		$(MAKE) -C ex clean
 		$(MAKE) -C libpc clean
 		$(MAKE) -C pi clean
 		$(MAKE) -C px clean
@@ -277,7 +277,7 @@ distclean:		clean
 			px/Makefile \
 			pi/Makefile \
 			libpc/Makefile \
-			ex37/Makefile \
+			ex/Makefile \
 			eyacc/Makefile \
 			byacc/Makefile \
 			include/config.h \

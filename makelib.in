@@ -41,7 +41,7 @@ $PACKAGE_H      = 'package.h';
         '.',
         'byacc',
         'eyacc',
-        'ex37',
+        'ex',
         'libpc',
         'pi',
         'px',
@@ -56,5 +56,4 @@ $PACKAGE_H      = 'package.h';
 ##      'pc3'
 
 1;
-
 

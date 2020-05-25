@@ -1,0 +1,57 @@
+
+Source BSD4.3
+
+	General modifications for ANSI/C,
+
+Summary
+
+	ey1.h/
+
+		82:	- FILE *ftable;
+			- FILE *foutput;
+			- FILE *cout = stdout;
+
+		83:	+ FILE *ftable = NULL;
+			+ FILE *foutput = NULL;
+			+ FILE *cout = NULL;
+
+	eyc.h/
+
+		81:	+ cout = stdout;
+
+		254:	+ aryfil2( v, n, c ) char *v; int n,c; { /* set elements 0 through n-1 to c */
+			+  int i;
+			+  for( i=0; i<n; ++i ) v[i] = c;
+			+ }
+
+	ey3.c/
+
+		74:	- for( i=0; i<=nnonter; i++ ) pfirst[i] = flset( wsets[i].ws );
+			+ for( i=0; i<=nnonter; i++ ) pfirst[i] = flset( (struct looksets *)wsets[i].ws );
+
+		153:	- fprintf( cout , "putitem(%s), state %d\n", writem(&ptr), nstate );
+			+ fprintf( cout , "putitem(%s), state %d\n", writem((struct item *)&ptr), nstate );
+
+		175:	- aryfil( pempty, nnonter+1, 0 );
+			+ aryfil2( pempty, nnonter+1, 0 );
+
+		237:	- putitem( wsets[k].pitem + 1, wsets[k].ws );
+			+ putitem( wsets[k].pitem + 1, (struct item *)wsets[k].ws );
+
+		378:	- fprintf( cout , "\t%s", writem(&wsets[j].pitem));
+			+ fprintf( cout , "\t%s", writem((struct looksets *)&wsets[j].pitem));
+
+		322:	- UNION( clset.lset, clset.lset, pfirst[ch-NTBASE] );
+			+ UNION( clset.lset, clset.lset, (int *)pfirst[ch-NTBASE] );
+
+		379:	- prlook( wsets[j].ws );
+			+ prlook( (struct looksets *)wsets[j].ws );
+
+	ey5.c/
+		43:	- fflush( cout );
+			+ if (cout) fflush( cout );
+
+		52:	- fflush( cout );
+			+ if (cout) fflush( cout );
+
+	Adamy
