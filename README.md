@@ -37,7 +37,9 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
 
 The following source modules are included for reference: 
    
-    pxref -       Cross-reference generator.
+    pxref -       Cross-reference generator
+
+    pxp -         Pascal execution profiler.
 
     pix -         Pascal interpreter and executor.
 
