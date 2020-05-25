@@ -43,6 +43,7 @@ $CONFIG_PATH    = 'libcompat';
         'ex',
         'pi',
         'px',
+        'pxp',
         'pdx',
         'px_header',
         'pmerge'

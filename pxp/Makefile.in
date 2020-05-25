@@ -1,0 +1,157 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/25 22:52:14 cvsuser Exp $
+# pxp makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# You can redistribute it and/or modify it under the terms of
+# the project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+H=		.h
+O=		.o
+A=		.a
+LP=		lib
+E=
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compxlers, programs
+
+CC=		@CC@
+AR=		@AR@
+RANLIB= 	@RANLIB@
+RM=		@RM@
+RMDIR=		@RMDIR@
+PERL=		@PERL@
+
+# Common flags
+
+ARFLAGS=	rcv
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I..\src -I..\libpc @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pxp
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+VPATH=		../src
+CFLAGS+=	-Di80x86
+
+
+#########################
+
+LIBS=
+
+
+#########################
+
+BINS=\
+	$(D_BIN)/pxpversion$(E) \
+	$(D_BIN)/opc$(E) \
+	$(D_BIN)/pxp$(E)
+
+PXP_CSOURCE=\
+	TRdata.c Version.c call.c case.c const.c cset.c error.c fdec.c \
+	func.c hash.c lab.c lval.c main.c nl.c pmon.c pp.c proc.c rec.c \
+	rmothers.c rval.c stat.c string.c subr.c tree.c treen.c type.c \
+	var.c y.tab.c yycomm.c yycopy.c yycosts.c yyerror.c yyget.c yyid.c \
+	yylex.c yymain.c yypanic.c yyparse.c yyprint.c yyput.c yyrecover.c \
+	yyseman.c yytree.c
+	
+OPC_CSOURCE=\
+	opc.c
+
+VERSION_CSOURCE=\
+	pxpversion.c
+
+PXP_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PXP_CSOURCE)))
+OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
+VERSION_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(VERSION_CSOURCE)))
+
+
+#########################
+
+LDLIBS=		-L$(D_LIB) -llibcompat
+
+CLEAN+=		opcode.h Version.c
+CLEANOBJS=	$(PXP_OBJS) $(OPC_OBJS) $(VERSION_OBJS)
+
+#########################################################################################
+
+all:			directories opcode.h Version.c $(LIBS) $(BINS)
+
+opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
+		$(D_BIN)/opc$(E) > $@
+
+Version.c:		$(D_BIN)/pxpversion$(E)
+		$(D_BIN)/pxpversion$(E) > $@
+
+$(D_BIN)/pxp$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pxp$(E):	LDLIBS+=-llibpxp -llibpc
+$(D_BIN)/pxp$(E):	$(PXP_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PXP_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/opc$(E):	$(OPC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/pxpversion$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pxpversion$(E):	$(VERSION_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+directories:		$(D_OBJ)/.created
+
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end

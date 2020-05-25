@@ -393,6 +393,7 @@
 
 #undef HAVE_CHOWN
 #undef HAVE_CHROOT
+#undef HAVE_MKTEMP
 #undef HAVE_MKSTEMP
 #undef HAVE_SELECT
 #undef HAVE_POLL
@@ -408,9 +409,6 @@
 #undef HAVE_OPENDIR
 #undef HAVE_FINDFIRST
 #undef HAVE__FINDFIRST
-
-#undef HAVE_MKTEMP
-#undef HAVE_MKSTEMP
 
 #undef HAVE_GETOPT
 #undef HAVE_GETOPT_LONG
