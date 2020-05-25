@@ -5,6 +5,34 @@
    "Specification for the Computer Programming Language Pascal" (ISO dp7185).
 
    In additional there were a number of Berkeley extensions.
+   
+## Summary of changes
+
+   * WIN32 targeting, changes marked with either "ifdef WIN32" or "ifndef unix".
+
+   * Globals _argc and _argv renamed to _pcargc and _pcargv; avoids any stdlib symbol clashes 
+     plus allows px (via libpx) to be embedded within pxd.
+
+   * Function prototypes, explicit return types.
+
+   * Public definitions relocated into "libpc.h", inc prototypes.
+
+   * Optional sccsid definition.
+
+   * Initialise references to stdio, stdout and stderr at runtime.
+
+   * ANSI/C varargs.
+
+   * Conversion of printf '%D' to '%d'.
+
+   * const parameters for diagnostics and copy interfaces.
+
+   * time_t usage
+
+   * static or const static declarations of suitable variables.
+
+   * Obey TEXT/BINARY mode selection on streams.
+
 
 ## Non-standard procedures
 
