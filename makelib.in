@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.2 2020/05/25 20:57:57 cvsuser Exp $
+# $Id: makelib.in,v 1.3 2020/05/25 22:20:40 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -44,7 +44,7 @@ $CONFIG_PATH    = 'libcompat';
         'pi',
         'px',
         'pdx',
-        'pxheader',
+        'px_header',
         'pmerge'
         );
 

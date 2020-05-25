@@ -1,0 +1,98 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/25 22:20:29 cvsuser Exp $
+# px_header makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# The applications are free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# The applications are distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+E=
+O=		.o
+H=		.h
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+RM=		@RM@
+
+# Common flags
+
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I../src @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/px_header
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+TARGET=		pxheader$(E)
+
+CFLAGS+= 	-Di80x86
+CSOURCES=\
+	px_header.c
+
+VPATH=		
+
+OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+
+LDLIBS=		-L$(D_LIB) -llibcompat
+
+all:		$(D_BIN)/$(TARGET)
+
+$(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
+$(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(D_BIN)/$(TARGET) $(TARGET) $(OBJS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end
+
