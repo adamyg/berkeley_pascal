@@ -1,0 +1,207 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/25 23:29:18 cvsuser Exp $
+# pi makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# The applications are free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The applications are distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+E=
+O=		.o
+H=		.h
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+RM=		@RM@
+
+# Common flags
+
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I..\src @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pi
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+BINS=\
+	$(D_BIN)/opc$(E) \
+	$(D_BIN)/pic$(E) \
+	$(D_BIN)/pi$(E)
+
+CFLAGS+=	-Di80x86
+PI_CSOURCE=\
+	TRdata.c \
+	ato.c \
+	call.c \
+	case.c \
+	clas.c \
+	config.c \
+	const.c \
+	conv.c \
+	cset.c \
+	error.c \
+	extern.c \
+	fdec.c \
+	fend.c \
+	fhdr.c \
+	flvalue.c \
+	forop.c \
+	func.c \
+	gen.c \
+	hash.c \
+	lab.c \
+	lookup.c \
+	lval.c \
+	main.c \
+	nl.c \
+	p2put.c \
+	pccaseop.c \
+	pcfunc.c \
+	pclval.c \
+	pcproc.c \
+	proc.c \
+	put.c \
+	rec.c \
+	rval.c \
+	savenl.c \
+	sconv.c \
+	stab.c \
+	stat.c \
+	stklval.c \
+	stkrval.c \
+	string.c \
+	subr.c \
+	tmps.c \
+	tree.c \
+	treen.c \
+	type.c \
+	var.c \
+	yycopy.c \
+	yycosts.c \
+	yyerror.c \
+	yyget.c \
+	yyid.c \
+	yylex.c \
+	yymain.c \
+	yyoptions.c \
+	yypanic.c \
+	yyparse.c \
+	yyprint.c \
+	yyput.c \
+	yyrecover.c \
+	yyseman.c \
+	yytree.c \
+	ytab.c
+
+OPC_CSOURCE=\
+	opc.c
+
+PIC_CSOURCE=\
+	pic.c
+
+VPATH=		../src
+
+PI_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PI_CSOURCE)))
+OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
+PIC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PIC_CSOURCE)))
+
+LDLIBS=		-L$(D_LIB)
+
+CLEANOBJS=	$(PI_OBJS) $(OPC_OBJS) $(PIC_OBJS)
+CLEANFILES=	opcode.h picture.txt ytab.h ytab.c ytab.lst
+
+
+#########################################################################################
+
+all:			directories $(BINS)
+
+$(D_BIN)/pi$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pi$(E):	opcode.h picture.txt ytab.h $(PI_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
+		
+opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
+		$(D_BIN)/opc > opcode.h
+
+picture.txt:		$(D_BIN)/pic$(E)
+		$(D_BIN)/pic > picture.txt
+
+ytab.h:			../src/gram ../src/pas.y
+		@echo make ytab.h and ytab.c
+		rm -f ytab.h ytab.c
+		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
+		$(D_BIN)/ex - ytab.c <../src/gram >ex.out
+		-@$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
+
+$(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/opc$(E):	$(OPC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/pic$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pic$(E):	$(PIC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+directories:		$(D_OBJ)/.created
+
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end

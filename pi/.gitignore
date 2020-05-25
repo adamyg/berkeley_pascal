@@ -1,0 +1,8 @@
+test/
+Makefile
+opcode.h
+picture.txt
+ytab.*
+*.err
+
+
