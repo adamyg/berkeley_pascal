@@ -10,25 +10,26 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
 ## Source Roadmap:
 
     pi -          Pascal interpreter.
-    
+
     px -          Pascal byte-code compiler.
-    
-    pdx -         Pascal debugger.   
-   
-    src -         Command source for px, pi and pdx
-    
-    libpc -       Pascal run-time library. 
-    
+ 
+    pdx -         Pascal debugger.
+
+    doc -         Reference and design documents.
+ 
+    src -         Command source for px, pi and pdx.
+
+    libpc -       Pascal run-time library.
+
     libcompat -   Compatibility library, implements omitted functionality assumed to be available.
-    
+
     txtpx -       Test cases and associated expected results.
-    
+
     byacc -       Berkeley yacc, is a LALR(1) parser generator.
-    
+
     eyacc -       Modified yacc allowing much improved error recovery; needed by the Pascal parser.
     
-    ex -          Stream editor.
-    
+    ex -          Stream editor.   
 
 ## Source Reference:
 
