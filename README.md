@@ -45,7 +45,7 @@ The following source modules are included for reference:
 
     pcextern -    External symbol stabs generator.
 
-    pxheader -    libexec loader. 
+    px_header -   libexec loader. 
  
  
 ## Install
