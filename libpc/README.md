@@ -23,7 +23,7 @@
 
    * ANSI/C varargs.
 
-   * Conversion of printf '%D' to '%d'.
+   * printf format specifications.
 
    * const parameters for diagnostics and copy interfaces.
 
