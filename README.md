@@ -20,11 +20,13 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
     src -         Command source for px, pi and pdx.
 
     libpc -       Pascal run-time library.
+    
+    pmerge -      Pascal file merger.
 
     libcompat -   Compatibility library, implements omitted functionality assumed to be available.
 
     tstpx -       Test cases and associated expected results.
-
+ 
     byacc -       Berkeley yacc, is a LALR(1) parser generator.
 
     eyacc -       Modified yacc allowing much improved error recovery; needed by the Pascal parser.
