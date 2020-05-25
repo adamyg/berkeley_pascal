@@ -23,7 +23,7 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
 
     libcompat -   Compatibility library, implements omitted functionality assumed to be available.
 
-    txtpx -       Test cases and associated expected results.
+    tstpx -       Test cases and associated expected results.
 
     byacc -       Berkeley yacc, is a LALR(1) parser generator.
 
