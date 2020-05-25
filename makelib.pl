@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: $
+# $Id: makelib.pl,v 1.2 2020/05/25 20:57:57 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -8,10 +8,18 @@
 # Copyright (c) 1998 - 2020, Adam Young.
 # All rights reserved.
 #
-# This is free software: you can redistribute it
+# The applications are free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
+#
+# The applications are distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ==end==
 #
 
@@ -728,6 +736,7 @@ my @x_functions     = (
         'strtof', 'strtold', 'strtoll',
         'strverscmp', '__strverscmp',
         'mkdtemp',                              # bsd/linux
+        'getw', 'putw',
         'err',                                  # bsd/linux: err, warn etc
              'setprocname', 'getprocname',
         'setproctitle',                         # bsd
@@ -763,6 +772,7 @@ my @x_functions     = (
         'nearbyintf',
         'va_copy', '__va_copy',                 # c99/gnu
         'opendir',
+        'mktemp', 'mkstemp',
         'findfirst', '_findfirst',              # msvc
         'getopt', 'getopt_long'                 # bsd/compat
         );
@@ -777,7 +787,11 @@ my @x_commands      = (
 
 our $PACKAGE        = undef;
 our $PACKAGE_PATH   = $x_libw32;
-our $PACKAGE_H      = 'package.h';
+our $PACKAGE_H      = undef;    # defunct, use PACKAGE_FILE
+our $PACKAGE_FILE   = 'package.h';
+
+our $CONFIG_PATH    = $x_libw32;
+our $CONFIG_FILE    = 'w32config.h';
 
 our @x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
 our @x_libraries2   = ();   # local libraries -l<xxx> xxx.lib
@@ -850,7 +864,7 @@ sub ExportPath($);
 sub ImportDLL($$;$$);
 sub Makefile($$$);
 sub MakefileDir($);
-sub Config($$);
+sub Config($$$);
 
 exit &main();
 
@@ -939,8 +953,15 @@ main()
         foreach (@x_makefiles) {
             Makefile($cmd, $_, 'Makefile');
         }
-        Makefile($cmd, $PACKAGE_PATH, $PACKAGE_H);
-        Config($cmd, $x_libw32);
+
+        if (defined $PACKAGE_H) {
+            print "\n";
+            print "WARNING: importing legacy PACKAGE_H from <makelib.in>, replace with PACKAGE_FILE\n";
+            print "\n";
+            $PACKAGE_FILE = $PACKAGE_H;
+        }
+        Makefile($cmd, $PACKAGE_PATH, $PACKAGE_FILE);
+        Config($cmd, $CONFIG_PATH, $CONFIG_FILE);
 
         #cache
         open(CACHE, ">${cache}") or
@@ -2430,16 +2451,17 @@ MakefileDir($)
 #       Build a config from an underlying config.in
 #
 sub
-Config($$)              # (type, dir)
+Config($$$)             # (type, dir, file)
 {
-    my ($type, $dir) = @_;
-    my $file = 'config.h';
+    my ($type, $dir, $file) = @_;
     my $text = "";
 
     # import
-    if ($dir =~ /libw32/) {                     # override 'w32config.h'
-        $file = 'w32config.h'
-            if (-f "${dir}/w32config.hin" || "${dir}/w32config.h.in");
+    if (! -f "${dir}/{$file}") {
+        if ($dir =~ /libw32/) {                 # override 'w32config.h'
+            $file = 'w32config.h'
+                if (-f "${dir}/w32config.hin" || "${dir}/w32config.h.in");
+        }
     }
 
     printf "building: $dir/$file\n";
@@ -2549,3 +2571,4 @@ systemrcode($)          # (retcode)
 }
 
 #end
+

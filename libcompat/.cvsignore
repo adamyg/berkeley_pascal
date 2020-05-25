@@ -1,0 +1,4 @@
+Makefile
+w32config.h
+package.h
+*.err

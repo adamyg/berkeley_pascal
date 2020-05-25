@@ -1,8 +1,9 @@
 CVS/
-pascal.ref/
 .makelib/
+include/
 objects.*/
 lib.*/
 bin.*/
+pascal.ref/
 Makefile
 *.err

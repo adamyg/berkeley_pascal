@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: $
+# $Id: makelib.in,v 1.2 2020/05/25 20:57:57 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -15,22 +15,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Notice: Portions of this text are reprinted and reproduced in electronic form. from
-# IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
-# 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
-# Group. Copyright remains with the authors and the original Standard can be obtained
-# online at http://www.opengroup.org/unix/online.html.
 # ==end==
 #
 
 $PACKAGE        = 'Berkeley_Pascal';
-$PACKAGE_PATH   = 'include';
-$PACKAGE_H      = 'package.h';
+$PACKAGE_PATH   = 'libcompat';
+$PACKAGE_FILE   = 'package.h';
+
+$CONFIG_PATH    = 'libcompat';
 
 @x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
 
 @x_libraries2   = (     # local libraries -l<xxx> xxx.lib
+        'libcompat',
         'libpc',
         'libpx'
         );
@@ -39,10 +36,11 @@ $PACKAGE_H      = 'package.h';
 
 @x_makefiles     = (    # local makefiles
         '.',
+        'libcompat',
+        'libpc',
         'byacc',
         'eyacc',
         'ex',
-        'libpc',
         'pi',
         'px',
         'pdx',

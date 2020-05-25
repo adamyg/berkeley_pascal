@@ -153,16 +153,18 @@ LIBMT7RPATH=	$(shell which $(MT7RNAME).dll)
 LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
 endif
 
+LIBS=\
+	$(LW)compat$(A)			\
+	$(LW)pc$(A)
+
 BINS=\
 	$(D_BIN)/eyacc$(E)		\
 	$(D_BIN)/byacc$(E)		\
 	$(D_BIN)/ex$(E)			\
-	$(D_BIN)/pi$(E) 		\
-	$(D_BIN)/px$(E) 		\
-	$(D_BIN)/pdx$(E) 		\
+	$(D_BIN)/pi$(E)			\
+	$(D_BIN)/px$(E)			\
+	$(D_BIN)/pdx$(E)		\
 	$(D_BIN)/pmerge$(E)
-
-LIBS=	$(LW)pc$(A)
 
 IMPORT=
 ifeq ("wcl386","$(CC)")
@@ -224,21 +226,22 @@ dirs:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created
 		-@mkdir $(@D)
 		@echo "++ do not delete, managed content ++" > $@
 
-bins:			$(BINS)
+bins:			$(D_BIN)/.created $(BINS)
 
-$(D_BIN)/%$(E):		$(D_BIN)/.created libs
+$(D_BIN)/%$(E):		libs
 		@echo --- bulding $@
 		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
 
-libs:			$(LIBS)
+libs:			$(D_LIB)/.created $(LIBS)
 
-$(LW)%$(A):		$(D_LIB)/.created $(D_OBJ)/.created
+$(LW)%$(A):		$(D_OBJ)/.created
 		@echo --- bulding $@
 		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
 
 .PHONY:
 import:				$(IMPORT)
 
+ifeq ("wcl386","$(CC)")
 $(D_BIN)/$(CLBRNAME).dll:	$(LIBCLBRPATH)
 		@echo importing $(LIBCLBRPATH)
 		@$(CP) -f $(subst /,\,$^) $@
@@ -250,6 +253,7 @@ $(D_BIN)/$(MT7RNAME).dll:	$(LIBMT7RPATH)
 $(D_BIN)/$(PLBRNAME).dll:	$(LIBPLBRPATH)
 		@echo importing $(LIBPLBRPATH)
 		@$(CP) -f $(subst /,\,$^) $@
+endif
 
 install:		all
 		-mkdir -p $(BINDIR)
@@ -257,14 +261,15 @@ install:		all
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/xxx$(E) $(BINDIR)
 
 clean:
+		$(MAKE) -C pmerge clean
+		$(MAKE) -C pdx clean
+		$(MAKE) -C pi clean
+		$(MAKE) -C px clean
 		$(MAKE) -C byacc clean
 		$(MAKE) -C eyacc clean
 		$(MAKE) -C ex clean
+		$(MAKE) -C libcompat clean
 		$(MAKE) -C libpc clean
-		$(MAKE) -C pi clean
-		$(MAKE) -C px clean
-		$(MAKE) -C pdx clean
-		$(MAKE) -C pmerge clean
 
 vclean:			clean
 		-@$(RM) $(RMDFLAGS) $(D_BIN)/* $(D_MACROS)/* $(D_HELP)/* $(D_LIB)/* $(D_OBJ)/*
@@ -274,12 +279,13 @@ distclean:		clean
 		$(RM) $(RMFLAGS) config.cache config.log config.status \
 			pmerge/Makefile \
 			pdx/Makefile \
-			px/Makefile \
 			pi/Makefile \
-			libpc/Makefile \
+			px/Makefile \
 			ex/Makefile \
 			eyacc/Makefile \
 			byacc/Makefile \
+			libpc/Makefile \
+			libcompat/Makefile \
 			include/config.h \
 			Makefile
 

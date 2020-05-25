@@ -1,0 +1,119 @@
+#ifndef PACKAGE_H_INCLUDED
+#define PACKAGE_H_INCLUDED
+/* -*- mode: h; set-indent: 4; -*- */
+/* $Id: package.h.in,v 1.2 2020/05/25 21:06:38 cvsuser Exp $
+ * Package configuration.
+ *
+ *
+ * Copyright (c) 2020, Adam Young.
+ * All rights reserved.
+ *
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * The applications are distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ==end==
+ *
+ * @datarootdir@
+ */
+
+/*
+ * Build configuration:
+ *
+ * AC_SUBST(PATHSEP)            @PATHSEP@
+ * AC_SUBST(LT_OBJDIR)          @LT_OBJDIR@
+ * AC_SUBST(SET_MAKE)           @SET_MAKE@
+ *
+ * AC_SUBST(RM)                 @RM@
+ * AC_SUBST(TAR)                @TAR@
+ * AC_SUBST(PERL)               @PERL@
+ * AC_SUBST(INSTALL)            @INSTALL@
+ * AC_SUBST(PROGS)              @PROGS@
+ * AC_SUBST(LIBPROGS)           @LIBPROGS@
+ *
+ * AC_SUBST(CC)                 @CC@
+ * AC_SUBST(CXX)                @CXX@
+ * AC_SUBST(CPPDEP)             @CPPDEP@
+ * AC_SUBST(DEFS)               @DEFS@
+ * AC_SUBST(CFLAGS)             @CFLAGS@
+ * AC_SUBST(CXXFLAGS)           @CXXFLAGS@
+ * AC_SUBST(CWARN)              @CWARN@
+ * AC_SUBST(CXXWARN)            @CXXWARN@
+ * AC_SUBST(CINCLUDE)           @CINCLUDE@
+ * AC_SUBST(LDEBUG)             @LDEBUG@
+ * AC_SUBST(CDEBUG)             @CDEBUG@
+ * AC_SUBST(CXXDEBUG)           @CXXDEBUG@
+ * AC_SUBST(LIBCURL_CPPFLAGS)   @LIBCURL_CPPFLAGS@
+ * AC_SUBST(LIBICU_CFLAGS)      @LIBICU_CFLAGS@
+ * AC_SUBST(LIBICU_CXXFLAGS)    @LIBICU_CXXFLAGS@
+ * AC_SUBST(EXTRA_CFLAGS)       @EXTRA_CFLAGS@
+ * AC_SUBST(EXTRA_CXXFLAGS)     @EXTRA_CXXFLAGS@
+ *
+ * AC_SUBST(LIBTOOL)            @LIBTOOL@
+ * AC_SUBST(LIBTOOL_DEPS)       @LIBTOOL_DEPS@
+ * AC_SUBST(LD)                 @LD@
+ * AC_SUBST(LDMAPFILE)          @LDMAPFILE@
+ *
+ * AC_SUBST(LIBS)               @LIBS@
+ * AC_SUBST(LIBARCHIVE)         @LIBARCHIVE@
+ * AC_SUBST(LIBEXPLAIN)         @LIBEXPLAIN@
+ * AC_SUBST(LIBYACC)            @LIBYACC@
+ * AC_SUBST(LIBCLANG)           @LIBCLANG@
+ * AC_SUBST(LIBCURL)            @LIBCURL@
+ * AC_SUBST(LIBENCA)            @LIBENCA@
+ * AC_SUBST(LIBICONV)           @LIBICONV@
+ * AC_SUBST(ICU_CONFIG)         @ICU_CONFIG@
+ * AC_SUBST(LIBICU_VERSION)     @LIBICU_VERSION@
+ * AC_SUBST(LIBICU)             @LIBICU@
+ * AC_SUBST(LIBMAGIC)           @LIBMAGIC@
+ * AC_SUBST(LIBSPELL)           @LIBSPELL@
+ * AC_SUBST(TERMLIB)            @TERMLIB@
+ * AC_SUBST(LIBM)               @LIBM@
+ * AC_SUBST(LIBX11)             @LIBX11@
+ * AC_SUBST(EXTRALIBS)          @EXTRALIBS@
+ * AC_SUBST(LIBMALLOC)          @LIBMALLOC@
+ * AC_SUBST(LIBTHREAD)          @LIBTHREAD@
+ */
+
+#define PACKAGE_BUGREPORT       "@PACKAGE_BUGREPORT@"
+#define PACKAGE_NAME            "@PACKAGE_NAME@"
+#define PACKAGE_STRING          "@PACKAGE_STRING@"
+#define PACKAGE_TARNAME         "@PACKAGE_TARNAME@"
+#define PACKAGE_URL             "@PACKAGE_URL@"
+#define PACKAGE_VERSION         "@PACKAGE_VERSION@"
+
+#define BUILD                   "@build@"
+#define BUILD_ALIAS             "@build_alias@"
+#define BUILD_CPU               "@build_cpu@"
+#define BUILD_OS                "@build_os@"
+#define BUILD_VENDOR            "@build_vendor@"
+
+#define BUILD_CC                "@CC@"
+#define BUILD_CFLAGS            "@CFLAGS@"
+#define BUILD_CXX               "@CXX@"
+#define BUILD_CXXFLAGS          "@CXXFLAGS@"
+
+#define HOST                    "@host@"
+#define HOST_ALIAS              "@host_alias@"
+#define HOST_CPU                "@host_cpu@"
+#define HOST_OS                 "@host_os@"
+#define HOST_VENDOR             "@host_vendor@"
+#define HOST_SEPARATOR          "@PATH_SEPARATOR@"
+
+#define TARGET                  "@target@"
+#define TARGET_ALIAS            "@target_alias@"
+#define TARGET_CPU              "@target_cpu@"
+#define TARGET_OS               "@target_os@"
+#define TARGET_VENDOR           "@target_vendor@"
+
+#endif  /*PACKAGE_H_INCLUDED*/
+
+
