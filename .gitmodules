@@ -1,0 +1,6 @@
+[submodule "references/pascal"]
+	path = references/pascal
+	url = https://github.com/tangentstorm/pascal.git
+[submodule "references/flex"]
+	path = references/flex
+	url = https://github.com/westes/flex.git
