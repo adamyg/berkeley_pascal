@@ -1,6 +1,8 @@
+#ifndef MACHDEP_H_INCLUDED
+#define MACHDEP_H_INCLUDED
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,8 +14,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -30,50 +32,68 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)machdep.h	8.1 (Berkeley) 6/6/93
+ *      @(#)machdep.h   5.4 (Berkeley) 4/16/91
  */
 
 #ifdef ADDR32
-#define pushaddr(x)	push4((long)(x))
-#define popaddr()	(char *)pop4()
-#endif ADDR32
+#define pushaddr(x)             push4((long)(x))
+#define popaddr()               (signed char *)pop4()
+#endif /*ADDR32*/
 #ifdef ADDR16
-#define pushaddr(x)	push2((short)(x))
-#define popaddr()	(char *)pop2()
-#endif ADDR16
+#define pushaddr(x)             push2((short)(x))
+#define popaddr()               (signed char *)pop2()
+#endif /*ADDR16*/
 
-#define popfile()	(FILE *)(popaddr())
+#define popfile()               (FILE *)(popaddr())
 
-#if defined(pdp11)
-#define	popint	pop2
-#define	pushint	push2
-#else
-#define popint	pop4
-#define pushint	push4
-#endif
 
 /*
  * Machine specific macros for reading quantities from the
- * interpreter instruction stream. Operands in the instruction
+ * interpreter instruction stream.  Operands in the instruction
  * stream are aligned to short, but not long boundries. Blockmarks
  * are always long aligned. Stack alignment indicates whether the
  * stack is short or long aligned. Stack alignment is assumed to
  * be no more than long aligned for ADDR32 machines, short aligned
  * for ADDR16 machines.
  */
-#if defined(vax) || defined(mc68000) || defined(pdp11)
-#define PCLONGVAL(target) target = *pc.lp++
-#define GETLONGVAL(target, srcptr) target = *(long *)(srcptr)
-#define STACKALIGN(target, value) target = ((value) + 1) &~ 1
-#endif vax || mc68000 || pdp11
 
-#ifdef tahoe
-#define PCLONGVAL(target) target = *pc.sp++ << 16, target += *pc.usp++
-#define GETLONGVAL(target, srcptr) \
-	tsp = (short *)(srcptr), \
-	target = *tsp++ << 16, target += *(unsigned short *)tsp
-#define STACKALIGN(target, value) target = ((value) + 3) &~ 3
-#endif tahoe
+#if defined(pdp11)
+#   define popint               pop2
+#   define pushint              push2
+#else
+#   define popint               pop4
+#   define pushint              push4
+#endif
+
+#if defined(i80x86)
+#   define ALIGNMENT            4
+#   define PCLONGVAL(t)         t = *pc.lp++
+#   define GETLONGVAL(t, sptr)  t = *(long *)(sptr)
+
+#elif defined(vax) || defined(mc68000) || defined(pdp11)
+#   define ALIGNMENT            2
+#   define PCLONGVAL(t)         t = *pc.lp++
+#   define GETLONGVAL(t, sptr)  t = *(long *)(sptr)
+
+#elif defined(tahoe)
+#   define ALIGNMENT            4
+#   define PCLONGVAL(t)         t = *pc.sp++ << 16, t += *pc.usp++
+#   define GETLONGVAL(t, sptr) \
+                tsp = (short *)(sptr), \
+                t = *tsp++ << 16, t += *(unsigned short *)tsp
+
+#else
+#error  Unknown target ...
+#endif
+
+#if (ALIGNMENT == 4)
+#   define STACKALIGN(t, v)     t = ((v) + 3) &~ 3
+#elif (ALIGNMENT == 2)
+#   define STACKALIGN(t, v)     t = ((v) + 1) &~ 1
+#else
+#error  Unknown alignment ...
+#endif
+
 
 /*
  * The following macros implement all accesses to the interpreter stack.
@@ -88,28 +108,49 @@
  * pointer relocation if it moves, though.  Probably better would be a
  * command line option to set the stack size.
  */
-#define	STACKSIZE	100000
-#define	setup()		{ \
-	extern char *malloc(); \
-	stack.cp = STACKSIZE + malloc((unsigned)STACKSIZE); \
-	}
-#ifndef tahoe
-#define	push2(x)	(*--stack.sp) = (x)
+
+#define STACKSIZE               100000
+#define setup()                 { \
+        stack.cp = STACKSIZE + (char *)calloc((unsigned)STACKSIZE, 1); \
+        if (stack.cp == NULL) { \
+                ERROR("Panic: memory allocation error creating stack\n"); \
+            } \
+        }
+
+#if (ALIGNMENT == 4)
+# ifdef DEC11
+#   define push2(x)             (*--stack.lp)  = (x)
+# else
+#   define push2(x)             ((*--stack.lp) = (x) << 16)
+# endif
+#elif (ALIGNMENT == 2)
+#   define push2(x)             (*--stack.sp)  = (x)
 #else
-#define	push2(x)	(*--stack.lp) = (x) << 16
+#error  Unknown target alignment ...
 #endif
-#define push4(x)	(*--stack.lp)  = (x)
-#define push8(x)	(*--stack.dbp) = (x)
-#define pushsze8(x)	(*--stack.s8p) = (x)
-#define pushsp(x)	(stack.cp -= (x))
-#ifndef tahoe
-#define pop2()		(*stack.sp++)
-#else
-#define pop2()		(*stack.lp++) >> 16
+
+#define push4(x)                (*--stack.lp)  = (x)
+#define push8(x)                (*--stack.dbp) = (x)
+#define pushsze8(x)             (*--stack.s8p) = (x)
+#define pushsp(x)               (stack.cp     -= (x))
+#define refsp()                 (stack.cp)
+
+#if (ALIGNMENT == 4)
+# ifdef DEC11
+#  define pop2()                (*stack.lp++)
+# else
+#  define pop2()                ((*stack.lp++) >> 16)
+# endif
+#elif (ALIGNMENT == 2)
+#  define pop2()                (*stack.sp++)
 #endif
-#define pop4()		(*stack.lp++)
-#define pop8()		(*stack.dbp++)
-#define popsze8()	(*stack.s8p++)
-#define popsp(x)	(void)(stack.cp += (x))
-#define	enableovrflo()	/*nop*/
-#define	disableovrflo()	/*nop*/
+#define pop4()                  (*stack.lp++)
+#define pop8()                  (*stack.dbp++)
+#define popsze8()               (*stack.s8p++)
+#define popsp(x)                (void)(stack.cp += (x))
+
+#define enableovrflo()          /*nop*/
+#define disableovrflo()         /*nop*/
+
+#endif  /*MACHDEP_H_INCLUDED*/
+

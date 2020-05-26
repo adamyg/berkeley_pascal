@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,40 +32,50 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCS)
 static char sccsid[] = "@(#)utilities.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#endif  /* not lint */
 
-#include	<signal.h>
-#include	"whoami.h"
-#include	"vars.h"
-#include	"objfmt.h"
-#include	<sys/time.h>
-#include	<sys/resource.h>
+#include "whoami.h"
+#include <common.h>
+#include <libpc.h>
+#include <objfmt.h>
+#include "h02opcs.h"
+#include "pxvars.h"
+#include "px.h"
 
-stats()
+void
+px_stats(void)
 {
+#if defined(unix)
 	struct rusage ru;
-	register double l;
+#else
+	clock_t ru;
+#endif
+
+#ifdef PROFILE
 	register long count;
-#	ifdef PROFILE
-#	define	proffile	"/vb/grad/mckusick/px/profile/pcnt.out"
 	struct cntrec {
-		double	counts[NUMOPS];	/* instruction counts */
-		long	runs;		/* number of interpreter runs */
-		long	startdate;	/* date profile started */
-		long	usrtime;	/* total user time consumed */
-		long	systime;	/* total system time consumed */
-		double	stmts;		/* number of pascal stmts executed */
-	} profdata;
+		double	counts[NUMOPS]; 	/* instruction counts */
+		long	runs;			/* number of interpreter runs */
+		long	startdate;		/* date profile started */
+		long	usrtime;		/* total user time consumed */
+		long	systime;		/* total system time consumed */
+		double	stmts;			/* number of pascal stmts executed */
+        } profdata;
 	FILE *datafile;
-#	endif PROFILE
+#endif /*PROFILE*/
 
 	if (_nodump)
-		return(0);
+		return;
+#if defined(unix)
 	getrusage(RUSAGE_SELF, &ru);
-#	ifdef PROFILE
-	datafile = fopen(proffile,"r");
+#else
+	ru = clock();
+#endif
+
+#ifdef PROFILE
+	datafile = fopen(PROFFILE, "rb");
 	if (datafile == NULL)
 		goto skipprof;
 	count = fread(&profdata,1,sizeof(profdata),datafile);
@@ -76,7 +87,7 @@ stats()
 	profdata.stmts += _stcnt;
 	profdata.usrtime += ru.ru_utime.tv_sec;
 	profdata.systime += ru.ru_stime.tv_sec;
-	datafile = freopen(proffile,"w",datafile);
+	datafile = freopen(proffile, "wb", datafile);
 	if (datafile == NULL)
 		goto skipprof;
 	count = fwrite(&profdata,1,sizeof(profdata),datafile);
@@ -84,23 +95,37 @@ stats()
 		goto skipprof;
 	fclose(datafile);
 skipprof:
-#	endif PROFILE
+#endif /*PROFILE*/
+
+#if defined(unix)
 	fprintf(stderr,
 		"\n%1ld statements executed in %d.%02d seconds cpu time.\n",
 		_stcnt, ru.ru_utime.tv_sec, ru.ru_utime.tv_usec / 10000);
+#else
+	fprintf(stderr,
+		"\n%1ld statements executed in %d.%02d seconds cpu time.\n",
+		_stcnt, ru / CLOCKS_PER_SEC, ru % CLOCKS_PER_SEC);
+#endif
+	fflush(stderr);
 }
-
-backtrace(type)
-	char	*type;
+
+
+void
+px_backtrace(type)
+	char *type;
 {
 	register struct dispsave *mydp;
 	register struct blockmark *ap;
-	register char *cp;
 	register long i, linum;
 	union display disp;
 
-	if (_lino <= 0) {
-		fputs("Program was not executed.\n",stderr);
+	fprintf(stderr, "\nProgram %s", type);
+	if (_lino < 0) {
+		fputs("\n\tProgram was not executed.\n",stderr);
+		return;
+	}
+	if (_lino == 0) {
+		fputs("\n\t[no backtrace].\n",stderr);
 		return;
 	}
 	disp = _display;
@@ -112,7 +137,7 @@ backtrace(type)
 		i = linum - (((ap)->entry)->offset & 0177777);
 		fprintf(stderr,"%s\"",(ap->entry)->name);
 		if (_nodump == FALSE)
-			fprintf(stderr,"+%D near line %D.",i,linum);
+			fprintf(stderr,"+%d near line %d.",i,linum);
 		fputc('\n',stderr);
 		*mydp = (ap)->odisp;
 		if (mydp <= &_display.frame[1]){
@@ -124,60 +149,61 @@ backtrace(type)
 		fputs("\tCalled by \"",stderr);
 	}
 }
-
-psexit(code)
 
-	int	code;
-{
-	if (_pcpcount != 0)
-		PMFLUSH(_cntrs, _rtns, _pcpcount);
-	if (_mode == PIX) {
-		fputs("Execution terminated",stderr);
-		if (code)
-			fputs(" abnormally",stderr);
-		fputc('.',stderr);
-		fputc('\n',stderr);
-	}
-	stats();
-	exit(code);
-}
 
 /*
  * Routines to field various types of signals
  *
  * catch a library error and generate a backtrace
  */
-liberr()
+void
+px_liberr(signum)
+	int signum;
 {
-	backtrace("Error");
-	psexit(2);
+
+	(void) signum;
+	px_backtrace("Library error");
+	px_exit(2);
 }
+
 
 /*
  * catch an interrupt and generate a backtrace
  */
-intr()
+void
+px_intr(signum)
+	int signum;
 {
-	signal(SIGINT, intr);
-	backtrace("Interrupted");
-	psexit(1);
+
+	(void) signum;
+	signal(SIGINT, px_intr);
+	px_backtrace("Interrupted");
+	px_exit(1);
 }
+
 
 /*
  * catch memory faults
  */
-memsize()
+void
+px_memsize(signum)
+	int signum;
 {
-	signal(SIGSEGV, memsize);
+
+	(void) signum;
+	signal(SIGSEGV, px_memsize);
 	ERROR("Run time stack overflow\n");
 }
+
 
 /*
  * catch random system faults
  */
-syserr(signum)
+void
+px_syserr(signum)
 	int signum;
 {
-	signal(signum, syserr);
+
+	signal(signum, px_syserr);
 	ERROR("Panic: Computational error in interpreter\n");
 }

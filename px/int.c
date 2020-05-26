@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,13 +32,13 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCS)
 static char copyright[] =
 "@(#) Copyright (c) 1980, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 #endif /* not lint */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCS)
 static char sccsid[] = "@(#)int.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,173 +52,286 @@ static char sccsid[] = "@(#)int.c	8.1 (Berkeley) 6/6/93";
  * Rewritten for VAX 11/780 by Kirk McKusick
  */
 
-#include	<signal.h>
-#include	"whoami.h"
-#include	"vars.h"
-#include	"libpc.h"
-#include	"objfmt.h"
+#if defined(_MSC_VER)
+#if !defined(_CRT_SECURE_NO_WARNINGS)
+#define  _CRT_SECURE_NO_WARNINGS
+#endif
+#pragma warning(disable:4996)
+#endif
+
+#include "whoami.h"
+#include <common.h>
+#include <setjmp.h>
+#include <libpc.h>
+#include <objfmt.h>
+#include "pxvars.h"
+#include "px.h"
+
+static void complete(int code);
+static int compare(const char *, const char *);
+
 
 /*
  * New stuff for pdx
  */
+static jmp_buf _exitjmp;
 
+#if defined(PDX_TRAP)
 extern char *end;
 extern loopaddr();
 extern union progcntr pdx_pc;	/* address of interpreter program cntr */
 static void inittrap();
+#endif
 
-main(ac,av)
-
-	int	ac;
-	char	**av;
-
+int
+px_main(argc, argv)
+	int argc;
+	char **argv;
 {
 	register char *objprog, *file;
-	char *name;
+	const char *name;
 	register long bytesread, bytestoread, block;
 	register FILE *prog;
-	struct	 pxhdr pxhd;
-#	define	 pipe 3
+	struct pxhdr pxhd;
+	int ret;
+#define pipe		3
 
 	/*
 	 * Initialize everything
 	 */
-	_argc = ac;
-	_argv = av;
+	_pcargc = argc;
+	_pcargv = argv;
 	_nodump = FALSE;
-
+
 	/*
-	 * Determine how PX was invoked, and how to process the program 
+	 * Determine how PX was invoked, and how to process the program
 	 */
-	file = _argv[1];
-	if (!strcmp(_argv[0], "pdx")) {
+	file = _pcargv[1];
+	if (compare(_pcargv[0], "pdx")) { /* debugger */
 		_mode = PDX;
-		_argv += 2; _argc -= 2;
-		name = _argv[0];
-	} else if (!strcmp(_argv[0], "pix")) {
+		_pcargv += 2; _pcargc -= 2;
+		name = _pcargv[0];
+	} else if (compare(_pcargv[0], "pix")) { /* compile and run */
 		_mode = PIX;
-		_argv++; _argc--;
-		name = _argv[0];
-	} else if (!strcmp(_argv[0], "pipe")) {
+		_pcargv++; _pcargc--;
+		name = _pcargv[0];
+	} else if (compare(_pcargv[0], "pipe")) { /* px_header */
 		_mode = PIPE;
 		file = "PIPE";
-		_argv++; _argc--;
-		name = _argv[0];
-	} else {
+		_pcargv++; _pcargc--;
+		name = _pcargv[0];
+	} else if (compare(_pcargv[0], "px")) { /* run */
 		_mode = PX;
-		if (_argc <= 1)
+		if (_pcargc <= 1)
+			file = "obj";
+		else {
+			_pcargv++; _pcargc--; /* strip 'px' */
+		}
+		name = file;
+	} else { /* embedded */
+		_mode = PX;
+		if (_pcargc <= 1)
 			file = "obj";
 		name = file;
 	}
-
+
 	/*
 	 * kludge to check for old style objs.
 	 */
 	if (_mode == PX && !strcmp(file, "-")) {
 		fprintf(stderr, "%s is obsolete and must be recompiled\n",
-		    _argv[0]);
-		exit(1);
+		    _pcargv[0]);
+		return(1);
 	}
+
 	/*
 	 * Process program header information
 	 */
 	if (_mode == PIPE) {
-		read(pipe,&pxhd,sizeof(struct pxhdr));
+		read(pipe, &pxhd, sizeof(struct pxhdr));
 	} else {
-		prog = fopen(file,"r");
-		if (prog == NULL) {
+		prog = fopen(file, "rb");
+		if (prog == (FILE *)NULL) {
 			perror(file);
-			exit(1);
+			return(1);
 		}
-		fread(&pxhd,sizeof(struct pxhdr),1,prog);
+		fread(&pxhd, sizeof(struct pxhdr), 1, prog);
 		if (pxhd.magicnum != MAGICNUM) {
-			fseek(prog,(long)(HEADER_BYTES-sizeof(struct pxhdr)),0);
-			fread(&pxhd,sizeof(struct pxhdr),1,prog);
+			fseek(prog, (long)(HEADER_BYTES-sizeof(struct pxhdr)), 0);
+			fread(&pxhd, sizeof(struct pxhdr), 1, prog);
 		}
 	}
 	if (pxhd.magicnum != MAGICNUM) {
-		fprintf(stderr,"%s is not a Pascal interpreter file\n",name);
-		exit(1);
+		fprintf(stderr, "%s is not a Pascal interpreter file\n",name);
+		fclose(prog);
+		return(1);
 	}
-	if (pxhd.maketime < createtime) {
-		fprintf(stderr,"%s is obsolete and must be recompiled\n",name);
-		exit(1);
+	if (pxhd.maketime < _createtime) {
+		fprintf(stderr, "%s is obsolete and must be recompiled\n",name);
+		fclose(prog);
+		return(1);
 	}
-
+
 	/*
 	 * Load program into memory
 	 */
 	objprog = malloc((int)pxhd.objsize);
+	if (objprog == (char *)NULL) {
+		fprintf(stderr,"Memory allocation error occurred while loading %s\n",file);
+		fclose(prog);
+		return(1);
+	}
 	if (_mode == PIPE) {
 		bytestoread = pxhd.objsize;
 		bytesread = 0;
-		do	{
-			block = read(pipe,(int)(objprog+bytesread),bytestoread);
+		do {
+			block = read(pipe,objprog+bytesread,bytestoread);
 			if (block > 0) {
 				bytesread += block;
 				bytestoread -= block;
 			}
 		} while (block > 0);
 	} else {
-		bytesread = fread(objprog,1,(int)pxhd.objsize,prog);
+		bytesread = fread(objprog, 1, (int)pxhd.objsize, prog);
 		fclose(prog);
 	}
 	if (bytesread != pxhd.objsize) {
-		fprintf(stderr,"Read error occurred while loading %s\n",file);
-		exit(1);
+		fprintf(stderr, "Read error occurred while loading %s\n",file);
+		return(1);
 	}
 	if (_mode == PIX)
 		fputs("Execution begins...\n",stderr);
+
 	/*
 	 * set interpreter to catch expected signals and begin interpretation
 	 */
-	signal(SIGILL,syserr);
-	signal(SIGBUS,syserr);
-	signal(SIGSYS,syserr);
+	signal(SIGILL,px_syserr);
+#ifdef SIGBUS
+	signal(SIGBUS,px_syserr);
+#endif
+#ifdef SIGSYS
+	signal(SIGSYS,px_syserr);
+#endif
 	if (signal(SIGINT,SIG_IGN) != SIG_IGN)
-		signal(SIGINT,intr);
-	signal(SIGSEGV,memsize);
+		signal(SIGINT,px_intr);
+	signal(SIGSEGV,px_memsize);
 	signal(SIGFPE,EXCEPT);
-	signal(SIGTRAP,liberr);
+#ifdef SIGTRAP
+	signal(SIGTRAP,px_liberr);
+#endif
+#if defined(SIGUSR2)
+	signal(SIGUSR2,px_liberr);
+#endif
 
 	/*
-	 * See if we're being watched by the debugger, if so set a trap.
+	 * execute
 	 */
+#if defined(PDX_TRAP)
 	if (_mode == PDX || (_mode == PIX && pxhd.symtabsize > 0)) {
 		inittrap(&_display, &_dp, objprog, &pdx_pc, loopaddr);
 	}
+#endif
+
+	if (0 == (ret = setjmp(_exitjmp))) {
+		px_interpreter(objprog);
+		complete(0);
+	}
 
 	/*
-	 * do it
+	 * release object storage
 	 */
-	interpreter(objprog);
+	free(objprog);
+
 	/*
-	 * reset signals, deallocate memory, and exit normally
+	 * reset signals, deallocate memory, and exit
 	 */
 	signal(SIGINT,SIG_IGN);
 	signal(SIGSEGV,SIG_DFL);
 	signal(SIGFPE,SIG_DFL);
+#ifdef SIGTRAP
 	signal(SIGTRAP,SIG_DFL);
+#endif
 	signal(SIGILL,SIG_DFL);
+#ifdef SIGBUS
 	signal(SIGBUS,SIG_DFL);
+#endif
+#ifdef SIGSYS
 	signal(SIGSYS,SIG_DFL);
-	PFLUSH();
-	psexit(0);
+#endif
+	return(ret);
 }
 
+static void
+complete(int code)
+{
+	if (_pcpcount != 0)
+		PMFLUSH(_cntrs, _rtns, _pcpcount);
+	if (_mode == PIX) {
+		fputs("Execution terminated",stderr);
+		if (code)
+			fputs(" abnormally",stderr);
+		fputc('.',stderr);
+		fputc('\n',stderr);
+	}
+	px_stats();
+	PFLUSH();
+}
+
+
+void
+px_exit(code)
+	int code;
+{
+	complete(code);
+	longjmp(_exitjmp, code ? code : 1);
+}
+
+
+
+static int
+compare(const char *arg0, const char *name)
+{
+#if defined(unix)
+	const char *p;
+
+	if ((p = strrchr(argv, '/')) != NULL)		/* strip path */
+		arg0 = p + 1;
+	return (strcmp(arg0, name) == 0 ? 1 : 0);
+
+#else
+	const char *p1, *p2, *d;
+	int len;
+
+	p1 = strrchr(arg0, '/');			/* strip path */
+	p2 = strrchr(arg0, '\\');
+	if (p1 || p2)
+		arg0 = (p2 > p1 ? p2 : p1) + 1;
+	else if (NULL != (p1 = strrchr(arg0, ':')))
+		arg0 = p1 + 1;
+
+	if ((d = strrchr(arg0, '.')) != NULL)		/* strip extension */
+		len = d - arg0;
+	else len = strlen(arg0);
+
+	return (strncmp(arg0, name, len) == 0 ? 1 : 0);
+#endif
+}
+
+
+#if defined(PDX_TRAP)
 /*
  * Generate an IOT trap to tell the debugger that the object code
  * has been read in.  Parameters are there for debugger to look at,
  * not the procedure.
  */
-
 static void
 inittrap(dispaddr, dpaddr, endaddr, pcaddr, loopaddrp)
-union disply *dispaddr;
-struct disp *dpaddr;
-char *endaddr;
-union progcntr *pcaddr;
-char **loopaddrp;
+	union disply *dispaddr;
+	struct disp *dpaddr;
+	char *endaddr;
+	union progcntr *pcaddr;
+	char **loopaddrp;
 {
 	kill(getpid(), SIGIOT);
 }
+#endif

@@ -1,1 +1,1 @@
-../src/piwhoami.h
+#include "../src/piwhoami.h"

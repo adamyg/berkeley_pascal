@@ -1,0 +1,167 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: $
+# px makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# You can redistribute it and/or modify it under the terms of
+# the project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+H=		.h
+O=		.o
+A=		.a
+LP=		lib
+E=
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compxlers, programs
+
+CC=		@CC@
+AR=		@AR@
+RANLIB= 	@RANLIB@
+RM=		@RM@
+RMDIR=		@RMDIR@
+PERL=		@PERL@
+
+# Common flags
+
+ARFLAGS=	rcv
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I..\src -I..\libpc @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/px
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+VPATH=		../src
+CFLAGS+=	-Di80x86
+
+
+#########################
+
+LIBS=\
+	$(D_LIB)/$(LP)px$(A)
+
+LIBPX_CSOURCE=\
+	int.c\
+	interp.c\
+	utilities.c\
+	Version.c
+
+LIBPX_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(LIBPX_CSOURCE)))
+
+
+#########################
+
+BINS=\
+	$(D_BIN)/pxversion$(E) \
+	$(D_BIN)/px$(E) \
+	$(D_BIN)/opc$(E)
+
+PX_CSOURCE=\
+	main.c
+
+OPC_CSOURCE=\
+	opc.c
+
+VERSION_CSOURCE=\
+	pxversion.c
+
+PX_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PX_CSOURCE)))
+OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
+VERSION_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(VERSION_CSOURCE)))
+
+
+#########################
+
+LDLIBS=		-L$(D_LIB)
+
+CLEAN+=		h02opcs.h Version.c
+
+CLEANOBJS=	$(LIBPX_OBJS) $(PX_OBJS) $(OPC_OBJS) $(VERSION_OBJS)
+
+#########################################################################################
+
+all:			directories h02opcs.h Version.c $(LIBS) $(BINS)
+
+h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
+		$(D_BIN)/opc$(E) > $@
+
+Version.c:		$(D_BIN)/pxversion$(E)
+		$(D_BIN)/pxversion$(E) > $@
+
+$(D_LIB)/$(LP)px$(A):	$(LIBPX_OBJS)
+		$(RM) $(RMFLAGS) $@
+		$(AR) $(ARFLAGS) $@ $(LIBPX_OBJS)
+		$(RANLIB) $@
+
+$(D_BIN)/px$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/px$(E):	LDLIBS+=-llibpx -llibpc
+$(D_BIN)/px$(E):	$(PX_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PX_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
+
+$(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/opc$(E):	$(OPC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
+
+$(D_BIN)/pxversion$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pxversion$(E):	$(VERSION_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
+
+directories:		$(D_OBJ)/.created
+
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end
