@@ -1,0 +1,31 @@
+
+Sun May 24 13:36:18 2020 adamy
+
+	* Summary of previous changes;
+
+	  o Public interface "px.h" and creation of "libpx"; explicit public binding allowing embedding.
+
+	  o Embedded pdx hooks.
+
+	  o WIN32 support, changes marked with either "ifdef WIN32" or "ifndef unix".
+
+	  o 32-bit i80x86 target.
+
+	  o Globals _argc and _argv renamed to _pcargc and _pcargv; avoids stdlib symbol clashes.
+
+	  o Function prototypes, explicit return types and global initialisations.
+
+	  o Initialise references to stdio, stdout and stderr at runtime.
+
+	  o ANSI/C variable arguments.
+
+	  o Print format conversions.
+
+	  o static or const static declarations of suitable variables.
+
+	  o explicit casting.
+
+	  o time_t
+
+
+
