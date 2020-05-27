@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)setbps.c	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include "breakpoint.h"
-#include "process.h"
+#include "process/process.h"
 #include "machine.h"
 #include "bp.rep"
 

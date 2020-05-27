@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)setbp.c	8.1 (Berkeley) 6/6/93";
 #include "defs.h"
 #include <signal.h>
 #include "machine.h"
-#include "process.h"
+#include "process/process.h"
 #include "main.h"
 #include "pxops.h"
 #include "process/process.rep"

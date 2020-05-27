@@ -71,7 +71,7 @@ static char sccsid[] = "@(#)callproc.c	8.1 (Berkeley) 6/6/93";
 #include "tree.h"
 #include "breakpoint.h"
 #include "machine.h"
-#include "process.h"
+#include "process/process.h"
 #include "source.h"
 #include "frame.rep"
 #include "sym/classes.h"

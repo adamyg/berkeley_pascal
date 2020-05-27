@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)bpact.c	8.1 (Berkeley) 6/6/93";
 #include "source.h"
 #include "mappings.h"
 #include "runtime.h"
-#include "process.h"
+#include "process/process.h"
 #include "machine.h"
 #include "main.h"
 #include "bp.rep"

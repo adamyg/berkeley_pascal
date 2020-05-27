@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)assign.c	8.1 (Berkeley) 6/6/93";
 #include "defs.h"
 #include "tree.h"
 #include "sym.h"
-#include "process.h"
+#include "process/process.h"
 #include "tree.rep"
 #include "process/process.rep"
 #include "process/pxinfo.h"

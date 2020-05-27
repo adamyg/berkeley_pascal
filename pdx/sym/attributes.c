@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)attributes.c	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include "sym.h"
-#include "process.h"
+#include "process/process.h"
 #include "btypes.h"
 #include "classes.h"
 #include "sym.rep"

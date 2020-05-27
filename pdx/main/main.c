@@ -50,7 +50,7 @@ static char sccsid[] = "@(#)main.c	8.1 (Berkeley) 6/6/93";
 #include <signal.h>
 #include "main.h"
 #include "command.h"
-#include "process.h"
+#include "process/process.h"
 #include "object.h"
 
 #define FIRST_TIME 0        /* initial value setjmp returns */

@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)printinst.c	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include "machine.h"
-#include "process.h"
+#include "process/process.h"
 #include "pxops.h"
 #include "optab.h"
 #include "object.h"

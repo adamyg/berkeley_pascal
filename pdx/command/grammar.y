@@ -45,7 +45,7 @@ static char sccsid[] = "@(#)grammar.y	8.1 (Berkeley) 6/6/93";
 #include "sym.h"
 #include "symtab.h"
 #include "tree.h"
-#include "process.h"
+#include "process/process.h"
 #include "source.h"
 
 %}

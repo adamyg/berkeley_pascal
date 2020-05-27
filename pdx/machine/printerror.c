@@ -43,7 +43,7 @@ static char sccsid[] = "@(#)printerror.c	8.1 (Berkeley) 6/6/93";
 #include <signal.h>
 #include "machine.h"
 #include "sym.h"
-#include "process.h"
+#include "process/process.h"
 #include "source.h"
 #include "object.h"
 #include "mappings.h"

@@ -43,7 +43,7 @@ static char sccsid[] = "@(#)address.c	8.1 (Berkeley) 6/6/93";
 #include "runtime.h"
 #include "sym.h"
 #include "machine.h"
-#include "process.h"
+#include "process/process.h"
 #include "object.h"
 #include "mappings.h"
 #include "sym/classes.h"

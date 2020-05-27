@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)rdwr.c	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include <errno.h>
-#include "process.h"
+#include "process/process.h"
 #include "process.rep"
 
 #	include "pxinfo.h"

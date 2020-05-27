@@ -44,7 +44,7 @@ static char sccsid[] = "@(#)printval.c	8.1 (Berkeley) 6/6/93";
 #include "btypes.h"
 #include "classes.h"
 #include "tree.h"
-#include "process.h"
+#include "process/process.h"
 #include "mappings.h"
 #include "sym.rep"
 

@@ -45,7 +45,7 @@ static char sccsid[] = "@(#)readsym.c	8.1 (Berkeley) 6/6/93";
 #include "symtab.h"
 #include "object.h"
 #include "objfmt.h"
-#include "process.h"
+#include "process/process.h"
 #include "sym/classes.h"
 #include "objsym.rep"
 #include "sym/sym.rep"

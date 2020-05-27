@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)token.l	8.1 (Berkeley) 6/6/93";
 #include "main.h"
 #include "symtab.h"
 #include "sym.h"
-#include "process.h"
+#include "process/process.h"
 #include "process/pxinfo.h"
 
 char *initfile = ".pdxinit";

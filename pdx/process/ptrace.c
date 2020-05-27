@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)ptrace.c	8.3 (Berkeley) 5/31/94";
 #include <signal.h>
 #include <sys/param.h>
 #include <machine/reg.h>
-#include "process.h"
+#include "process/process.h"
 #include "object.h"
 #include "process.rep"
 
