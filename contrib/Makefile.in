@@ -1,7 +1,7 @@
-#!/usr/bin/perl
-# $Id: makelib.in,v 1.3 2020/05/25 22:20:40 cvsuser Exp $
-# -*- mode: perl; tabs: 8; indent-width: 4; -*-
-# makelib configuration
+# -*- mode: mak; -*-
+# $Id: Makefile.in,v 1.1 2020/05/28 18:03:32 cvsuser Exp $
+# External packages.
+#
 #
 # Copyright (c) 2020, Adam Young.
 # All rights reserved.
@@ -29,46 +29,34 @@
 # ==end==
 #
 
-$PACKAGE        = 'Berkeley_Pascal';
-$PACKAGE_PATH   = 'libcompat';
-$PACKAGE_FILE   = 'package.h';
+@SET_MAKE@
 
-$CONFIG_PATH    = 'libcompat';
+D_OBJ=		../objects@TOOLCHAINEXT@
+D_LIB=		../lib@TOOLCHAINEXT@
+D_BIN=		../bin@TOOLCHAINEXT@
 
-@x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
+define contrib-all
+	$(MAKE) -C libregex
+	$(MAKE) -C flex
+endef
 
-@x_libraries2   = (     # local libraries -l<xxx> xxx.lib
-        'libregex',
-        'libcompat',
-        'libpc',
-        'libpx'
-        );
+define contrib-clean
+	$(MAKE) -C libregex clean
+	$(MAKE) -C flex clean
+endef
 
-@x_optlibraries  = ();  # optional libraries
+.PHONY:		all
+all:			directories
+		$(contrib-all)
 
-@x_makefiles     = (    # local makefiles
-        '.',
-        'libcompat',
-        'byacc',
-        'eyacc',
-        'ex',
-        '^contrib',
-        '^contrib/libregex',
-        '^contrib/flex',
-        'libpc',
-        'pi',
-        'px',
-        'pxp',
-        'pdx',
-        'px_header',
-        'pmerge',
-        'doc'
-        );
+.PHONY:		clean
+clean:
+		$(contrib-clean)
 
-##      'pc',
-##      'pc0',
-##      'pc2',
-##      'pc3'
+directories:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created
 
-1;
+%/.created:
+		-@mkdir $(@D)
+		@echo "do not delete, managed directory" > $@
 
+#end

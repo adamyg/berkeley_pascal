@@ -1,0 +1,7 @@
+# $Id: makelib.def,v 1.1 2020/05/28 18:03:34 cvsuser Exp $
+# win32 makelib configuration
+#
+inc=../include
+lbl=LIBREGEX
+lib=libregex.lib
+def=HAVE_REGEX_H

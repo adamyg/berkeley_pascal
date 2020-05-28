@@ -184,7 +184,7 @@ endif
 
 .DEFAULT:
 .PHONY:				all
-all:			dirs buildinfo libs bins import
+all:			dirs buildinfo libs bins import doc
 
 # Build support
 
@@ -259,6 +259,10 @@ $(D_BIN)/$(PLBRNAME).dll:	$(LIBPLBRPATH)
 		@echo importing $(LIBPLBRPATH)
 		@$(CP) -f $(subst /,\,$^) $@
 endif
+
+.PHONY:
+doc:
+		$(MAKE) -C doc $(MAKEFLAGS)
 
 install:		all
 		-mkdir -p $(BINDIR)
