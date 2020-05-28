@@ -34,7 +34,7 @@ commands(noprompt, exitoneof)
 	int given;
 	int seensemi;
 	int cnt;
-	bool hadpr;
+	bool hadpr = 0;
 
 	resetflav();
 	nochng();
