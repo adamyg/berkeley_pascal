@@ -2,9 +2,8 @@
 //  compat_getw
 //
 
-#include "w32config.h"
+#include "libcompat.h"
 
-#include <stdio.h>
 
 //   NAME
 //

@@ -2,10 +2,8 @@
 //  compat_putw
 //
 
-#include "w32config.h"
-
-#include <stdio.h>
-
+#include "libcompat.h"
+		    
 //   NAME
 //
 //      putw - put a word on a stream (LEGACY)

@@ -1,11 +1,13 @@
 //
 //  compat_strcatn
 //
- 
-#include "w32config.h"
- 
-#include <stdio.h>
 
+#include "libcompat.h"
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+ 
 /*
  * Concatenate s2 on the end of s1.  S1's space must be large enough.
  * At most n characters are moved.
@@ -14,7 +16,7 @@
 
 #if !defined(HAVE_STRCATN)
 char *
-strcatn(register char *s1, *s2, register int n)
+strcatn(register char *s1, register char *s2, register int n)
 {
 	register char *os1;
 

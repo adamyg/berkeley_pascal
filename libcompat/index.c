@@ -2,9 +2,8 @@
 // compat_index - character string operations.
 //
 
-#include "w32config.h"
+#include "libcompat.h"
 
-#include <sys/types.h>
 #include <string.h>
 
 #if !defined(HAVE_INDEX)

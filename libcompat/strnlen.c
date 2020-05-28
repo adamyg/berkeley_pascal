@@ -14,11 +14,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
  
-#include "w32config.h"
+#include "libcompat.h"
 
-#include <sys/types.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
- 
+
 #if !defined(HAVE_STRNLEN)
 size_t
 strnlen(const char *str, size_t maxlen)

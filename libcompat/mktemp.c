@@ -39,9 +39,8 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "w32config.h"
+#include "libcompat.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -56,7 +55,7 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 
 #if defined(WIN32)
 #define  WINDOWS_MEAN_AND_LEN
-#include <WIndows.h>
+#include <Windows.h>
 #endif
 
 #if defined(_MSC_VER)
@@ -116,8 +115,7 @@ mkstemp(char *path)
 
 #if !defined(HAVE_MKTEMP)
 char *
-mktemp(path)
-	char *path;
+mktemp(char *path)
 {
 	return(_gettemp(path, (int *)NULL) ? path : (char *)NULL);
 }

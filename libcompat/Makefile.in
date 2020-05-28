@@ -79,11 +79,18 @@ LIBCSOURCES=\
 		index.c		\
 		mktemp.c	\
 		putw.c		\
+		strcatn.c	\
+		strndup.c	\
+		strnlen.c	\
 		rindex.c
+
+CFLAGS+=	-DLIBCOMPAT_SOURCE=1
 
 LIBOBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(LIBCSOURCES)))
 
 LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
+
+############################################################
 
 all:			directories $(LIBRARY) installinc
 
