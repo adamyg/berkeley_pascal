@@ -4,3 +4,6 @@
 [submodule "references/flex"]
 	path = references/flex
 	url = https://github.com/westes/flex.git
+[submodule "references/p2c"]
+	path = references/p2c
+	url = https://github.com/FranklinChen/p2c
