@@ -31,7 +31,11 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
 
     eyacc -       Modified yacc allowing much improved error recovery; needed by the Pascal parser.
     
-    ex -          Stream editor.   
+    ex -          Stream editor.    
+  
+    contrib/flex - Flex (Fast Lexical analyzer generator) 2.5.2.
+    
+    contrib/libregex - Henry Spencer's regex package; required by Flex.
 
 ## Source Reference:
 
