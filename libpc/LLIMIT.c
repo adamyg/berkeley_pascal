@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1979 The Regents of the University of California.
- * All rights reserved.
+ * Copyright (c) 1979, 1993
+ *	The Regents of the University of California.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
  */
 
 #if !defined(lint) && defined(sccs)
-static char sccsid[] = "@(#)LLIMIT.c	1.4 (Berkeley) 4/9/90";
+static char sccsid[] = "@(#)LLIMIT.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "h00vars.h"

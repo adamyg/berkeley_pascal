@@ -37,9 +37,6 @@ static char sccsid[] = "@(#)READ4.c	8.1 (Berkeley) 6/6/93";
 
 #include "h00vars.h"
 #include <errno.h>
-#ifndef errno
-extern int     errno;
-#endif
 
 long
 READ4(curfile)

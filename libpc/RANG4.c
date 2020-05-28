@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)RANG4.c	8.1 (Berkeley) 6/6/93";
 
 #include "h00vars.h"
 
-const char ERANG[] = "Value of %d is out of range\n";
+const char ERANG[] = "Value of %ld is out of range\n";
 
 long
 RANG4(value, lower, upper)

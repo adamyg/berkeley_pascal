@@ -44,7 +44,7 @@ RSNG4(value, upper)
 	long		value;
 	unsigned long	upper;
 {
-	if ((unsigned long)value > upper) {
+	if ((unsigned long)value > upper) { /*XXX: check usage, signed/unsigned*/
 		ERROR(ERANG, value);
 	}
 	return	value;

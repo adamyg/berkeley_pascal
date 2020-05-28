@@ -42,5 +42,5 @@ FRTN(frtn, save)
 	register struct formalrtn *frtn;
 	char *save;
 {
-	BLKCPY(save, &_disply[1], frtn->fbn * sizeof(struct display));
+	BLKCPY(save, &_display[1], frtn->fbn * sizeof(struct display));
 }

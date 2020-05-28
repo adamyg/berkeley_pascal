@@ -48,7 +48,7 @@ SUCC(value, lower, upper)
 	}
 	value++;
 	if (value < lower || value > upper) {
-		ERROR("Value of %d is out of range\n", value);
+		ERROR("Value of %ld is out of range\n", value);
 	}
 	return	value;
 }

@@ -74,6 +74,7 @@ LIBROOT=	pc
 
 ##Omitted
 ##		CATCHERR.c	\
+##		PCSTART.c	\
 ##		PCIO.c		\
 ##
 
@@ -125,7 +126,6 @@ LIBCSOURCES=\
 		PAGE.c		\
 		PCEXIT.c	\
 		PCLOSE.c	\
-		PCSTART.c	\
 		PERROR.c	\
 		PFCLOSE.c	\
 		PFLUSH.c	\

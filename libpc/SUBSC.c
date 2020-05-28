@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)SUBSC.c	8.1 (Berkeley) 6/6/93";
 
 #include "h00vars.h"
 
-const char ESUBSC[] = "Subscript value of %d is out of range\n";
+const char ESUBSC[] = "Subscript value of %ld is out of range\n";
 
 long
 SUBSC(i, lower, upper)

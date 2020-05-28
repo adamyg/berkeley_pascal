@@ -45,12 +45,10 @@ EXPO(value)
 	register int retval;
 	register char *cp;
 	char sign, buf[30];
-/*	extern char *index();*/
 
 	if (value == 0.0)
 		return 0;
 	sprintf(buf, "%.1e", value);
-/*	cp = index(buf, 'e') + 1;*/
 	cp = strchr(buf, 'e') + 1;
 	sign = *cp++;
 	retval = 0;

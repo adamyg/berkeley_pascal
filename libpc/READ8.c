@@ -40,9 +40,6 @@ static char sccsid[] = "@(#)READ8.c	8.1 (Berkeley) 6/6/93";
 #include <math.h>
 #include <errno.h>
 
-#ifndef errno
-extern int errno;
-#endif
 
 static int readreal(struct iorec *, double *doublep);
 
@@ -135,6 +132,11 @@ readreal(curfile, doublep)
 	RETURN_ON_EOF(read); \
 	PUSH_TO_NULL(sequencep);
 
+#define	SKIP(read, filep, format) \
+	read = fscanf(filep, format); \
+	RETURN_ON_EOF(read); \
+	PUSH_TO_NULL(sequencep);
+
 	/* e.g. use %[0123456789] for digit {digit} */
 #define	AT_LEAST_ONE(read, filep, format, sequencep) \
 	read = fscanf(filep, format, sequencep); \
@@ -162,7 +164,7 @@ readreal(curfile, doublep)
 	/*
 	 *	skip leading whitespace
 	 */
-	SOME(read, filep, "%*[ \t\n]", sequencep);
+	SKIP(read, filep, "%*[ \t\n]");
 	/*
 	 *	this much is required:
 	 *	[ "+" | "-" ] digit {digits}

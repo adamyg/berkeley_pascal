@@ -63,7 +63,7 @@ UNPACK(i, a, z, size_a, lb_a, ub_a, size_z)
 
 	subscr = i - lb_a;
 	if (subscr < 0 || subscr > ub_a) {
-		ERROR("i = %d: Bad i to unpack(z,a,i)\n", i);
+		ERROR("i = %ld: Bad i to unpack(z,a,i)\n", i);
 		return;
 	}
 	cp = &a[subscr * size_a];

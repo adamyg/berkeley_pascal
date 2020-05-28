@@ -38,9 +38,7 @@ static char sccsid[] = "@(#)SIN.c	8.1 (Berkeley) 6/6/93";
 #include "h00vars.h"
 
 #include <math.h>
-#ifndef errno
-extern int errno;
-#endif
+#include <errno.h>
 
 double
 SIN(value)

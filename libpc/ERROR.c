@@ -60,7 +60,7 @@ ERROR(const char *msg, ...)
 
 #if defined(unix)
 	raise(SIGUSR2);
-#else
+#else /*XXX: PXEMBEDDED*/
 	px_raise(PXSIGERR);
 	px_backtrace("error");
 	px_exit(-1);
@@ -68,5 +68,5 @@ ERROR(const char *msg, ...)
 
 	ret = va_arg(ap, long);
 	va_end(ap);
-        return (ret);
+	return ret;
 }

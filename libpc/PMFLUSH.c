@@ -49,7 +49,7 @@ PMFLUSH(cntrs, rtns, bufaddr)
 
 	zmagic = (struct pmon_header *)bufaddr;
 	zmagic->magic = PMONMAGIC;
-	zmagic->tim = (long)time(NULL);
+	zmagic->tim = (long)time(NULL); /*XXX: time32*/
 	zmagic->cntrs = cntrs;
 	zmagic->rtns = rtns;
 

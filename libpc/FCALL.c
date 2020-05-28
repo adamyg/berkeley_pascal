@@ -42,7 +42,7 @@ FCALL(save, frtn)
 	char *save;
 	register struct formalrtn *frtn;
 {
-	BLKCPY(&_disply[1], save, frtn->fbn * sizeof(struct display));
-	BLKCPY(&frtn->fdisp[0], &_disply[1],
+	BLKCPY(&_display[1], save, frtn->fbn * sizeof(struct display));
+	BLKCPY(&frtn->fdisp[0], &_display[1],
 		frtn->fbn * sizeof(struct display));
 }

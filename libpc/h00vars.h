@@ -48,6 +48,7 @@
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
 #define unlink(__x)	_unlink(__x)
+#define getpid()	_getpid()
 #endif
 
 #if (0)
@@ -110,7 +111,7 @@ struct formalrtn {
 /*
  * program variables
  */
-extern struct display	_disply[MAXLVL];/* runtime display */
+extern struct display	_display[MAXLVL];	/* runtime display */
 
 
 /*
@@ -119,6 +120,4 @@ extern struct display	_disply[MAXLVL];/* runtime display */
 extern void		FCALL(char *save, struct formalrtn *);
 extern void		FRTN(struct formalrtn *, char *);
 extern struct formalrtn *FSAV(long (*entryaddr)(), long, struct formalrtn *);
-
-
 

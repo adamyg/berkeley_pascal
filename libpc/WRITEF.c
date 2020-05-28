@@ -43,15 +43,16 @@ WRITEF(register struct iorec	*curfile,
        char			*fmt,
        ...)
 {
-        va_list ap;
+	va_list ap;
 
-        va_start(ap, fmt);
 	if (curfile->funit & FREAD) {
 		ERROR("%s: Attempt to write, but open for reading\n",
 			curfile->pfname);
 		return;
 	}
+	va_start(ap, fmt);
 	vfprintf(f, fmt, ap);
+	va_end(ap);
 	if (ferror(curfile->fbuf)) {
 		PERROR("Could not write to ", curfile->pfname);
 		return;

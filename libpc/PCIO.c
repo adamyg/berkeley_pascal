@@ -79,7 +79,10 @@ struct iorechd       input = {
        &_inwin,                    /* fileptr */
        0,                          /* lcount  */
        0x7fffffff,                 /* llimit  */
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#else
        stdin,                      /* fbuf    */
+#endif
        OUTPUT,                     /* fchain  */
        STDLVL,                     /* flev    */
        "standard input",           /* pfname  */
@@ -91,7 +94,10 @@ struct iorechd       output = {
        &_outwin,                   /* fileptr */
        0,                          /* lcount  */
        0x7fffffff,                 /* llimit  */
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#else
        stdout,                     /* fbuf    */
+#endif
        ERR,                        /* fchain  */
        STDLVL,                     /* flev    */
        "standard output",          /* pfname  */
@@ -103,7 +109,10 @@ struct iorechd       _err = {
        &_errwin,                   /* fileptr */
        0,                          /* lcount  */
        0x7fffffff,                 /* llimit  */
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#else
        stderr,                     /* fbuf    */
+#endif
        FILNIL,                     /* fchain  */
        STDLVL,                     /* flev    */
        "Message file",             /* pfname  */
@@ -121,6 +130,12 @@ PCSTART(mode)
         * memory to zero
         */
        struct iorec  **ip;
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+       input.fbuf  = stdin;
+       output.fbuf = stdout;
+       _err.fbuf   = stderr;
+#endif
 
        /*
         * if running with runtime tests enabled, give more

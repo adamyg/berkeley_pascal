@@ -37,7 +37,7 @@ static char sccsid[] = "@(#)CHR.c	8.1 (Berkeley) 6/6/93";
 
 #include "h00vars.h"
 
-static const char ECHR[] = "Argument to chr of %ld is out of range\n";
+static const char ECHR[] = "Argument to chr of %lu is out of range\n";
 
 char
 CHR(value)
