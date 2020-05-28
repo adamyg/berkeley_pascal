@@ -1,12 +1,10 @@
 
-  The following packages are normally only required for Windows builds as all are
-  generally available on other targets, either as standard or optional installations.
+# Contributions
 
-  libregex/
-
-        o Henry Spencer's libregex
-
-                                -------------
+The following packages are normally only required for Windows builds, 
+as all are generally available on other targets, either as standard or optional installations.
+ 
+## libregex - Henry Spencer's libregex
 
             Copyright 1992, 1993, 1994 Henry Spencer.  All rights reserved.
             This software is not subject to any license of the American Telephone
@@ -29,10 +27,7 @@
 
             4. This notice may not be removed or altered.
 
-  flex-2.5.2/
-
-
-                                -------------
+## Flex 2.5.2
 
             Copyright (c) 1990 The Regents of the University of California.
             All rights reserved.
