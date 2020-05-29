@@ -49,7 +49,12 @@ REWRITE(filep, name, maxnamlen, datasize)
 #ifdef unix
 	filep->fbuf = fopen(filep->fname, "w");
 #else
-	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "wt" : "wb"));
+	if (filep->fname[0] == '/' && filep->fname[0] == 'd' &&
+			0 == strcmp(filep->fname, "/dev/null")) {
+		filep->fbuf = fopen("NUL", "wb");
+	} else {
+		filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "wt" : "wb"));
+	}
 #endif
 	if (filep->fbuf == NULL) {
 		PERROR("Could not create ",filep->pfname);

@@ -57,7 +57,12 @@ RESET(filep, name, maxnamlen, datasize)
 #ifdef unix
 	filep->fbuf = fopen(filep->fname, "r");
 #else
-	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "rt" : "rb"));
+	if (filep->fname[0] == '/' && filep->fname[0] == 'd' &&
+			0 == strcmp(filep->fname, "/dev/null")) {
+		filep->fbuf = fopen("NUL", "rb");
+	} else {
+		filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "rt" : "rb"));
+	}
 #endif
 	if (filep->fbuf == NULL) {
 		/*

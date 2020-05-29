@@ -45,7 +45,12 @@ APPEND(filep)
 #ifdef unix
 	filep->fbuf = fopen(filep->fname, "a");
 #else
-	filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "at" : "ab"));
+	if (filep->fname[0] == '/' && filep->fname[0] == 'd' &&
+			0 == strcmp(filep->fname, "/dev/null")) {
+		filep->fbuf = fopen("NUL", "ab");
+	} else {
+		filep->fbuf = fopen(filep->fname, (filep->funit&FTEXT ? "at" : "ab"));
+	}
 #endif
 	if (filep->fbuf == NULL) {
 		PERROR("Could not open ", filep->pfname);
