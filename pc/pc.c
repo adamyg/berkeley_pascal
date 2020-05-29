@@ -41,10 +41,18 @@ static char copyright[] =
 static char sccsid[] = "@(#)pc.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#if defined(WIN32)
+#define MAXPATHLEN 256
+#else
 #include <sys/param.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
+#endif
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "pathnames.h"
 
 /*
@@ -93,7 +101,7 @@ char	*asargs[8] =		{ "as", 0, };
 char *mesg[] = {
 	0,
 	"Hangup",
-	"Interrupt",	
+	"Interrupt",
 	"Quit",
 	"Illegal instruction",
 	"Trace/BPT trap",
@@ -135,16 +143,16 @@ int	np, nxo;
 char	*onepso;
 int	errs;
 
-int	onintr();
+void	onintr();
 
-main(argc, argv)
+void main(argc, argv)
 	int argc;
 	char **argv;
 {
 	register char *argp;
 	register int i;
 	int savargx;
-	char *t, c;
+	char c;
 	int j;
 
 	argc--, argv++;
@@ -152,10 +160,12 @@ main(argc, argv)
 		execl(_PATH_CAT, "cat", _PATH_HOWPC);
 		exit(1);
 	}
+#if defined(SIGINT)
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
 		signal(SIGINT, onintr);
 		signal(SIGTERM, onintr);
 	}
+#endif
 	for (i = 0; i < argc; i++) {
 		argp = argv[i];
 		if (argp[0] != '-')
@@ -302,12 +312,12 @@ main(argc, argv)
 			asargx = 1;
 			if (Jflag)
 				asargs[asargx++] = "-J";
-#			if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 				if (tflag) {
 					asargs[asargx++] = "-t";
 					asargs[asargx++] = tmpdir;
 				}
-#			endif vax || tahoe
+#endif /*vax || tahoe*/
 			asargs[asargx++] = argp;
 			asargs[asargx++] = "-o";
 			tfile[1] = setsuf(argp, 'o');
@@ -357,12 +367,12 @@ main(argc, argv)
 		asargx = 1;
 		if (Jflag)
 			asargs[asargx++] = "-J";
-#		if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 			if (tflag) {
 				asargs[asargx++] = "-t";
 				asargs[asargx++] = tmpdir;
 			}
-#		endif vax || tahoe
+#endif /*vax || tahoe*/
 		asargs[asargx++] = tfile[0];
 		asargs[asargx++] = "-o";
 		tfile[1] = setsuf(argp, 'o');
@@ -487,7 +497,7 @@ duplicate:
 	done();
 }
 
-dosys(cmd, argv, in, out)
+int dosys(cmd, argv, in, out)
 	char *cmd, **argv, *in, *out;
 {
 	union wait status;
@@ -505,7 +515,7 @@ dosys(cmd, argv, in, out)
 		printf("\n");
 	}
 	/*
-	 * warning: vfork doesn't work here, because the call to signal() 
+	 * warning: vfork doesn't work here, because the call to signal()
 	 * done by the child process destroys the parent's SIGINT handler.
 	 */
 	pid = fork();
@@ -529,7 +539,9 @@ dosys(cmd, argv, in, out)
 				exit(1);
 			}
 		}
+#if defined(SIGINT)
 		signal(SIGINT, SIG_DFL);
+#endif
 		execv(cmd, argv);
 		perror(cmd);
 		exit(1);
@@ -554,14 +566,14 @@ dosys(cmd, argv, in, out)
 	return (status.w_retcode);
 }
 
-done()
+void done()
 {
 
 	removetemps();
 	exit(errs);
 }
 
-removetemps()
+void removetemps()
 {
 
 	if (tfile[0])
@@ -570,19 +582,19 @@ removetemps()
 		unlink(tfile[1]);
 }
 
-onintr()
+void onintr()
 {
 
 	errs = 1;
 	done();
 }
 
-getsuf(cp)
+int getsuf(cp)
 	char *cp;
 {
 
 	if (*cp == 0)
-		return;
+		return (0);
 	while (cp[1])
 		cp++;
 	if (cp[-1] != '.')
@@ -632,7 +644,7 @@ savestr(cp)
 	return (cp);
 }
 
-suffix(cp)
+int suffix(cp)
 	char *cp;
 {
 

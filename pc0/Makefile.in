@@ -1,0 +1,162 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: $
+# pc0 makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# You can redistribute it and/or modify it under the terms of
+# the project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+E=
+O=		.o
+H=		.h
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+RM=		@RM@
+
+# Common flags
+
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I..\src @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pc0
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+BINS=\
+	$(D_BIN)/mkstr$(E) \
+	$(D_BIN)/pc0$(E) \
+	$(D_BIN)/pic$(E) \
+	$(D_BIN)/opc$(E)
+
+CFLAGS+=	-Di80x86
+ERRORSTRING=	errorstrings.c
+PC0_CSOURCE=\
+	TRdata.c ato.c call.c case.c clas.c const.c conv.c cset.c error.c \
+	fdec.c fend.c fhdr.c flvalue.c forop.c func.c gen.c hash.c lab.c \
+	lookup.c lval.c main.c nl.c p2put.c pccaseop.c pcfunc.c pclval.c \
+	pcproc.c proc.c put.c rec.c rval.c savenl.c sconv.c stab.c stat.c \
+	stklval.c stkrval.c string.c subr.c tmps.c tree.c treen.c type.c \
+	var.c yycopy.c yycosts.c yyerror.c yyget.c yyid.c yylex.c yymain.c \
+	yyoptions.c yypanic.c yyparse.c yyprint.c yyput.c yyrecover.c \
+	yyseman.c yytree.c
+	
+	
+MKSTR_CSOURCE=\
+	mkstr.c
+	
+PIC_CSOURCE=\
+	pic.c
+	
+OPC_CSOURCE=\
+	opc.c
+
+VPATH=		../src
+
+PC0_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PC0_CSOURCE)))
+MKSTR_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(MKSTR_CSOURCE)))
+PIC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PIC_CSOURCE)))
+OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
+
+LDLIBS=		-L$(D_LIB)
+
+CLEANOBJS=	$(PC0_OBJS) $(MKSTR_OBJS) $(PIC_OBJS) $(OPC_OBJS)
+CLEANFILES=	opcode.h picture.txt ytab.c ytab.h ytab.lst $(ERRORSTRINGS)
+
+all:		$(BINS)
+
+$(D_BIN)/pc0$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pc0$(E):	$(D_OBJ)/.created opcode.h picture.txt ytab.h $(PC0_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PC0_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_OBJ)/x_ytab(O):	ytab.c ytab.h
+		rm -f x_ytab.c
+		$(D_BIN)/mkstr$(E) - ${ERRORSTRINGS} x_ ytab.c
+		$(CC) $(CFLAGS) -o $@ -c x_ytab.c
+
+ytab.c:			ytab.h
+
+ytab.h:		../src/pas.y ../src/gram
+		@echo make ytab.h and ytab.c
+		rm -f ytab.h ytab.c
+		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
+		$(D_BIN)/ex37 - ytab.c < ../src/gram >ex.out
+		-@$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
+
+picture.txt:		$(D_BIN)/pic$(E)
+		$(D_BIN)/pic > picture.txt
+
+opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
+		$(D_BIN)/opc > opcode.h
+
+$(D_BIN)/mkstr$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/mkstr$(E):	$(D_OBJ)/.created $(MKSTR_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(MKSTR_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/pic$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pic$(E):	$(D_OBJ)/.created $(PIC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/opc$(E):	$(D_OBJ)/.created $(OPC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+ 
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end
+
