@@ -54,7 +54,7 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 #include <io.h>
 
 #if defined(WIN32)
-#define  WINDOWS_MEAN_AND_LEN
+#define  WINDOWS_MEAN_AND_LEAN
 #include <Windows.h>
 #endif
 

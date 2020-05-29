@@ -4,6 +4,7 @@ include/
 objects.*/
 lib.*/
 bin.*/
-pascal.ref/
+*.ref/
+msvc2015/
 Makefile
 *.err

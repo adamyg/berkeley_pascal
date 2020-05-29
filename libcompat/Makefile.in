@@ -75,14 +75,19 @@ XFLAGS=
 LIBROOT=	compat
 
 LIBCSOURCES=\
-		getw.c		\
-		index.c		\
-		mktemp.c	\
-		putw.c		\
 		strcatn.c	\
 		strndup.c	\
 		strnlen.c	\
-		rindex.c
+		strlcat.c	\
+		strlcpy.c	\
+		strtonum.c	\
+		bzero.c		\
+		explicit_bzero.c \
+		index.c		\
+		rindex.c	\
+		getw.c		\
+		putw.c		\
+		mktemp.c
 
 CFLAGS+=	-DLIBCOMPAT_SOURCE=1
 

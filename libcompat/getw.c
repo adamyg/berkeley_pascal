@@ -35,6 +35,7 @@
 //     and getw() returns EOF. If a read error occurs, the error indicator for the stream is set,
 //     getw() returns EOF and sets errno to indicate the error.
 //
+
 #if !defined(HAVE_GETW)
 int
 getw(FILE *fp)

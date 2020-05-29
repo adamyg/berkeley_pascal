@@ -2,7 +2,7 @@
 #define LIBCOMPACT_H_INCLUDED
 //
 //  libcompat
-//
+//	     
 
 #include "w32config.h"
 
@@ -30,6 +30,27 @@ extern char *strcatn(register char *s1, register char *s2, register int n);
 #endif
 #endif
 
+#if !defined(HAVE_STRTONUM) /*libbsd*/
+extern long long strtonum(const char *numstr, long long minval, long long maxval, const char **errstrp);
+#if !defined(LIBCOMPAT_SOURCE)
+#define HAVE_STRTONUM
+#endif
+#endif
+
+#if !defined(HAVE_BZERO)
+extern void bzero(void *s, size_t len);
+#if !defined(LIBCOMPAT_SOURCE)
+#define HAVE_BZERO
+#endif
+#endif
+
+#if !defined(HAVE_EXPLICIT_BZERO)
+extern void explicit_bzero(void *s, size_t len);
+#if !defined(LIBCOMPAT_SOURCE)
+#define HAVE_EXPLICIT_BZERO
+#endif
+#endif
+
 #if !defined(HAVE_PUTW)
 extern int putw(int w, FILE *fp);
 #if !defined(LIBCOMPAT_SOURCE)
@@ -51,6 +72,13 @@ extern char *index(const char *s, int c);
 #endif
 #endif
 
+#if !defined(HAVE_RINDEX)
+extern char *rindex(const char *s, int c);
+#if !defined(LIBCOMPAT_SOURCE)
+#define HAVE_RINDEX
+#endif
+#endif
+
 #if !defined(HAVE_MKSTEMP)
 extern int mkstemp(char *path);
 #if !defined(LIBCOMPAT_SOURCE)
@@ -68,6 +96,4 @@ extern char *mktemp(char *path);
 extern char *xmktemp(char *path, char *result, size_t length);
 
 #endif /*LIBCOMPACT_H_INCLUDED*/
-
-
 

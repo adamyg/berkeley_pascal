@@ -729,8 +729,10 @@ my @x_functions     = (
         'putenv',
         'setenv',
         'rename',
-        'bcopy', 'bcmp', 'bzero',
+        'bcopy', 'bcmp', 'bzero', 'explicit_bzero',
         'memcmp', 'memset', 'memmove',
+            'memset_s',                         # __STDC_WANT_LIB_EXT1__
+            'SecureZeroMemory',
         'memccpy', '_memccpy',                  # bsd/msvc
         'index', 'rindex',                      # bsd
         'strcasecmp', '__strcasecmp', 'stricmp',
@@ -1873,6 +1875,10 @@ EOT
     #   generic
     #
     } else {
+        if ($name =~ /_s$/) {   # enable C Library Extension 1 (MSC/WC only)
+            $config .= "\n#define __STDC_WANT_LIB_EXT1__ 1";
+        }
+
         print TMP<<EOT;
 ${config}
 #if defined(__STDC__)

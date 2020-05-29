@@ -159,8 +159,8 @@ LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
 endif
 
 LIBS=\
-	$(LW)compat$(A)			\
-	$(LW)pc$(A)
+	$(LW)compat			\
+	$(LW)pc
 
 BINS=\
 	$(D_BIN)/eyacc$(E)		\
@@ -231,16 +231,16 @@ dirs:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created
 		-@mkdir $(@D)
 		@echo "++ do not delete, managed content ++" > $@
 
-bins:			$(D_BIN)/.created $(BINS)
+bins:			$(BINS)
 
 $(D_BIN)/%$(E):		libs
-		@echo --- bulding $@
+		@echo --- building $@
 		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
 
-libs:			$(D_LIB)/.created $(LIBS)
+libs:			$(LIBS)
 
-$(LW)%$(A):		$(D_OBJ)/.created
-		@echo --- bulding $@
+$(LW)%:
+		@echo --- building $@
 		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
 
 .PHONY:

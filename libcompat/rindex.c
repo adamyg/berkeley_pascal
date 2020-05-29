@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <string.h>
  
-#if !defined(HAVE_RNDEX)
+#if !defined(HAVE_RINDEX)
 char *
 rindex(const char *s, int c)
 {
