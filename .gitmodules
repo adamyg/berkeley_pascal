@@ -7,3 +7,6 @@
 [submodule "references/p2c"]
 	path = references/p2c
 	url = https://github.com/FranklinChen/p2c
+[submodule "references/pcc-revived"]
+	path = references/pcc-revived
+	url = https://github.com/arnoldrobbins/pcc-revived
