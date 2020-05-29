@@ -6,14 +6,28 @@ if "%1" == "--owc19" (
 
 ) else if "%1" == "--vs140" (
 	set PX=..\..\..\bin.vs140\px
+) else if "%1" == "--vc2015" (
+	set PX=..\..\..\bin.vs140\px
+
+) else if "%1" == "--vs141" (
+	set PX=..\..\..\bin.vs141\px
+) else if "%1" == "--vc2017" (
+	set PX=..\..\..\bin.vs141\px
+
+) else if "%1" == "--vs142" (
+	set PX=..\..\..\bin.vs142\px
+) else if "%1" == "--vc2019" (
+	set PX=..\..\..\bin.vs142\px
 
 ) else (
 	echo Error: missing target toolchain.
 	echo .
 	echo Usage: run_tests [--toolchain]
 	echo toolchains:
-	echo  owc19    Open Watcom 1.9
-	echo  vs140    Microsoft 2015
+	echo  owc19             Open Watcom 1.9
+	echo  vs140/vc2015      Microsoft 2015
+	echo  vs141/vc2017      Microsoft 2017
+	echo  vs142/vc2019      Microsoft 2019
 	goto end
 )
 
@@ -55,6 +69,7 @@ cd    test
 REM %PX%  pcextn                                             > pcextn.out     2>&1
 %PX%  permute                                            > permute.out        2>&1
 %PX%  peter                < ..\..\in\peter.in           > peter.out          2>&1
+%PX%  piextn                                             > piextn.out         2>&1
 %PX%  powersoftwo                                        > powersoftwo.out    2>&1
 %PX%  pretty               < ..\..\in\pretty.in          > pretty.out         2>&1
 %PX%  primes                                             > primes.out         2>&1

@@ -1,19 +1,35 @@
 @echo off
 setlocal enableDelayedExpansion
 
+set PIOPTIONS=-krlzyxg
+
 if "%1" == "--owc19" (
-	set PI=..\..\bin.owc19\pi -krlzy
+	set PI=..\..\bin.owc19\pi %PIOPTIONS%
 
 ) else if "%1" == "--vs140" (
-	set PI=..\..\bin.vs140\pi -krlzy
+	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+) else if "%1" == "--vc2015" (
+	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+
+) else if "%1" == "--vs141" (
+	set PI=..\..\bin.vs141\pi %PIOPTIONS%
+) else if "%1" == "--vc2017" (
+	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+
+) else if "%1" == "--vs142" (
+	set PI=..\..\bin.vs142\pi %PIOPTIONS%
+) else if "%1" == "--vc2019" (
+	set PI=..\..\bin.vs142\pi %PIOPTIONS%
 
 ) else (
 	echo Error: missing target toolchain.
 	echo .
 	echo Usage: compile_tests [--toolchain]
 	echo toolchains:
-	echo  owc19    Open Watcom 1.9
-	echo  vs140    Microsoft 2015
+	echo  owc19             Open Watcom 1.9
+	echo  vs140/vc2015      Microsoft 2015
+	echo  vs141/vc2017      Microsoft 2017
+	echo  vs142/vc2019      Microsoft 2019
 	goto end
 )
 
@@ -102,6 +118,7 @@ REM %PI%  -o test\pcextn       ..\src\pcextn.p               > test\pcextn.lst
 %PI%  -o test\testio       ..\src\testio.p               > test\testio.lst
 %PI%  -o test\transpose    ..\src\transpose.p            > test\transpose.lst
 %PI%  -o test\wnj          ..\src\wnj.p                  > test\wnj.lst
+set PIOPTIONS=
 set PI=
 :done
 :end
