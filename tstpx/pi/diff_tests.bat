@@ -33,10 +33,10 @@ diff test\nonlocgoto.out   ..\out\nonlocgoto.out         > test\nonlocgoto.dif
 diff test\numericio.out    ..\out\numericio.out          > test\numericio.dif
 diff test\palindromes.out  ..\out\palindromes.out        > test\palindromes.dif
 diff test\pcerror.out      ..\out\pcerror.out            > test\pcerror.dif
-diff test\pcextn.out       ..\out\pcextn.out             > test\pcextn.dif
+REM diff test\pcextn.out       ..\out\pcextn.out             > test\pcextn.dif
 diff test\permute.out      ..\out\permute.out            > test\permute.dif
 diff test\peter.out        ..\out\peter.out              > test\peter.dif
-REM diff test\pxextn.out       ..\out\pxextn.out             > test\pxextn.dif
+diff test\piextn.out       ..\out\piextn.out             > test\piextn.dif
 diff test\powersoftwo.out  ..\out\powersoftwo.out        > test\powersoftwo.dif
 diff test\pretty.out       ..\out\pretty.out             > test\pretty.dif
 diff test\primes.out       ..\out\primes.out             > test\primes.dif
@@ -44,7 +44,7 @@ diff test\procs.out        ..\out\procs.out              > test\procs.dif
 diff test\pvs1.out         ..\out\pvs1.out               > test\pvs1.dif
 diff test\pvs2.out         ..\out\pvs2.out               > test\pvs2.dif
 diff test\pvs3.out         ..\out\pvs3.out               > test\pvs3.dif
-diff test\quicksort.out    ..\out\quicksort.out          > test\quicksor.dif
+diff test\quicksort.out    ..\out\quicksort.out          > test\quicksort.dif
 diff test\random.out       ..\out\random.out             > test\random.dif
 diff test\rdpal.out        ..\out\rdpal.out              > test\rdpal.dif
 diff test\rdwt.out         ..\out\rdwt.out               > test\rdwt.dif
