@@ -1,8 +1,7 @@
 # Berkeley Pascal
 
 Berkeley Pascal was developed within the Computer Science Division; Department of Electrical Engineering and Computer Science;
-University of California, Berkeley initial by Ken Thompson, then by William N. Joy, Susan L. Graham and Charles B. Haley.
-It was initially designed for interactive instructional use on the PDP/11 and VAX/11 computers by Ken Thompson and developed further with extensive modifications and additions by William Joy, Charles Haley and faculty advisor Susan L. Graham.
+University of California, Berkeley initial by Ken Thompson, then by William N. Joy, Susan L. Graham and Charles B. Haley. It was initially designed for interactive instructional use on the PDP/11 and VAX/11 computers by Ken Thompson and developed further with extensive modifications and additions by William Joy, Charles Haley and faculty advisor Susan L. Graham. The interpeter was later rewritten for the VAX 11/780 by Kirk McKusick and then converted into C using libpc by Kirk later in 1981.
 
 Interpretive P-code is produced, providing fast translation at the expense of slower execution speed. The interpreter runs at a fraction of the speed of equivalent compiled C code, with this fraction varying from 1/5 to 1/15.
 
