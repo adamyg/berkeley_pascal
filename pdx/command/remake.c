@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)remake.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,6 +42,8 @@ static char sccsid[] = "@(#)remake.c	8.1 (Berkeley) 6/6/93";
 #include "defs.h"
 #include "command.h"
 #include "object.h"
+#include "breakpoint.h"
+#include "process/process.h"
 
 /*
  * Invoke "pi" on the dotpfile, then reread the symbol table information.
@@ -52,14 +54,14 @@ static char sccsid[] = "@(#)remake.c	8.1 (Berkeley) 6/6/93";
  * We also have to restart the process so that px dependent information
  * is recomputed.
  */
-
-remake()
+void
+remake(void)
 {
     char *tmpfile;
 
     if (call("pi", stdin, stdout, dotpfile, NIL) == 0) {
 	if (strcmp(objname, "obj") != 0) {
-	    call("mv", stdin, stdout, "obj", objname, NIL);
+	    call("mv", stdin, stdout, "obj", objname, NULL);
 	}
 	tmpfile = mktemp(strdup("/tmp/pdxXXXX"));
 	setout(tmpfile);
@@ -68,7 +70,7 @@ remake()
 	bpfree();
 	objfree();
 	initstart();
-	readobj(objname);
+	readobj(openobj(objname));
 	setinput(tmpfile);
 	unlink(tmpfile);
     } else {

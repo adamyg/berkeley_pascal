@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)proc.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -81,13 +81,17 @@ int rdxxxx[] = {
 	O_READ4,	/*  3 integer */
 	O_READ8		/*  4 real */
 };
+
+
 
 /*
  * Proc handles procedure calls.
+ *
  * Non-builtin procedures are "buck-passed" to func (with a flag
- * indicating that they are actually procedures.
- * builtin procedures are handled here.
+ * indicating that they are actually procedures. builtin procedures
+ * are handled here.
  */
+void
 proc(r)
 	struct tnode *r;
 {
@@ -96,21 +100,20 @@ proc(r)
  	register int op;
 	struct nl *filetype, *ap, *al1;
 	int argc, typ, fmtspec, strfmt, stkcnt;
-	struct tnode *argv; 
+	struct tnode *argv;
 	char fmt, format[20], *strptr, *pu;
 	int prec, field, strnglen, fmtlen, fmtstart;
 	struct tnode *pua, *pui, *puz, *file;
 	int i, j, k;
 	int itemwidth;
 	struct tmps soffset;
-	struct nl	*tempnlp;
+	struct nl *tempnlp = NIL;
 
-#define	CONPREC 4
-#define	VARPREC 8
-#define	CONWIDTH 1
-#define	VARWIDTH 2
-#define SKIP 16
-
+#define	CONPREC         4
+#define	VARPREC         8
+#define	CONWIDTH        1
+#define	VARWIDTH        2
+#define SKIP            16
 	/*
 	 * Verify that the name is
 	 * defined and is that of a
@@ -171,7 +174,7 @@ proc(r)
 			error("flush takes at most one argument");
 			return;
 		}
-		ap = stklval(argv->list_node.list, NIL );
+		ap = stklval(argv->list_node.list, TNONE);
 		if (ap == NLNIL)
 			return;
 		if (ap->class != FILET) {
@@ -210,7 +213,7 @@ proc(r)
 			 * a file name.
 			 */
 			codeoff();
-			ap = stkrval(argv->list_node.list, NLNIL, (long) RREQ );
+			ap = stkrval(argv->list_node.list, NLNIL, (long) RREQ);
 			codeon();
 			if (ap == NLNIL)
 				argv = argv->list_node.next;
@@ -224,7 +227,7 @@ proc(r)
 				 */
 				file = argv->list_node.list;
 				filetype = ap->type;
-				(void) stklval(argv->list_node.list, NIL );
+				(void) stklval(argv->list_node.list, TNONE);
 				(void) put(1, O_UNIT);
 				/*
 				 * Skip over the first argument
@@ -233,7 +236,7 @@ proc(r)
 				argc--;
 			} else {
 				/*
-				 * Set up for writing on 
+				 * Set up for writing on
 				 * standard output.
 				 */
 				(void) put(1, O_UNITOUT);
@@ -257,9 +260,9 @@ proc(r)
 			 * fmt is the format output indicator (D, E, F, O, X, S)
 			 * fmtstart = 0 for leading blank; = 1 for no blank
 			 */
-			fmtspec = NIL;
+			fmtspec = TNONE;
 			stkcnt = 0;
-			fmt = 'D';
+			fmt = 'd'; /*APY, was 'D' */
 			fmtstart = 1;
 			al = argv->list_node.list;
 			if (al == TR_NIL)
@@ -287,10 +290,10 @@ proc(r)
 				 * the stack and an indirection is
 				 * put into the format string.
 				 */
-				if (al->wexpr_node.expr3 == 
+				if (al->wexpr_node.expr3 ==
 						(struct tnode *) OCT)
-					fmt = 'O';
-				else if (al->wexpr_node.expr3 == 
+					fmt = 'o'; /* APY, was 'O' */
+				else if (al->wexpr_node.expr3 ==
 						(struct tnode *) HEX)
 					fmt = 'X';
 				else if (al->wexpr_node.expr3 != TR_NIL) {
@@ -300,7 +303,7 @@ proc(r)
 					if ( constval(al->wexpr_node.expr3)
 					    && isa( con.ctype , "i" ) ) {
 						fmtspec += CONPREC;
-						prec = con.crval;
+						prec = (long)con.crval;
 					} else {
 						fmtspec += VARPREC;
 					}
@@ -326,7 +329,7 @@ proc(r)
 					if ( constval(al->wexpr_node.expr2)
 					    && isa( con.ctype , "i" ) ) {
 						fmtspec += CONWIDTH;
-						field = con.crval;
+						field = (long)con.crval;
 					} else {
 						fmtspec += VARWIDTH;
 					}
@@ -344,7 +347,7 @@ proc(r)
 				}
 			}
 			if (filetype != nl+T1CHAR) {
-				if (fmt == 'O' || fmt == 'X') {
+				if (fmt == 'O' || fmt == 'o' || fmt == 'X' || fmt == 'x') {
 					error("Oct/hex allowed only on text files");
 					continue;
 				}
@@ -356,7 +359,7 @@ proc(r)
 				 * Generalized write, i.e.
 				 * to a non-textfile.
 				 */
-				(void) stklval(file, NIL );
+				(void) stklval(file, TNONE);
 				(void) put(1, O_FNIL);
 				/*
 				 * file^ := ...
@@ -383,7 +386,7 @@ proc(r)
 			 * Evaluate the expression
 			 * to be written.
 			 */
-			if (fmt == 'O' || fmt == 'X') {
+			if (fmt == 'O' || fmt == 'o' || fmt == 'X' || fmt == 'x') {
 				if (opt('s')) {
 					standard();
 					error("Oct and hex are non-standard");
@@ -420,12 +423,12 @@ proc(r)
 					typ = TDOUBLE;
 					goto tdouble;
 				}
-				if (fmtspec == NIL) {
-					if (fmt == 'D')
+				if (fmtspec == TNONE) {
+					if (fmt == 'D' || fmt == 'd')
 						field = 10;
-					else if (fmt == 'X')
+					else if (fmt == 'X' || fmt == 'x' )
 						field = 8;
-					else if (fmt == 'O')
+					else if (fmt == 'O' || fmt == 'o' )
 						field = 11;
 					else
 						panic("fmt1");
@@ -434,7 +437,7 @@ proc(r)
 				break;
 			case TCHAR:
 			     tchar:
-				if (fmtspec == NIL) {
+				if (fmtspec == TNONE) {
 					(void) put(1, O_FILE);
 					ap = stkrval(alv, NLNIL, (long) RREQ );
 					convert(nl + T4INT, INT_TYP);
@@ -509,7 +512,7 @@ proc(r)
 				}
 				fmt = 's';
 				strfmt = fmtspec;
-				if (fmtspec == NIL) {
+				if (fmtspec == TNONE) {
 					fmtspec = SKIP;
 					break;
 				}
@@ -560,7 +563,7 @@ proc(r)
 					soffset = sizes[cbn].curtmps;
 					tempnlp = tmpalloc((long) (sizeof(long)),
 						nl+T4INT, REGOK);
-					(void) put(2, O_LV | cbn << 8 + INDX, 
+					(void) put(2, O_LV | cbn << 8 + INDX,
 					    tempnlp -> value[ NL_OFFS ] );
 				}
 				ap = stkrval(al->wexpr_node.expr2, NLNIL, (long) RREQ );
@@ -572,7 +575,7 @@ proc(r)
 				}
 				/*
 				 * Perform special processing on widths based
-				 * on data type 
+				 * on data type
 				 */
 				switch (typ) {
 				case TDOUBLE:
@@ -585,7 +588,7 @@ proc(r)
 						    5 + EXPOSIZE + REALSPC, 1);
 						convert(nl+T4INT, INT_TYP);
 						stkcnt += sizeof(int);
-						(void) put(2, O_RV4 | cbn << 8 + INDX, 
+						(void) put(2, O_RV4 | cbn << 8 + INDX,
 						    tempnlp->value[NL_OFFS] );
 						fmtspec += VARPREC;
 						tmpfree(&soffset);
@@ -594,7 +597,7 @@ proc(r)
 					break;
 				case TSTR:
 					(void) put(1, O_AS4);
-					(void) put(2, O_RV4 | cbn << 8 + INDX, 
+					(void) put(2, O_RV4 | cbn << 8 + INDX,
 					    tempnlp -> value[ NL_OFFS ] );
 					(void) put(3, O_MAX, strnglen, 0);
 					break;
@@ -650,7 +653,7 @@ proc(r)
 				(void) put(1, O_FILE);
 				(void) put(2, CON_INT, 1);
 				if (strfmt & VARWIDTH) {
-					(void) put(2, O_RV4 | cbn << 8 + INDX , 
+					(void) put(2, O_RV4 | cbn << 8 + INDX ,
 					    tempnlp -> value[ NL_OFFS ] );
 					(void) put(2, O_MIN, strnglen);
 					convert(nl+T4INT, INT_TYP);
@@ -703,7 +706,7 @@ proc(r)
 		 */
 		if (argv != TR_NIL) {
 			codeoff();
-			ap = stkrval(argv->list_node.list, NLNIL, (long) RREQ );
+			ap = stkrval(argv->list_node.list, NLNIL, (long) RREQ);
 			codeon();
 			if (ap == NLNIL)
 				argv = argv->list_node.next;
@@ -717,7 +720,7 @@ proc(r)
 				 */
 				file = argv->list_node.list;
 				filetype = ap->type;
-				(void) stklval(argv->list_node.list, NIL );
+				(void) stklval(argv->list_node.list, TNONE);
 				(void) put(1, O_UNIT);
 				argv = argv->list_node.next;
 				argc--;
@@ -766,7 +769,7 @@ proc(r)
 				 * var := file ^;
 				 */
 				if (file != NIL)
-				    (void) stklval(file, NIL);
+				    (void) stklval(file, TNONE);
 				else /* Magic */
 				    (void) put(2, PTR_RV, (int)input->value[0]);
 				(void) put(1, O_FNIL);
@@ -803,7 +806,7 @@ proc(r)
 			}
 			typ = classify(ap);
 			op = rdops(typ);
-			if (op == NIL) {
+			if (op == TNONE) {
 				error("Can't read %ss from a text file", clnames[typ]);
 				continue;
 			}
@@ -846,7 +849,7 @@ proc(r)
 			error("%s expects one argument", p->symbol);
 			return;
 		}
-		ap = stklval(argv->list_node.list, NIL );
+		ap = stklval(argv->list_node.list, TNONE);
 		if (ap == NLNIL)
 			return;
 		if (ap->class != FILET) {
@@ -1053,7 +1056,7 @@ proc(r)
 			return;
 		}
 		al = argv->list_node.next;
-		ap = stkrval(al->list_node.list, NLNIL , (long) RREQ );
+		ap = stkrval(al->list_node.list, NLNIL , (long) RREQ);
 		if (ap == NIL)
 			return;
 		if (isnta(ap, "i")) {
@@ -1074,7 +1077,7 @@ proc(r)
 			error("page expects one argument");
 			return;
 		}
-		ap = stklval(argv->list_node.list, NIL );
+		ap = stklval(argv->list_node.list, TNONE);
 		if (ap == NLNIL)
 			return;
 		if (!text(ap)) {
@@ -1150,7 +1153,7 @@ packunp:
 			error("%s requires a to be an unpacked array, not %s", pu, nameof(ap));
 			return;
 		}
-		if (al1->class != ARRAY) {
+		if (al1 == NIL /*APY*/|| al1->class != ARRAY) {
 			error("%s requires z to be a packed array, not %s", pu, nameof(ap));
 			return;
 		}
@@ -1206,4 +1209,5 @@ packunp:
 		panic("proc case");
 	}
 }
-#endif OBJ
+#endif /*OBJ*/
+

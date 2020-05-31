@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)eval.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -48,6 +49,8 @@ static char sccsid[] = "@(#)eval.c	8.1 (Berkeley) 6/6/93";
 #include "breakpoint.h"
 #include "machine.h"
 #include "tree.rep"
+#include "runtime.h"	/* isactive */
+#include "command.h"	/* setinput */
 #include "process/process.rep"
 #include "process/pxinfo.h"
 
@@ -57,13 +60,15 @@ static char sccsid[] = "@(#)eval.c	8.1 (Berkeley) 6/6/93";
  * Evaluate a parse tree using a stack; value is left at top.
  */
 
-#define STACKSIZE 2000
+#define STACKSIZE	2000
 
 STACK stack[STACKSIZE];
 STACK *sp = &stack[0];
 
-eval(p)
-register NODE *p;
+BOOLEAN rpush(ADDRESS addr, int len);
+
+void
+eval(register NODE *p)
 {
     long r0, r1;
     double fr0, fr1;
@@ -113,11 +118,11 @@ register NODE *p;
 	case O_LCON:
 	    switch (size(p->nodetype)) {
 		case sizeof(char):
-		    push(char, p->lconval);
+		    push(char, (STACK)p->lconval);
 		    break;
 
 		case sizeof(short):
-		    push(short, p->lconval);
+		    push(short, (short)p->lconval);
 		    break;
 
 		case sizeof(long):
@@ -141,7 +146,7 @@ register NODE *p;
 	    sp += len;
 #ifdef tahoe
 	    alignstack();
-#endif tahoe
+#endif /*tahoe*/
 	    break;
 	}
 
@@ -375,7 +380,8 @@ register NODE *p;
 	}
 
 	case O_NEXT:
-	    next();
+	    eval(p->left);
+	    next((int) pop(long));
 	    printnews();
 	    break;
 
@@ -392,7 +398,8 @@ register NODE *p;
 	}
 
 	case O_STEP:
-	    stepc();
+	    eval(p->left);
+	    stepc((int) pop(long));
 	    printnews();
 	    break;
 
@@ -418,7 +425,11 @@ register NODE *p;
 	    break;
 
 	case O_CALL:
+#if defined(PXEMBEDDED) //TODO
+	    printf("call not implemented\n");
+#else
 	    callproc(p->left, p->right);
+#endif
 	    break;
 
 	case O_EDIT:
@@ -439,6 +450,10 @@ register NODE *p;
 
 	case O_REMAKE:
 	    remake();
+	    break;
+
+	case O_RESTART:
+	    restart();
 	    break;
 
 	case O_RUN:
@@ -485,9 +500,8 @@ register NODE *p;
  * isn't enough room on the stack, rpush returns FALSE.
  */
 
-BOOLEAN rpush(addr, len)
-ADDRESS addr;
-int len;
+BOOLEAN 
+rpush(ADDRESS addr, int len)
 {
     BOOLEAN success;
 #ifdef tahoe
@@ -516,8 +530,8 @@ int len;
  * than a long and return it expanded into a long.
  */
 
-long popsmall(t)
-SYM *t;
+long 
+popsmall(SYM *t)
 {
     long r;
 
@@ -555,8 +569,8 @@ SYM *t;
  * evaluate a conditional expression
  */
 
-BOOLEAN cond(p)
-NODE *p;
+BOOLEAN 
+cond(NODE *p)
 {
     if (p == NIL) {
 	return(TRUE);
@@ -569,8 +583,8 @@ NODE *p;
  * Return the address corresponding to a given tree.
  */
 
-ADDRESS lval(p)
-NODE *p;
+ADDRESS
+lval(NODE *p)
 {
     eval(p);
     return(pop(ADDRESS));

@@ -42,16 +42,21 @@ static char sccsid[] = "@(#)interp.c	8.1 (Berkeley) 6/6/93";
 #include <objfmt.h>
 #include "h02opcs.h"
 #include "machdep.h"
-#if defined(DO_TRACE)
-#include "opnames.h"
-#endif
 #include "pxvars.h"
 #include "px.h"
+
+//#define DO_TRACE		//enable local execution tracing
+#if defined(DO_TRACE)
+#include "opnames.h"
+#include "../pdx/machine/optab.h"
+#endif
+
+#include <assert.h>
 
 /*
  * program variables
  */
-union	display _display	= {0};
+union	display _display     	= {0};
 struct	dispsave *_dp		= NULL;
 long	_lino			= -1;
 long	_mode			= 0;
@@ -63,7 +68,7 @@ bool	_nodump 		= FALSE;
  * LIBPC variables
  */
 int 	_pcargc 		= 0;
-char	**_pcargv		= NULL;
+const char **_pcargv		= NULL;
 long	_stlim			= 500000;
 long	_stcnt			= 0;
 long	_seed			= 1;
@@ -153,16 +158,15 @@ struct iorec *		_actfile[MAXFILES] = {
  * The .globl is #ifndef DBX since it breaks DBX to have a global
  * asm label in the middle of a function (see _loopaddr: below).
  */
-static pxtrap_t		_pdxtrap = 0;		/* exception trap */
+static pxtrap_t	_pdxtrap = 0;			/* exception trap */
+static void *_pdxregs[2];			/* register values */
 
 #if defined(PDX_TRAP)
-static void		*_pdxregs[2];		/* register values */
 union progcntr pdx_pc;
 #if !defined(DBX)
 asm(".globl _loopaddr");
 #endif
 #endif /*PDX_TRAP*/
-
 
 /*
  * Px profile array
@@ -175,8 +179,8 @@ long	_profcnts[NUMOPS];
  * debugging variables
  */
 #ifdef PXDEBUG
-char	opc[10];
-long	opcptr = 9;
+char opc[10];
+long opcptr = 9;
 #endif /*PXDEBUG*/
 
 
@@ -202,7 +206,7 @@ px_interpreter(base)
 	register char *tcp;
 	register short *tsp;
 	register long tl, tl1, tl2, tl3;
-	void   *tcp1, *tcp2;
+	void *tcp1, *tcp2;
 	long   tl4;
 	double td, td1;
 	struct sze8 t8;
@@ -213,7 +217,7 @@ px_interpreter(base)
 	register struct formalrtn *tfp;
 	struct iorec **ip;
 #if defined(unix)
-	int mypid = getpid();
+	int mypid;
 #endif
 	int    ti, ti2;
 	short  ts;
@@ -225,6 +229,19 @@ px_interpreter(base)
 	output.fbuf = stdout;
 	_err.fbuf = stderr;
 #endif
+#if defined(unix)
+	mypid = getpid();
+#endif
+
+	/*
+	 * Embedded debugger hook
+	 */
+	if ((_mode == PDX || _mode == PIX) && _pdxtrap) {
+		(_pdxtrap)(PXSIGIOT, &_display, &_dp, base, &_pdxregs, 0);
+	}
+	assert(sizeof(ts) == 2);
+	assert(sizeof(td) == 8);
+	assert(sizeof(struct sze8) == 8);
 
 	/*
 	 * Setup sets up any hardware specific parameters before
@@ -265,9 +282,76 @@ px_interpreter(base)
 #endif /*PROFILE*/
 
 #if defined(DO_TRACE)
-		fprintf(stderr, "ln:%04d %-10s ip:%04d sp:%04d\n",
-			_lino, otext[*pc.ucp], pc.ucp - base, stack.cp);
-#endif
+		{	const char *cp = NULL;
+			unsigned char op = pc.ucp[0], nextbyte = pc.ucp[1];
+			const short *ip = pc.sp, *sp = stack.sp;
+			int words = 1, len, i;
+
+			/*decode instructions*/
+			len = fprintf(stderr, "%04ld %s", (int)(pc.ucp - base), otext[op]);
+			for (i = 0; optab[op].argtype[i] != 0; i++) {
+				ARGTYPE argtype = optab[op].argtype[i];
+				switch(optab[op].argtype[i]) {
+				case ADDR4:
+				case LWORD:
+					len += fprintf(stderr, " %d", ip[words++]);
+					len += fprintf(stderr, " %d", ip[words++]);
+					break;
+				case SUBOP:
+					len += fprintf(stderr, ":%d", nextbyte);
+					break;
+				case ADDR2:
+				case HWORD:
+				case PSUBOP:
+				case DISP:
+				case VLEN:
+					if (i == 0 && nextbyte) {
+						len += fprintf(stderr, ":%d", *((char *)&nextbyte));
+					} else {
+						len += fprintf(stderr, (i ? " %d" : ":%d"), ip[words++]);
+					}
+					break;
+				case STRING: 
+					cp = (const char *)(ip + words);
+					break;
+				}
+			}
+
+			/*disasm*/
+		#define WMARGIN 41
+		#define SMARGIN 81
+			if (len < WMARGIN) len += fprintf(stderr, "%*s", WMARGIN - len, "");
+			while (words--) {
+				if (len >= (SMARGIN-4)) {
+					fprintf(stderr, "\n%*s", WMARGIN, ""), len = WMARGIN;
+				}
+				len += fprintf(stderr, " %04x", *((const unsigned short *)ip)), ++ip;
+			}
+
+			/*stack*/
+			if (len < SMARGIN) fprintf(stderr, "%*s", SMARGIN - len, "");
+                        fprintf(stderr, " LN:% 4d, SP:%08p SS:", _lino, sp);
+			for (len = 0; len < 18; ++len) { /*width=200*/
+				fprintf(stderr, "%c%04x", (_dp->stp && _dp->stp->tos == (char *)sp ? '*' : ' '),
+					*((const unsigned short *)sp)), ++sp;
+			}
+			fprintf(stderr, "\n");
+
+			/*string, assume trailing*/
+			while (cp && nextbyte && *cp) {
+				fprintf(stderr, "  \"");
+				for (i = 0; i < 48 && nextbyte && *cp;) {
+					fprintf(stderr, "%c", *cp++), ++i; 
+					--nextbyte;
+				}
+				fprintf(stderr, "\"%*s", WMARGIN - (i + 4), "");
+				for (len = 0, i = ((i>>1)|1); len < i; ++len) {
+				        fprintf(stderr, " %04x", *((const unsigned short *)ip)), ++ip;
+				}
+				fprintf(stderr, "\n");
+			}
+		}
+#endif  //DO_TRACE
 
 		/*
 		 * Save away the program counter to a fixed location for pdx.
@@ -277,36 +361,27 @@ px_interpreter(base)
 #endif		
 
 		/*
-		* Having the label below makes dbx not work
-		* to debug this interpreter,
-		* since it thinks a new function called loopaddr()
-		* has started here, and it won't display the local
-		* variables of interpreter().  You have to compile
-		* -DDBX to avoid this problem...
-		*/
-#if defined(PDX_TRAP)
-#if !defined(DBX)
-		_pdxregs[0] = (void *)pc.cp;		/* pc for pdx */
+		 * Having the label below makes dbx not work to debug this interpreter,
+		 * since it thinks a new function called loopaddr() has started here, 
+		 * and it won't display the local variables of interpreter(). 
+		 * You have to compile -DDBX to avoid this problem...
+		 */
+#if defined(PDX_TRAP) && !defined(DBX)
 asm("_loopaddr:");
-#endif
 #endif /*PDX_TRAP*/
 
 		switch (*pc.ucp++) {
 		case O_BPT:		/* breakpoint trap */
 			PFLUSH();
 
-#if defined(PDX_TRAP)
 			_pdxregs[0] = (void *)(pc.cp - 1);
 			_pdxregs[1] = (void *)stack.cp;
-#endif			
 #if defined(unix)
 			kill(mypid, SIGILL);
 #else
 			px_raise(PXSIGBPT);		/* raise trap */
 #endif
-#if defined(PDX_TRAP)
 			_pdxregs[1] = (void *)-1;
-#endif
 			pc.ucp--;
 			continue;
 		case O_NODUMP:		/* main program, suppress dump */
@@ -454,8 +529,8 @@ asm("_loopaddr:");
 			continue;
 		case O_LINO:		/* set line number, count statements */
 			if (_dp->stp->tos != pushsp((long)(0)))
-				ERROR("Panic: stack not empty between statements tos:%04d sp:%04d\n",
-				_dp->stp->tos, pushsp((long)(0)));
+				ERROR("Panic: stack not empty between statements tos:%04d sp:%04d lineno:%ld\n",
+				_dp->stp->tos, pushsp((long)(0)), _lino);
 			_lino = *pc.cp++;		/* set line number */
 			if (_lino == 0)
 				_lino = *pc.sp++;
@@ -522,7 +597,7 @@ asm("_loopaddr:");
 				*(pc.cp - 1));
 				continue;
 			}
-		case O_RELG:		/* relational strings */		
+		case O_RELG:		/* relational strings */
 			tl2 = *pc.cp++; 		/* tc has jump opcode */
 			tl = *pc.usp++; 		/* tl has comparison length */
 			STACKALIGN(tl1, tl);		/* tl1 has arg stack length */
@@ -1358,6 +1433,8 @@ asm("_loopaddr:");
 			if (_nodump == TRUE)
 				px_exit(0);
 			fputs("\nCall to procedure halt\n", stderr);
+			_pdxregs[0] = (void *)(pc.cp - 1);
+			_pdxregs[1] = (void *)stack.cp;
 			px_backtrace("Halted");
 			px_exit(0);
 			continue;
@@ -1368,6 +1445,7 @@ asm("_loopaddr:");
 			PCLONGVAL(tl);
 			_rtns = tl;
 			NEW(CAST(char *,&_pcpcount), (_cntrs + 1) * sizeof(long));
+			BLKCLR(_pcpcount, (_cntrs + 1) * sizeof(long));
 			continue;
 		case O_COUNT:
 			pc.cp++;
@@ -1447,8 +1525,10 @@ asm("_loopaddr:");
 				tl = *pc.usp++;
 #ifdef TODO
 			tb = INCT(element, paircnt, singcnt, data);
+  Based on similar ==>	INCT(LONG_CAST(tcp + tl), LONG_CAST(tcp + tl), LONG_CAST(tcp), tl >> 2);
 #else
-			ERROR("-- INCT used --");	/* FIXME */
+			ERROR("-- INCT used --");	/* FIXME/APY */
+		//was	tb = INCT();
 #endif
 			popsp(tl*sizeof(long));
 			push2((short)(tb));
@@ -1457,7 +1537,7 @@ asm("_loopaddr:");
 			tl = *pc.cp++;			/* tl has number of args */
 			if (tl == 0)
 				tl = *pc.usp++;
-			tl1 = tl * sizeof(long);	/* Size of all args */
+	                tl1 = tl * sizeof(long);	/* Size of all args */
 			tcp = refsp()+tl1;		/* tcp pts to result */
 			tl1 = pop4();			/* Pop the 4 fixed args */
 			tl2 = pop4();
@@ -1465,10 +1545,10 @@ asm("_loopaddr:");
 			tl4 = pop4();
 			tcp2 = refsp(); 		/* tcp2 -> data values */
 			CTTOTA(LONG_CAST(tcp), tl1, tl2, tl3, tl4, tcp2);
-			popsp(tl*sizeof(long) - 4*sizeof(long));/* Pop data */
+		        popsp(tl*sizeof(long) - 4*sizeof(long));/* Pop data */
 			continue;
 		case O_CARD:
-			tl = *pc.cp++;			/* tl has comparison length */
+			tl = *pc.cp++;	 		/* tl has comparison length */
 			if (tl == 0)
 				tl = *pc.usp++;
 			tcp = pushsp((long)(0));	/* tcp pts to set */
@@ -1630,6 +1710,7 @@ asm("_loopaddr:");
 					vfprintf(tf, tcp, ap);
 				}
 			}
+			assert(sizeof(va_list) == sizeof(char *));
 			popsp((long)(*pc.cp++)-(sizeof(FILE *))-sizeof(char *));
 			continue;
 		case O_WRITLN:
@@ -1783,7 +1864,7 @@ asm("_loopaddr:");
 			continue;
 		case O_WCLCK:
 			pc.cp++;
-			push4((long)time(NULL)); /*FIXME*/
+			push4((long)time(NULL));	/*FIXME, time32*/
 			continue;
 		case O_SCLCK:
 			pc.cp++;

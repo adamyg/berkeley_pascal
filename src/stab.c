@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)stab.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -61,61 +61,78 @@ static char sccsid[] = "@(#)stab.c	8.1 (Berkeley) 6/6/93";
 
 #define private static
 
-int oldway = 0;
+int             oldway = 0;
 
     /*
      *	absolute value: line numbers are negative if error recovery.
      */
-#define	ABS( x )	( x < 0 ? -x : x )
-long checksum();
+#define	        ABS( x )	( x < 0 ? -x : x )
+long            checksum();
+
+private void    snestspec __P((char [], int));
+static void     genarray __P((struct nl *));
+static void     genrecord __P((struct nl *));
+static void     genrecfield __P((struct nl *, int));
+static void     genptr  __P((struct nl *));
+static void     genenum __P((struct nl *));
+static void     genset __P((struct nl *));
+static void     genrange __P((struct nl *));
+static void     genfparam  __P((struct nl *));
+static void     genfile __P((struct nl *));
+static void     gencontinue __P((void));
+static void     gentype __P((void));
+
 
 /*
  * Generate information about variables.
  */
 
+void
 stabgvar (p, length, line)
-struct nl *p;
-int length, line;
+        struct nl *p;
+        int length, line;
 {
-    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x",
-	0, p->symbol, N_PC, N_PGVAR, ABS(line)
-    );
-    if (oldway != 0) {
-	oldstabgvar(p->symbol, p2type(p->type), 0, length, line);
-    } else if (opt('g')) {
-	putprintf("\t.stabs\t\"%s:G", 1, p->symbol);
-	gentype(p->type);
-	putprintf("\",0x%x,0,0x%x,0", 0, N_GSYM, length);
-    }
+        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x",
+	        0, p->symbol, N_PC, N_PGVAR, ABS(line)
+        );
+        if (oldway != 0) {
+	        oldstabgvar(p->symbol, p2type(p->type), 0, length, line);
+        } else if (opt('g')) {
+	        putprintf("\t.stabs\t\"%s:G", 1, p->symbol);
+	        gentype(p->type);
+	        putprintf("\",0x%x,0,0x%x,0", 0, N_GSYM, length);
+        }
 }
 
+void
 stablvar (p, offset, length)
-struct nl *p;
-int offset, length;
+        struct nl *p;
+        int offset, length;
 {
-    int level;
+        int level;
 
-    level = (p->nl_block & 037);
-    if (oldway != 0) {
-	oldstablvar(p->symbol, p2type(p->type), level, offset, length);
-    } else if (opt('g')) {
-	putprintf("\t.stabs\t\"%s:", 1, p->symbol);
-	gentype(p->type);
-	putprintf("\",0x%x,0,0x%x,0x%x", 0, N_LSYM, length, offset);
-    }
+        level = (p->nl_block & 037);
+        if (oldway != 0) {
+	        oldstablvar(p->symbol, p2type(p->type), level, offset, length);
+        } else if (opt('g')) {
+	        putprintf("\t.stabs\t\"%s:", 1, p->symbol);
+	        gentype(p->type);
+	        putprintf("\",0x%x,0,0x%x,0x%x", 0, N_LSYM, length, offset);
+        }
 }
 
     /*
      *	global variables
      */
 /*ARGSUSED*/
+void
 oldstabgvar( name , type , offset , length , line )
-    char	*name;
-    int		type;
-    int		offset;
-    int		length;
-    int		line;
-    {
+        char	*name;
+        int		type;
+        int		offset;
+        int		length;
+        int		line;
+{
 	if ( ! opt('g') ) {
 		return;
 	}
@@ -131,14 +148,14 @@ oldstabgvar( name , type , offset , length , line )
      *	local variables
      */
 /*ARGSUSED*/
+void
 oldstablvar( name , type , level , offset , length )
-    char	*name;
-    int		type;
-    int		level;
-    int		offset;
-    int		length;
-    {
-
+        char	*name;
+        int		type;
+        int		level;
+        int		offset;
+        int		length;
+{
 	if ( ! opt('g') ) {
 		return;
 	}
@@ -151,34 +168,35 @@ oldstablvar( name , type , level , offset , length )
 }
 
 
+void
 stabparam (p, offset, length)
-struct nl *p;
-int offset, length;
+        struct nl *p;
+        int offset, length;
 {
-    if (oldway != 0) {
-	oldstabparam(p->symbol, p2type(p->type), offset, length);
-    } else if (opt('g')) {
-	putprintf("\t.stabs\t\"%s:", 1, p->symbol);
-	if (p->class == REF) {
-	    putprintf("v", 1);
-	} else {
-	    putprintf("p", 1);
-	}
-	gentype((p->class == FPROC || p->class ==FFUNC) ? p : p->type);
-	putprintf("\",0x%x,0,0x%x,0x%x", 0, N_PSYM, length, offset);
-    }
+        if (oldway != 0) {
+	        oldstabparam(p->symbol, p2type(p->type), offset, length);
+        } else if (opt('g')) {
+	        putprintf("\t.stabs\t\"%s:", 1, p->symbol);
+	        if (p->class == REF) {
+	        putprintf("v", 1);
+	        } else {
+	        putprintf("p", 1);
+	        }
+	        gentype((p->class == FPROC || p->class ==FFUNC) ? p : p->type);
+	        putprintf("\",0x%x,0,0x%x,0x%x", 0, N_PSYM, length, offset);
+        }
 }
 
     /*
      *	parameters
      */
+void
 oldstabparam( name , type , offset , length )
-    char	*name;
-    int		type;
-    int		offset;
-    int		length;
-    {
-	
+        char	*name;
+        int		type;
+        int		offset;
+        int		length;
+{
 	if ( ! opt('g') ) {
 		return;
 	}
@@ -198,10 +216,10 @@ oldstabparam( name , type , offset , length )
      *	left brackets
      *  (dbx handles module-2 without these, so we won't use them either)
      */
+void
 stablbrac( level )
-    int	level;
-    {
-
+        int	level;
+{
 	if ( ! opt('g') || oldway == 0 ) {
 		return;
 	}
@@ -211,87 +229,90 @@ stablbrac( level )
     /*
      *	right brackets
      */
+void
 stabrbrac( level )
-    int	level;
-    {
-
+        int	level;
+{
 	if ( ! opt('g') || oldway == 0 ) {
 		return;
 	}
 	putprintf( "	.stabd	0x%x,0,0x%x" , 0 , N_RBRAC , level );
-    }
+}
 
+void
 stabfunc (p, name, line, level)
-struct nl *p;
-char *name;
-int line, level;
+        struct nl *p;
+        char *name;
+        int line, level;
 {
-    char extname[BUFSIZ],nestspec[BUFSIZ];
+        char extname[BUFSIZ],nestspec[BUFSIZ];
     
-    if ( level == 1 ) {
-	if (p->class == FUNC) {
-	    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
-		0 , name , N_PC , N_PGFUNC , ABS( line )
-	    );
-	} else if (p->class == PROC) {
-	    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
-		0 , name , N_PC , N_PGPROC , ABS( line )
-	    );
-	}
-    }
-    if (oldway != 0) {
-	oldstabfunc(name, p->class, line, level);
-    } else if (opt('g')) {
-	putprintf("\t.stabs\t\"%s:", 1, name);
-	if (p->class == FUNC) {
-	    putprintf("F", 1);
-	    gentype(p->type);
-	    putprintf(",", 1);
-	} else {
-	    putprintf("P,", 1);
-	}
-	sextname(extname, name, level);  /* set extname to entry label */
-	putprintf("%s,", 1, &(extname[1])); /* remove initial underbar */
-	snestspec(nestspec, level);
-	putprintf("%s\",0x%x,0,0,%s", 0, nestspec, N_FUN, extname);
-    }
+        if ( level == 1 ) {
+	        if (p->class == FUNC) {
+	        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
+		        0 , name , N_PC , N_PGFUNC , ABS( line )
+	        );
+	        } else if (p->class == PROC) {
+	        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
+		        0 , name , N_PC , N_PGPROC , ABS( line )
+	        );
+	        }
+        }
+        if (oldway != 0) {
+	        oldstabfunc(name, p->class, line, level);
+        } else if (opt('g')) {
+	        putprintf("\t.stabs\t\"%s:", 1, name);
+	        if (p->class == FUNC) {
+	        putprintf("F", 1);
+	        gentype(p->type);
+	        putprintf(",", 1);
+	        } else {
+	        putprintf("P,", 1);
+	        }
+	        sextname(extname, name, level);  /* set extname to entry label */
+	        putprintf("%s,", 1, &(extname[1])); /* remove initial underbar */
+	        snestspec(nestspec, level);
+	        putprintf("%s\",0x%x,0,0,%s", 0, nestspec, N_FUN, extname);
+        }
 }
 
     /*
      * construct the colon-separated static nesting string into a
      * caller-supplied buffer
      */
-private snestspec(buffer, level)
-    char buffer[];
-    int level;
+private void
+snestspec(buffer, level)
+        char buffer[];
+        int level;
 {
-    char *starthere;
-    int i;
+        char *starthere;
+        int i;
     
-    if (level <= 1) {
-	buffer[0] = '\0';
-    } else {
-	starthere = &buffer[0];
-	for ( i = 1 ; i < level ; i++ ) {
-	    sprintf(starthere, "%s:", enclosing[i]);
-	    starthere += strlen(enclosing[i]) + 1;
-	}
-	*--starthere = '\0'; /* remove last colon */
-	if (starthere >= &buffer[BUFSIZ-1]) {
-	    panic("snestspec");
-	}
-    }
+        if (level <= 1) {
+	        buffer[0] = '\0';
+        } else {
+	        starthere = &buffer[0];
+	        for ( i = 1 ; i < level ; i++ ) {
+	        sprintf(starthere, "%s:", enclosing[i]);
+	        starthere += strlen(enclosing[i]) + 1;
+	        }
+	        *--starthere = '\0'; /* remove last colon */
+	        if (starthere >= &buffer[BUFSIZ-1]) {
+	        panic("snestspec");
+	        }
+        }
 }
 
     /*
      *	functions
      */
+void
 oldstabfunc( name , typeclass , line , level )
-    char	*name;
-    int		typeclass;
-    int		line;
-    long	level;
-    {
+        char	*name;
+        int		typeclass;
+        int		line;
+        long	level;
+{
 	char	extname[ BUFSIZ ];
 
 	    /*
@@ -309,52 +330,54 @@ oldstabfunc( name , typeclass , line , level )
     /*
      *	source line numbers
      */
+void
 stabline( line )
-    int	line;
-    {
+        int	line;
+{
 	if ( ! opt('g') ) {
 		return;
 	}
 	putprintf( "	.stabd	0x%x,0,0x%x" , 0 , N_SLINE , ABS( line ) );
-    }
+}
 
     /*
      *	source files get none or more of these:
      *  one as they are entered,
      *  and one every time they are returned to from nested #includes
      */
+void
 stabsource(filename, firsttime)
-    char	*filename;
-    bool	firsttime;
+        char	*filename;
+        bool	firsttime;
 {
-    int		label;
+        int		label;
     
-	/*
-	 *	for separate compilation
-	 */
-    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x", 0,
-	    (int) filename, N_PC, N_PSO, N_FLAGCHECKSUM);
-	/*
-	 *	for debugger
-	 */
-    if ( ! opt('g') ) {
-	    return;
-    }
-    if (oldway != 0) {
-	label = (int) getlab();
-	putprintf( "	.stabs	\"" , 1 );
-	putprintf( NAMEFORMAT , 1 , filename );
-	putprintf( "\",0x%x,0,0," , 1 , N_SO );
-	putprintf( PREFIXFORMAT , 0 , LLABELPREFIX , label );
-	putprintf( PREFIXFORMAT , 1 , LLABELPREFIX , label );
-	putprintf( ":" , 0 );
-    } else {
-	if (firsttime) {
-	    putprintf( "	.stabs	\"" , 1 );
-	    putprintf( NAMEFORMAT , 1 , filename );
-	    putprintf( "\",0x%x,0,0,0" , 0 , N_SO );
-	}
-    }
+	        /*
+	        *	for separate compilation
+	        */
+        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x", 0,
+	        (int) filename, N_PC, N_PSO, N_FLAGCHECKSUM);
+	        /*
+	        *	for debugger
+	        */
+        if ( ! opt('g') ) {
+	        return;
+        }
+        if (oldway != 0) {
+	        label = (int) getlab();
+	        putprintf( "	.stabs	\"" , 1 );
+	        putprintf( NAMEFORMAT , 1 , filename );
+	        putprintf( "\",0x%x,0,0," , 1 , N_SO );
+	        putprintf( PREFIXFORMAT , 0 , LLABELPREFIX , label );
+	        putprintf( PREFIXFORMAT , 1 , LLABELPREFIX , label );
+	        putprintf( ":" , 0 );
+        } else {
+	        if (firsttime) {
+	        putprintf( "	.stabs	\"" , 1 );
+	        putprintf( NAMEFORMAT , 1 , filename );
+	        putprintf( "\",0x%x,0,0,0" , 0 , N_SO );
+	        }
+        }
 }
 
     /*
@@ -362,38 +385,39 @@ stabsource(filename, firsttime)
      *	one as they are entered by a #include,
      *	and one every time they are returned to from nested #includes.
      */
+void
 stabinclude(filename, firsttime)
-    char	*filename;
-    bool	firsttime;
+        char	*filename;
+        bool	firsttime;
 {
-    int		label;
-    long	check;
+        int		label;
+        long	check;
     
-	/*
-	 *	for separate compilation
-	 */
-    if (firsttime) {
-	check = checksum(filename);
-    } else {
-	check = N_FLAGCHECKSUM;
-    }
-    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x", 0,
-	    (int) filename, N_PC, N_PSOL, check);
-	/*
-	 *	for sdb
-	 */
-    if ( ! opt('g') ) {
-	    return;
-    }
-    if (oldway != 0) {
-	label = (int) getlab();
-	putprintf( "	.stabs	\"" , 1 );
-	putprintf( NAMEFORMAT , 1 , filename );
-	putprintf( "\",0x%x,0,0," , 1 , N_SOL );
-	putprintf( PREFIXFORMAT , 0 , LLABELPREFIX , label );
-	putprintf( PREFIXFORMAT , 1 , LLABELPREFIX , label );
-	putprintf( ":" , 0 );
-    }
+	        /*
+	        *	for separate compilation
+	        */
+        if (firsttime) {
+	        check = checksum(filename);
+        } else {
+	        check = N_FLAGCHECKSUM;
+        }
+        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x", 0,
+	        (int) filename, N_PC, N_PSOL, check);
+	        /*
+	        *	for sdb
+	        */
+        if ( ! opt('g') ) {
+	        return;
+        }
+        if (oldway != 0) {
+	        label = (int) getlab();
+	        putprintf( "	.stabs	\"" , 1 );
+	        putprintf( NAMEFORMAT , 1 , filename );
+	        putprintf( "\",0x%x,0,0," , 1 , N_SOL );
+	        putprintf( PREFIXFORMAT , 0 , LLABELPREFIX , label );
+	        putprintf( PREFIXFORMAT , 1 , LLABELPREFIX , label );
+	        putprintf( ":" , 0 );
+        }
 }
 
     /*
@@ -405,33 +429,33 @@ stabinclude(filename, firsttime)
      */
 long
 checksum(filename)
-    char	*filename;
+        char	*filename;
 {
-    FILE		*filep;
-    register int	input;
-    register long	check;
+        FILE		*filep;
+        register int	input;
+        register long	check;
 
-    filep = fopen(filename, "r");
-    if (filep == NULL) {
-	perror(filename);
-	pexit(DIED);
-    }
-    check = 0;
-    while ((input = getc(filep)) != EOF) {
-	if (check < 0) {
-	    check <<= 1;
-	    check += 1;
-	} else {
-	    check <<= 1;
-	}
-	check ^= input;
-    }
-    (void) fclose(filep);
-    if ((unsigned) check <= N_FLAGCHECKSUM) {
-	return N_FLAGCHECKSUM + 1;
-    } else {
-	return check;
-    }
+        filep = fopen(filename, "r");
+        if (filep == NULL) {
+	        perror(filename);
+	        pexit(DIED);
+        }
+        check = 0;
+        while ((input = getc(filep)) != EOF) {
+	        if (check < 0) {
+	        check <<= 1;
+	        check += 1;
+	        } else {
+	        check <<= 1;
+	        }
+	        check ^= input;
+        }
+        (void) fclose(filep);
+        if ((unsigned) check <= N_FLAGCHECKSUM) {
+	        return N_FLAGCHECKSUM + 1;
+        } else {
+	        return check;
+        }
 }
 
 /*
@@ -444,85 +468,88 @@ checksum(filename)
     /*
      *	global labels
      */
+void
 stabglabel( label , line )
-    char	*label;
-    int		line;
-    {
-
+        char	*label;
+        int		line;
+{
 	putprintf( "	.stabs	\"%s\",0x%x,0,0x%x,0x%x" , 0 
 		    , (int) label , N_PC , N_PGLABEL , ABS( line ) );
-    }
+}
 
     /*
      *	global constants
      */
+void
 stabgconst( constant , line )
-    char	*constant;
-    int		line;
-    {
-
-	    putprintf( "	.stabs	\"%s\",0x%x,0,0x%x,0x%x" , 0 
-			, (int) constant , N_PC , N_PGCONST , ABS( line ) );
-    }
+        char	*constant;
+        int		line;
+{
+	putprintf( "	.stabs	\"%s\",0x%x,0,0x%x,0x%x" , 0 
+		, (int) constant , N_PC , N_PGCONST , ABS( line ) );
+}
 
 /*
  * Generate symbolic information about a constant.
  */
-
+void
 stabconst (c)
-struct nl *c;
+        struct nl *c;
 {
-    if (opt('g') && oldway == 0) {
-	putprintf("\t.stabs\t\"%s:c=", 1, c->symbol);
-	if (c->type == nl + TSTR) {
-	    putprintf("s'%s'", 1, c->ptr[0]);
-	} else if (c->type == nl + T1CHAR) {
-	    putprintf("c%d", 1, c->range[0]);
-	} else if (isa(c->type, "i")) {
-	    putprintf("i%d", 1, c->range[0]);
-	} else if (isa(c->type, "d")) {
-	    putprintf("r%g", 1, c->real);
-	} else {
-	    putprintf("e", 1);
-	    gentype(c->type);
-	    putprintf(",%d", 1, c->range[0]);
-	}
-	putprintf("\",0x%x,0,0x%x,0x%x", 0, N_LSYM, 0, 0);
-    }
+        if (opt('g') && oldway == 0) {
+	        putprintf("\t.stabs\t\"%s:c=", 1, c->symbol);
+	        if (c->type == nl + TSTR) {
+	        putprintf("s'%s'", 1, c->ptr[0]);
+	        } else if (c->type == nl + T1CHAR) {
+	        putprintf("c%d", 1, c->range[0]);
+	        } else if (isa(c->type, "i")) {
+	        putprintf("i%d", 1, c->range[0]);
+	        } else if (isa(c->type, "d")) {
+	        putprintf("r%g", 1, c->real);
+	        } else {
+	        putprintf("e", 1);
+	        gentype(c->type);
+	        putprintf(",%d", 1, c->range[0]);
+	        }
+	        putprintf("\",0x%x,0,0x%x,0x%x", 0, N_LSYM, 0, 0);
+        }
 }
 
+void
 stabgtype (name, type, line)
-char *name;
-struct nl *type;
-int line;
+        char *name;
+        struct nl *type;
+        int line;
 {
-    putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
-	0, name, N_PC , N_PGTYPE, ABS(line)
-    );
-    if (oldway == 0) {
-	stabltype(name, type);
-    }
+        putprintf("	.stabs	\"%s\",0x%x,0,0x%x,0x%x" ,
+	        0, name, N_PC , N_PGTYPE, ABS(line)
+        );
+        if (oldway == 0) {
+	        stabltype(name, type);
+        }
 }
 
+void
 stabltype (name, type)
-char *name;
-struct nl *type;
+        char *name;
+        struct nl *type;
 {
-    if (opt('g')) {
-	putprintf("\t.stabs\t\"%s:t", 1, name);
-	gentype(type);
-	putprintf("\",0x%x,0,0,0", 0, N_LSYM);
-    }
+        if (opt('g')) {
+	        putprintf("\t.stabs\t\"%s:t", 1, name);
+	        gentype(type);
+	        putprintf("\",0x%x,0,0,0", 0, N_LSYM);
+        }
 }
 
     /*
      *	external functions and procedures
      */	
+void
 stabefunc( name , typeclass , line )
-    char	*name;
-    int		typeclass;
-    int		line;
-    {
+        char	*name;
+        int     typeclass;
+        int	line;
+{
 	int	type;
 
 	if ( typeclass == FUNC ) {
@@ -557,51 +584,54 @@ struct TypeDesc {
 
 #define typehash(t) ( ( ((int) t) >> 2 ) % TABLESIZE )
 
-private int tcount = 1;
-private TypeDesc typetable[TABLESIZE];
+private int             tcount = 1;
+private TypeDesc        typetable[TABLESIZE];
 
-private TypeDesc tdlookup (t)
-struct nl *t;
+private TypeDesc 
+tdlookup (t)
+        struct nl *t;
 {
-    register TypeDesc td;
+        register TypeDesc td;
 
-    td = typetable[typehash(t)];
-    while (td != NIL && td->tptr != t) {
-	td = td->chain;
-    }
-    return td;
+        td = typetable[typehash(t)];
+        while (td != NIL && td->tptr != t) {
+	        td = td->chain;
+        }
+        return td;
 }
 
-private int typelookup (t)
-struct nl *t;
+private int
+typelookup (t)
+        struct nl *t;
 {
-    register TypeDesc td;
-    int r;
+        register TypeDesc td;
+        int r;
 
-    td = tdlookup(t);
-    if (td == NIL) {
-	r = 0;
-    } else {
-	r = td->tnum;
-    }
-    return r;
+        td = tdlookup(t);
+        if (td == NIL) {
+	        r = 0;
+        } else {
+	        r = td->tnum;
+        }
+        return r;
 }
 
-private int entertype (type)
-struct nl *type;
+private int 
+entertype (type)
+        struct nl *type;
 {
-    register TypeDesc td;
-    register int i;
+        register TypeDesc td;
+        register int i;
 
-    td = (TypeDesc) malloc(sizeof(struct TypeDesc));
-    td->tptr = type;
-    td->tnum = tcount;
-    td->fwdptrnum = 0;
-    ++tcount;
-    i = typehash(type);
-    td->chain = typetable[i];
-    typetable[i] = td;
-    return td->tnum;
+        td = (TypeDesc) calloc(sizeof(struct TypeDesc), 1);
+        td->tptr = type;
+        td->tnum = tcount;
+        td->fwdptrnum = 0;
+        ++tcount;
+        i = typehash(type);
+        td->chain = typetable[i];
+        typetable[i] = td;
+        return td->tnum;
 }
 
 /*
@@ -617,36 +647,37 @@ struct nl *type;
  * a range happens to coincide, we will give the two the same identifying
  * dbx type number.
  */
-
-private inittypes()
+private void
+inittypes()
 {
-    int i;
-    extern char *in_types[];
-    struct nl *p;
+        int i;
+        extern char *in_types[];
+        struct nl *p;
 
-    for (i = 0; in_types[i] != NIL; i++) {
-	p = lookup(in_types[i]);
-	if (p != NIL) {
-	    entertype(p);
-	    if (p->type != NIL) {
-		--tcount; /* see comment above */
-		entertype(p->type);
-	    }
-	}
-    }
+        for (i = 0; in_types[i] != NIL; i++) {
+	        p = lookup(in_types[i]);
+	        if (p != NIL) {
+	        entertype(p);
+	        if (p->type != NIL) {
+		        --tcount; /* see comment above */
+		        entertype(p->type);
+	        }
+	        }
+        }
 }
 
-static genarray (t)
-struct nl *t;
+static void
+genarray (t)
+        struct nl *t;
 {
-    register struct nl *p;
+        register struct nl *p;
 
-    for (p = t->chain; p != NIL; p = p->chain) {
-	putprintf("a", 1);
-	gentype(p);
-	putprintf(";", 1);
-    }
-    gentype(t->type);
+        for (p = t->chain; p != NIL; p = p->chain) {
+	        putprintf("a", 1);
+	        gentype(p);
+	        putprintf(";", 1);
+        }
+        gentype(t->type);
 }
 
 /*
@@ -657,59 +688,62 @@ struct nl *t;
  * we walk through that.  Except that this gives the fields in the
  * reverse order, so we want to print in reverse order.
  */
-
-static genrecord (t)
-struct nl *t;
+static void
+genrecord (t)
+        struct nl *t;
 {
-    putprintf("s%d", 1, t->value[NL_OFFS]);
-    if (t->chain != NIL) {
-	genrecfield(t->chain, 1);
-    }
-    putprintf(";", 1);
+        putprintf("s%d", 1, t->value[NL_OFFS]);
+        if (t->chain != NIL) {
+	        genrecfield(t->chain, 1);
+        }
+        putprintf(";", 1);
 }
 
-static genrecfield (t, n)
-struct nl *t;
-int n;
+static void
+genrecfield (t, n)
+        struct nl *t;
+        int n;
 {
-    if (t->chain != NULL) {
-	genrecfield(t->chain, n + 1);
-	if (n % 2 == 0) {
-	    gencontinue();
-	}
-    }
-    putprintf("%s:", 1, t->symbol);
-    gentype(t->type);
-    putprintf(",%d,%d;", 1, 8*t->value[NL_OFFS], 8*lwidth(t->type));
+        if (t->chain != NULL) {
+	        genrecfield(t->chain, n + 1);
+	        if (n % 2 == 0) {
+	        gencontinue();
+	        }
+        }
+        putprintf("%s:", 1, t->symbol);
+        gentype(t->type);
+        putprintf(",%d,%d;", 1, 8*t->value[NL_OFFS], 8*lwidth(t->type));
 }
 
-static genvarnt (t)
-struct nl *t;
+static void
+genvarnt (t)
+        struct nl *t;
 {
-    genrecord(t);
+        genrecord(t);
 }
 
-static genptr (t)
-struct nl *t;
+static void
+genptr (t)
+        struct nl *t;
 {
-    register TypeDesc td;
+        register TypeDesc td;
     
-    putprintf("*", 1);
-    if (t->type != NIL) {
-	gentype(t->type);
-    } else {
-	/*
-	 * unresolved forward pointer: use tcount to represent what is
-         * begin pointed to, to be defined later
-	 */
-	td = tdlookup(t);
-	if (td == NIL) {
-	    panic("nil ptr in stab.genptr");
-	}
-	td->fwdptrnum = tcount;
-	putprintf("%d", 1, tcount);
-	++tcount;
-    }
+        putprintf("*", 1);
+        if (t->type != NIL) {
+	        gentype(t->type);
+        } else {
+	        /*
+	        * unresolved forward pointer: use tcount to represent what is
+                * begin pointed to, to be defined later
+	        */
+	        td = tdlookup(t);
+	        if (td == NIL) {
+	        panic("nil ptr in stab.genptr");
+	        }
+	        td->fwdptrnum = tcount;
+	        putprintf("%d", 1, tcount);
+	        ++tcount;
+        }
 }
 
 /*
@@ -717,177 +751,182 @@ struct nl *t;
  * We need to generate a type stab saying that the number saved
  * in t's fwdptrnum is the same as the t->type's number
  */
-
+void
 fixfwdtype (t)
-struct nl *t;
+        struct nl *t;
 {
-    register TypeDesc td;
+        register TypeDesc td;
     
-    if (opt('g') && oldway == 0) {
-	td = tdlookup(t);
-	if (td != NIL) {
-	    putprintf("\t.stabs\t\":t%d=", 1, td->fwdptrnum);
-	    gentype(t->type);
-	    putprintf("\",0x%x,0,0,0", 0, N_LSYM);
-	}
-    }
+        if (opt('g') && oldway == 0) {
+	        td = tdlookup(t);
+	        if (td != NIL) {
+	        putprintf("\t.stabs\t\":t%d=", 1, td->fwdptrnum);
+	        gentype(t->type);
+	        putprintf("\",0x%x,0,0,0", 0, N_LSYM);
+	        }
+        }
 }
 
-static genenum (t)
-struct nl *t;
+static void
+genenum (t)
+        struct nl *t;
 {
-    register struct nl *e;
-    register int i;
+        register struct nl *e;
+        register int i;
 
-    putprintf("e", 1);
-    i = 1;
-    e = t->chain;
-    while (e != NULL) {
-	if (i > 2) {
-	    gencontinue();
-	    i = 0;
-	}
-	putprintf("%s:%d,", 1, e->symbol, e->range[0]);
-	e = e->chain;
-	++i;
-    }
-    putprintf(";", 1);
+        putprintf("e", 1);
+        i = 1;
+        e = t->chain;
+        while (e != NULL) {
+	        if (i > 2) {
+	        gencontinue();
+	        i = 0;
+	        }
+	        putprintf("%s:%d,", 1, e->symbol, e->range[0]);
+	        e = e->chain;
+	        ++i;
+        }
+        putprintf(";", 1);
 }
 
-static genset (t)
-struct nl *t;
+static void
+genset (t)
+        struct nl *t;
 {
-    putprintf("S", 1);
-    gentype(t->type);
+        putprintf("S", 1);
+        gentype(t->type);
 }
 
-static genrange (t)
-struct nl *t;
+static void
+genrange (t)
+        struct nl *t;
 {
-    putprintf("r", 1);
-    gentype(t->type);
-    putprintf(";%d;%d", 1, t->range[0], t->range[1]);
+        putprintf("r", 1);
+        gentype(t->type);
+        putprintf(";%d;%d", 1, t->range[0], t->range[1]);
 }
 
-static genfparam (t)
-struct nl *t;
+static void
+genfparam (t)
+        struct nl *t;
 {
-    struct nl *p;
-    int count;
+        struct nl *p;
+        int count;
     
-    if (t->type != NULL) {
-	putprintf("f", 1);
-	gentype(t->type);
-	putprintf(",", 1);
-    } else {
-	putprintf("p", 1);
-    }
-    count = 0;
-    for (p = t->ptr[NL_FCHAIN]; p != NULL; p = p->chain) {
-	++count;
-    }
-    putprintf("%d;", 1, count);
-    for (p = t->ptr[NL_FCHAIN]; p != NULL; p = p->chain) {
-	gentype(p->type);
-	putprintf(",%d;", 1, p->class);
-    }
+        if (t->type != NULL) {
+	        putprintf("f", 1);
+	        gentype(t->type);
+	        putprintf(",", 1);
+        } else {
+	        putprintf("p", 1);
+        }
+        count = 0;
+        for (p = t->ptr[NL_FCHAIN]; p != NULL; p = p->chain) {
+	        ++count;
+        }
+        putprintf("%d;", 1, count);
+        for (p = t->ptr[NL_FCHAIN]; p != NULL; p = p->chain) {
+	        gentype(p->type);
+	        putprintf(",%d;", 1, p->class);
+        }
 }
 
-static genfile (t)
+static void
+genfile (t)
 struct nl *t;
 {
-    putprintf("d", 1);
-    gentype(t->type);
+        putprintf("d", 1);
+        gentype(t->type);
 }
 
-static gentype (t)
+static void
+gentype (t)
 struct nl *t;
 {
-    int id;
+        int id;
 
-    if (tcount == 1) {
-	inittypes();
-    }
-    id = typelookup(t);
-    if (id != 0) {
-	putprintf("%d", 1, id);
-    } else if (t->class == SCAL && t->chain == NULL) {
-	id = typelookup(t->type);
-	if (id != 0) {
-	    putprintf("%d", 1, id);
-	} else {
-	    genenum(t->type);
-	}
-    } else {
-	id = entertype(t);
-	putprintf("%d=", 1, id);
-	switch (t->class) {
-	    case TYPE:
-		gentype(t->type);
-		break;
+        if (tcount == 1) {
+	        inittypes();
+        }
+        id = typelookup(t);
+        if (id != 0) {
+	        putprintf("%d", 1, id);
+        } else if (t->class == SCAL && t->chain == NULL) {
+	        id = typelookup(t->type);
+	        if (id != 0) {
+	        putprintf("%d", 1, id);
+	        } else {
+	        genenum(t->type);
+	        }
+        } else {
+	        id = entertype(t);
+	        putprintf("%d=", 1, id);
+	        switch (t->class) {
+	        case TYPE:
+		        gentype(t->type);
+		        break;
 
-	    case ARRAY:
-		genarray(t);
-		break;
+	        case ARRAY:
+		        genarray(t);
+		        break;
 
-	    case RECORD:
-		genrecord(t);
-		break;
+	        case RECORD:
+		        genrecord(t);
+		        break;
 
-	    case VARNT:
-		genvarnt(t);
-		break;
+	        case VARNT:
+		        genvarnt(t);
+		        break;
 
-	    case REF:
-		gentype(t->type);
-		break;
+	        case REF:
+		        gentype(t->type);
+		        break;
 
-	    case PTR:
-		genptr(t);
-		break;
+	        case PTR:
+		        genptr(t);
+		        break;
 
-	    case SET:
-		genset(t);
-		break;
+	        case SET:
+		        genset(t);
+		        break;
 
-	    case RANGE:
-		genrange(t);
-		break;
+	        case RANGE:
+		        genrange(t);
+		        break;
 
-	    case SCAL:
-		genenum(t);
-		break;
+	        case SCAL:
+		        genenum(t);
+		        break;
 
-	    case FPROC:
-	    case FFUNC:
-		genfparam(t);
-		break;
+	        case FPROC:
+	        case FFUNC:
+		        genfparam(t);
+		        break;
 
-	    case FILET:
-	    case PTRFILE:
-		genfile(t);
-		break;
+	        case FILET:
+	        case PTRFILE:
+		        genfile(t);
+		        break;
 
-	    default:
-		/* This shouldn't happen */
-		/* Rather than bomb outright, let debugging go on */
-		warning();
-		error("Bad type class found in stab");
-		putprintf("1", 1, t->class);
-		break;
-	}
-    }
+	        default:
+		        /* This shouldn't happen */
+		        /* Rather than bomb outright, let debugging go on */
+		        warning();
+		        error("Bad type class found in stab");
+		        putprintf("1", 1, t->class);
+		        break;
+	        }
+        }
 }
 
 /*
  * Continue stab information in a namelist new entry.  This is necessary
  * to avoid overflowing putprintf's buffer.
  */
-
-static gencontinue ()
+static void
+gencontinue ()
 {
     putprintf("?\",0x%x,0,0,0", 0, N_LSYM);
     putprintf("\t.stabs\t\"", 1);
 }
-
-#endif PC
+#endif /*PC*/

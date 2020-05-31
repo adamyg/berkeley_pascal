@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,20 +32,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)start.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 /*
- * Begin execution.
+ *  Begin execution.
  *
- * For px, pstart does a traced exec to read in px and then stop.  But we
- * want control after px has read in the obj file and before it starts
- * executing.  The zeroth argument to px tells it to give us control
- * by sending itself a signal just prior to interpreting.
+ *  For px, pstart does a traced exec to read in px and then stop.  But we
+ *  want control after px has read in the obj file and before it starts
+ *  executing.  The zeroth argument to px tells it to give us control
+ *  by sending itself a signal just prior to interpreting.
  *
- * We set a "END_BP" breakpoint at the end of the code so that the
- * process data doesn't disappear after the program terminates.
+ *  We set a "END_BP" breakpoint at the end of the code so that the
+ *  process data doesn't disappear after the program terminates.
  */
 
 #include "defs.h"
@@ -58,101 +59,101 @@ static char sccsid[] = "@(#)start.c	8.1 (Berkeley) 6/6/93";
 #include "mappings.h"
 #include "sym.h"
 #include "process.rep"
-
 #include "pxinfo.h"
+#include "runtime.h"
 
-start(argv, infile, outfile)
-char **argv;
-char *infile, *outfile;
+LOCAL void		setsigtrace(void);
+
+ADDRESS 		DISPLAY = 0;
+ADDRESS 		DP = 0;
+ADDRESS 		ENDOFF = 0;
+ADDRESS 		PCADDR = 0;
+ADDRESS 		LOOPADDR = 0;
+#ifdef tahoe
+ADDRESS 		RETLOC = 0;
+ADDRESS 		INTFP = 0;
+#endif
+
+ADDRESS			pc = 0;			/* current program counter */
+LINENO			curline = 0;		/* line number associated with pc */
+SYM			*curfunc = 0;		/* pointer to active function symbol */
+
+
+void
+start(const char **argv, const char *infile, const char *outfile)
 {
-    char *cmd;
+	char *cmd;
 
-    setsigtrace();
-    cmd = "px";
-    pstart(process, cmd, argv, infile, outfile);
-    if (process->status == STOPPED) {
-	TRAPARGS *ap, t;
+	setsigtrace();
+	cmd = "px";
+	pstart(process, cmd, argv, infile, outfile);
+	if (process->status == STOPPED) {
+		TRAPARGS t;              
 
-	pcont(process);
-	if (process->status != STOPPED) {
-	    if (option('t')) {
-		quit(process->exitval);
-	    } else {
-		panic("px exited with %d", process->exitval);
-	    }
-	}
-#ifdef tahoe
-	dread(&ap, process->fp, sizeof(ap));
-	ap = (TRAPARGS *)((unsigned)ap - 4);
-	dread(&RETLOC, process->fp - 8, sizeof(RETLOC));
-#else
-	dread(&ap, process->fp + 2*sizeof(int), sizeof(ap));
-#endif
-	dread(&t, ap, sizeof(TRAPARGS));
-
-#define NARGS 5
-#ifdef tahoe
-#	define STKNARGS (sizeof(int)*(NARGS+1))
-#	define NARGLOC  t.trp_removed
-#else
-#	define STKNARGS (NARGS)
-#	define NARGLOC  t.nargs
-#endif
-	if (NARGLOC != STKNARGS) {
-	    if (option('t')) {
-		unsetsigtraces(process);
 		pcont(process);
-		quit(process->exitval);
-	    } else {
-		panic("start: args out of sync");
-	    }
+		if (process->status != STOPPED) {
+			if (option('t')) {
+				quit(process->exitval);
+			} else {
+				panic("px exited with %d", process->exitval);
+			}
+		}
+		ptrapargs(process, &t);
+
+		DISPLAY = t.disp;
+		DP = t.dp;
+		ENDOFF = t.objstart;
+		PCADDR = t.pcaddr;
+		LOOPADDR = t.loopaddr;
+		pc = 0;
+		curfunc = program;
+		if (objsize != 0) {
+			addbp(lastaddr(), END_BP, NIL, NIL, NIL, 0);
+		}
 	}
-	DISPLAY = t.disp;
-	DP = t.dp;
-	ENDOFF = t.objstart;
-	PCADDR = t.pcaddr;
-	LOOPADDR = t.loopaddr;
-	pc = 0;
-	curfunc = program;
-	if (objsize != 0) {
-	    addbp(lastaddr(), END_BP, NIL, NIL, NIL, 0);
-	}
-    }
 }
 
 /*
- * Note the termination of the program.  We do this so as to avoid
- * having the process exit, which would make the values of variables
- * inaccessible.
+ *  Note the termination of the program.  We do this so as to avoid
+ *  having the process exit, which would make the values of variables
+ *  inaccessible.
  *
- * Although the END_BP should really be deleted, it is taken
- * care of by fixbps the next time the program runs.
+ *  Although the END_BP should really be deleted, it is taken
+ *  care of by fixbps the next time the program runs.
  */
 
-endprogram()
+void
+endprogram(void)
 {
-    if (ss_variables) {
-	prvarnews();
-    }
-    printf("\nexecution completed\n");
-    curfunc = program;
-    skimsource(srcfilename(pc));
-    curline = lastlinenum;
-    erecover();
+	if (ss_variables) {
+		prvarnews();
+	}
+	printf("\nexecution completed\n");
+	curfunc = program;
+	skimsource(srcfilename(pc));
+	curline = lastlinenum;
+	erecover();
 }
 
 /*
- * set up what signals we want to trace
+ *  set up what signals we want to trace
  */
 
-LOCAL setsigtrace()
+LOCAL void
+setsigtrace(void)
 {
-    register PROCESS *p;
+	register PROCESS *p;
 
-    p = process;
-    psigtrace(p, SIGINT, TRUE);
-    psigtrace(p, SIGTRAP, TRUE);
-    psigtrace(p, SIGIOT, TRUE);
-    psigtrace(p, SIGILL, TRUE);
-    psigtrace(p, SIGBUS, TRUE);
+	p = process;
+	psigtrace(p, SIGINT, TRUE);
+#ifdef SIGTRAP
+	psigtrace(p, SIGTRAP, TRUE);
+#endif
+#ifdef SIGIOT
+	psigtrace(p, SIGIOT, TRUE);
+#endif
+	psigtrace(p, SIGILL, TRUE);
+#ifdef SIGBUS
+	psigtrace(p, SIGBUS, TRUE);
+#endif
 }

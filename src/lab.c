@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)lab.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,25 +41,25 @@ static char sccsid[] = "@(#)lab.c	8.1 (Berkeley) 6/6/93";
 #include "opcode.h"
 #include "objfmt.h"
 #ifdef PC
-#   include	"pc.h"
-#   include	<pcc.h>
-#endif PC
+#   include     "pc.h"
+#   include     <pcc.h>
+#endif /*PC*/
 #include "tree_ty.h"
 
 /*
- * Label enters the definitions
- * of the label declaration part
+ * Label enters the definitions of the label declaration part
  * into the namelist.
  */
+void
 label(r, l)
 	struct tnode *r;
 	int l;
 {
-    static bool	label_order = FALSE;
-    static bool	label_seen = FALSE;
+        static bool	label_order = FALSE;
+        static bool	label_seen = FALSE;
 #ifdef PC
 	char	extname[ BUFSIZ ];
-#endif PC
+#endif /*PC*/
 #ifndef PI0
 	register struct tnode *ll;
 	register struct nl *p, *lp;
@@ -113,7 +113,7 @@ label(r, l)
 		p->value[NL_GOLEV] = NOTYET;
 		p->value[NL_ENTLOC] = l;
 		lp = p;
-#		ifdef OBJ
+#ifdef OBJ
 		    /*
 		     * This operator is between
 		     * the bodies of two procedures
@@ -122,8 +122,8 @@ label(r, l)
 		     */
 		    (void) putlab((char *) l);
 		    (void) put(2, O_GOTO | cbn<<8, (long)p->value[1]);
-#		endif OBJ
-#		ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		    /*
 		     *	labels have to be .globl otherwise /lib/c2 may
 		     *	throw them away if they aren't used in the function
@@ -134,41 +134,42 @@ label(r, l)
 		    if ( cbn == 1 ) {
 			stabglabel( extname , line );
 		    }
-#		endif PC
+#endif /*PC*/
 	}
 	gotos[cbn] = lp;
-#	ifdef PTREE
+#ifdef PTREE
 	    {
 		pPointer	Labels = LabelDCopy( r );
 
 		pDEF( PorFHeader[ nesting ] ).PorFLabels = Labels;
 	    }
-#	endif PTREE
+#endif /*PTREE*/
 #endif
 }
 
+
 #ifndef PI0
 /*
- * Gotoop is called when
- * we get a statement "goto label"
+ * Gotoop is called when we get a statement "goto label"
  * and generates the needed tra.
  */
+void
 gotoop(s)
 	char *s;
 {
 	register struct nl *p;
 #ifdef PC
 	char	extname[ BUFSIZ ];
-#endif PC
+#endif /*PC*/
 
 	gocnt++;
 	p = lookup(s);
 	if (p == NIL)
 		return;
-#	ifdef OBJ
+#ifdef OBJ
 	    (void) put(2, O_TRA4, (long)p->value[NL_ENTLOC]);
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    if ( cbn == bn ) {
 		    /*
 		     *	local goto.
@@ -186,12 +187,12 @@ gotoop(s)
 		     * when the module is subsequently linked with
 		     * the rest of the program.
 		     */
-#		if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 		    putprintf("	jmp	%s", 0, (int) extname);
-#		endif vax || tahoe
-#		ifdef mc68000
+#endif /*vax || tahoe*/
+#ifdef mc68000
 		    putprintf("	jra	%s", 0, (int) extname);
-#		endif mc68000
+#endif /*mc68000*/
 	    } else {
 		    /*
 		     *	Non-local goto.
@@ -236,7 +237,7 @@ gotoop(s)
 		putop( PCC_CALL , PCCT_INT );
 		putdot( filename , line );
 	    }
-#	endif PC
+#endif /*PC*/
 	if (bn == cbn)
 		if (p->nl_flags & NFORWD) {
 			if (p->value[NL_GOLEV] == NOTYET) {
@@ -250,20 +251,20 @@ gotoop(s)
 			}
 }
 
+
 /*
- * Labeled is called when a label
- * definition is encountered, and
- * marks that it has been found and
- * patches the associated GOTO generated
+ * Labeled is called when a label definition is encountered, and
+ * marks that it has been found and patches the associated GOTO generated
  * by gotoop.
  */
+void
 labeled(s)
 	char *s;
 {
 	register struct nl *p;
 #ifdef PC
 	char	extname[ BUFSIZ ];
-#endif PC
+#endif /*PC*/
 
 	p = lookup(s);
 	if (p == NIL)
@@ -277,13 +278,13 @@ labeled(s)
 		return;
 	}
 	p->nl_flags &= ~NFORWD;
-#	ifdef OBJ
+#ifdef OBJ
 	    patch4((PTR_DCL) p->value[NL_ENTLOC]);
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    extlabname( extname , p -> symbol , bn );
 	    putprintf( "%s:" , 0 , (int) extname );
-#	endif PC
+#	endif /*PC*/
 	if (p->value[NL_GOLEV] != NOTYET)
 		if (p->value[NL_GOLEV] < level) {
 			recovered();
@@ -298,6 +299,7 @@ labeled(s)
      *	construct the long name of a label based on it's static nesting.
      *	into a caller-supplied buffer (that should be about BUFSIZ big).
      */
+void
 extlabname( buffer , name , level )
     char	buffer[];
     char	*name;
@@ -319,4 +321,4 @@ extlabname( buffer , name , level )
 	panic( "extlabname" );
     }
 }
-#endif PC
+#endif /*PC*/

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)status.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -53,7 +53,11 @@ static char sccsid[] = "@(#)status.c	8.1 (Berkeley) 6/6/93";
 
 #define printnum(id)	if (!isredirected()) printf("(%d) ", id)
 
-status()
+LOCAL void bpstatus(BPINFO *bp);
+LOCAL void printname(SYM *s);
+
+void
+status(void)
 {
 	if (bphead == NIL) {
 		if (!isredirected()) {
@@ -64,8 +68,8 @@ status()
 	}
 }
 
-LOCAL bpstatus(bp)
-BPINFO *bp;
+LOCAL void
+bpstatus(BPINFO *bp)
 {
 	register BPINFO *p;
 	LINENO n;
@@ -180,8 +184,8 @@ BPINFO *bp;
  * Print the name of a symbol unambigously.
  */
 
-LOCAL printname(s)
-SYM *s;
+LOCAL void
+printname(SYM *s)
 {
 	if (isambiguous(s)) {
 		printwhich(s);
@@ -189,3 +193,5 @@ SYM *s;
 		printf("%s", name(s));
 	}
 }
+
+

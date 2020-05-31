@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printinst.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -48,19 +49,20 @@ static char sccsid[] = "@(#)printinst.c	8.1 (Berkeley) 6/6/93";
 #include "process/process.rep"
 #include "process/pxinfo.h"
 
-LOCAL ADDRESS printop(), docase();
+LOCAL ADDRESS printop(register ADDRESS addr);
+LOCAL ADDRESS docase(ADDRESS addr, int size, int n);
+
 
 /*
  * print instructions within the given address range
  */
 
-printinst(lowaddr, highaddr)
-ADDRESS lowaddr;
-ADDRESS highaddr;
+void
+printinst(ADDRESS lowaddr, ADDRESS highaddr)
 {
     register ADDRESS addr;
 
-    for (addr = lowaddr; addr <= highaddr; ) {
+    for (addr = lowaddr; addr <= highaddr && addr < objsize; ) {
 	addr = printop(addr);
     }
 }
@@ -70,12 +72,12 @@ ADDRESS highaddr;
  * of the next instruction
  */
 
-LOCAL ADDRESS printop(addr)
-register ADDRESS addr;
+LOCAL ADDRESS 
+printop(register ADDRESS addr)
 {
     int i;
     PXOP op;
-    OPTAB *o;
+    const OPTAB *o;
     char subop;
     short arg;
     long longarg;
@@ -183,10 +185,8 @@ register ADDRESS addr;
  * print out the destinations and cases
  */
 
-LOCAL ADDRESS docase(addr, size, n)
-ADDRESS addr;
-int size;
-int n;
+LOCAL ADDRESS 
+docase(ADDRESS addr, int size, int n)
 {
     register int i;
     char c;

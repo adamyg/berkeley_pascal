@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)assign.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -47,6 +47,7 @@ static char sccsid[] = "@(#)assign.c	8.1 (Berkeley) 6/6/93";
 #include "process/process.rep"
 #include "process/pxinfo.h"
 
+void
 assign(var, exp)
 NODE *var;
 NODE *exp;
@@ -67,12 +68,12 @@ NODE *exp;
 		lvalue = pop(long);
 		switch (varsize) {
 			case sizeof(char):
-				cvalue = lvalue;
+				cvalue = (char)lvalue;
 				dwrite(&cvalue, addr, varsize);
 				break;
 
 			case sizeof(short):
-				svalue = lvalue;
+				svalue = (short)lvalue;
 				dwrite(&svalue, addr, varsize);
 				break;
 

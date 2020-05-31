@@ -37,13 +37,33 @@
  * Public definitions for symbol table.
  */
 
-SYMTAB *symtab;
+extern SYMTAB           *symtab;
 
-SYMTAB *st_creat();		/* create a symbol table */
-int st_destroy();		/* destroy a symbol table, i.e. free storage */
-SYM *st_insert();		/* insert a symbol */
-SYM *st_lookup();		/* lookup a symbol */
-int dumpvars();			/* dump the symbols of a function */
-int print_alias();		/* print out currently active aliases */
-int enter_alias();		/* create a new name for a command */
-SYM *findtype();		/* search symbol table for a type name */
+/*symtab.c*/
+                                /* create a symbol table */
+extern SYMTAB           *st_creat(int size);
+
+                                /* destroy a symbol table, i.e. free storage */
+extern void             st_destroy(SYMTAB *st);
+
+                                /* insert a symbol */
+extern SYM              *st_insert(SYMTAB *st, const char *name);
+
+                                /* lookup a symbol */
+extern SYM              *st_lookup(SYMTAB *st, const char *name);
+
+                                /* dump the symbols of a function */
+extern void             dumpvars(SYM *f, FRAME *frame);
+
+                                /* create a new name for a command */
+extern void             enter_alias(SYMTAB *table, char *new, char *old);
+
+                                /* print out currently active aliases */
+extern void             print_alias(SYMTAB *table, char *name);
+
+                                /* search symbol table for a type name */
+extern SYM              *findtype(SYM *t);
+
+
+
+

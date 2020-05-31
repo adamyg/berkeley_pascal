@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)runcont.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,13 +51,11 @@ static char sccsid[] = "@(#)runcont.c	8.1 (Berkeley) 6/6/93";
 
 #define MAXNARGS 100        /* maximum number of arguments to RUN */
 
-typedef char *String;
-
 LOCAL BOOLEAN just_started;
 LOCAL int argc;
-LOCAL String argv[MAXNARGS];
-LOCAL String infile;
-LOCAL String outfile;
+LOCAL const char *argv[MAXNARGS];
+LOCAL const char *infile;
+LOCAL const char *outfile;
 LOCAL PROCESS pbuf;
 PROCESS *process = &pbuf;
 
@@ -66,11 +64,11 @@ PROCESS *process = &pbuf;
  * of object code magically coming from a tmp file.
  */
 
-LOCAL String mode;
-LOCAL String realname;
+LOCAL const char *mode;
+LOCAL const char *realname;
 
-setargs(m, r)
-char *m, *r;
+void
+setargs(const char *m, const char *r)
 {
     mode = m;
     realname = r;
@@ -80,7 +78,8 @@ char *m, *r;
  * Initialize the argument list.
  */
 
-arginit()
+void
+arginit(void)
 {
     infile = NIL;
     outfile = NIL;
@@ -97,9 +96,8 @@ arginit()
 /*
  * Add an argument to the list for the debuggee.
  */
-
-newarg(arg)
-String arg;
+void
+newarg(const char *arg)
 {
     if (argc >= MAXNARGS) {
 	error("too many arguments to run");
@@ -110,9 +108,8 @@ String arg;
 /*
  * Set the standard input for the debuggee.
  */
-
-inarg(filename)
-String filename;
+void
+inarg(const char *filename)
 {
     if (infile != NIL) {
 	error("multiple input redirects");
@@ -124,9 +121,8 @@ String filename;
  * Set the standard output for the debuggee.
  * Probably should check to avoid overwriting an existing file.
  */
-
-outarg(filename)
-String filename;
+void
+outarg(const char *filename)
 {
     if (outfile != NIL) {
 	error("multiple output redirect");
@@ -138,8 +134,8 @@ String filename;
  * Initial start of the process.  The idea is to get it to the point
  * where the object code has been loaded but execution has not begun.
  */
-
-initstart()
+void
+initstart(void)
 {
     arginit();
     argv[argc] = NIL;
@@ -148,13 +144,14 @@ initstart()
     if (process->status != STOPPED) {
 	panic("could not start program");
     }
+    isstopped = TRUE;
 }
 
 /*
  * Run starts debuggee executing.
  */
-
-run()
+void
+run(void)
 {
     fixbps();
     curline = 0;
@@ -169,6 +166,24 @@ run()
     }
 }
 
+
+void
+restart(void)
+{
+    fixbps();
+    curline = 0;
+    argv[argc] = NIL;
+    start(argv, infile, outfile);
+    if (option('r')) {
+	if (process->status != STOPPED) {
+	    panic("could not start program");
+	}
+    }
+    just_started = TRUE;       
+    isstopped = TRUE;
+}
+
+
 /*
  * Continue execution wherever we left off.
  *
@@ -176,14 +191,20 @@ run()
  * and we'll call printstatus or step will call it.
  */
 
-typedef void SIGFUN();
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#define SIGARG int __x
+#else
+#define SIGARG void
+#endif
+typedef void            SIGFUN(SIGARG);
 
 LOCAL SIGFUN *dbintr;
-LOCAL void intr();
+LOCAL void intr(SIGARG);
 
-#define fails       == FALSE
+#define fails           == FALSE
 
-cont()
+void
+cont(void)
 {
     dbintr = signal(SIGINT, intr);
     if (just_started) {
@@ -221,12 +242,14 @@ cont()
  * which will then be handled.
  */
 
-LOCAL void intr()
+LOCAL void 
+intr(SIGARG)
 {
     signal(SIGINT, intr);
 }
 
-fixintr()
+void
+fixintr(void)
 {
     signal(SIGINT, dbintr);
 }

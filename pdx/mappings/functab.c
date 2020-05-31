@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)functab.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,16 +46,15 @@ static char sccsid[] = "@(#)functab.c	8.1 (Berkeley) 6/6/93";
 
 #define MAXNFUNCS 1001		/* maximum number of functions allowed */
 
-LOCAL SYM *functab[MAXNFUNCS];
-LOCAL int nfuncs;
+LOCAL SYM       *functab[MAXNFUNCS];
+LOCAL int       nfuncs;
 
 /*
  * Insert a new function into the table.
  * The table is ordered by object address.
  */
-
-newfunc(f)
-SYM *f;
+void
+newfunc(SYM *f)
 {
 	register int i, j;
 	ADDRESS a;
@@ -78,9 +77,8 @@ SYM *f;
 /*
  * Return the function that begins at the given address.
  */
-
-SYM *whatblock(addr)
-ADDRESS addr;
+SYM *
+whatblock(ADDRESS addr)
 {
 	register int i, j, k;
 	ADDRESS a;
@@ -116,8 +114,8 @@ ADDRESS addr;
 /*
  * Clear out the functab, used when re-reading the object information.
  */
-
-clrfunctab()
+void
+clrfunctab(void)
 {
 	nfuncs = 0;
 }

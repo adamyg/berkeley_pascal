@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yycosts.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
 
 /*
  * Symbol costs for Pascal.
@@ -68,7 +68,8 @@ static char sccsid[] = "@(#)yycosts.c	8.1 (Berkeley) 6/6/93";
  *	MEDIUM	4 or 5
  *	HIGH	>= 6
  */
- 
+
+
 /*
  * Insertion costs
  *
@@ -96,10 +97,9 @@ static char sccsid[] = "@(#)yycosts.c	8.1 (Berkeley) 6/6/93";
  * is noticed by the recovery routines as a special
  * case and handled there.
  */
-inscost(sy, before)
+int inscost(sy, before)
 	register int sy, before;
 {
-
 	switch (before) {
 		case YEND:
 			if (sy == YEND)
@@ -145,9 +145,11 @@ inscost(sy, before)
 		case YEOF:
 		case YREPEAT:
 		case YRECORD:
-			return (INFINITY);
+			return (YINFINITY);
 	}
 }
+
+
 
 /*
  * Replacement costs
@@ -157,13 +159,13 @@ inscost(sy, before)
  * of a large number of keywords by an identifier.
  * These are given lower costs, especially the keyword "to".
  */
-repcost(what, with)
+int repcost(what, with)
 	register int what, with;
 {
 	register int c;
 
 	if (with == what)
-		return (INFINITY);
+		return (YINFINITY);
 	if (with == YID && what > ERROR)
 		switch (what) {
 			case YID:
@@ -192,18 +194,18 @@ repcost(what, with)
 	 * It costs extra to replace something which has
 	 * semantics by something which doesn't.
 	 */
-	if (nullsem(what) == NIL && nullsem(with) != NIL)
+	if (nullsem(what) == TNONE && nullsem(with) != TNONE)
 		c += 4;
 	return (c);
 }
+
 
 /*
  * Deletion costs
  */
-delcost(what)
+int delcost(what)
 	int what;
 {
-
 	switch (what) {
 		case '.':
 		case ':':
@@ -228,17 +230,19 @@ delcost(what)
 			return ((CLIMIT * 3) / 4);
 		case ';':
 		case YEOF:
-			return (INFINITY);
+			return (YINFINITY);
 	}
 }
-#ifdef DEBUG
+
+
 
+#ifdef DEBUG
 /*
  * Routine to print out costs with "-K" option.
  */
-char	yysyms[] = ";,:=*+/-|&()[]<>~^";
+char	   yysyms[] = ";,:=*+/-|&()[]<>~^";
 
-
+void
 yycosts()
 {
 	register int c;
@@ -254,6 +258,7 @@ yycosts()
 #endif
 }
 
+void
 yydocost(c)
 	int c;
 {
@@ -265,3 +270,4 @@ yydocost(c)
 	printf("\t%s\n", charname(c,1));
 }
 #endif
+

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)lval.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -44,22 +44,23 @@ static char sccsid[] = "@(#)lval.c	8.1 (Berkeley) 6/6/93";
 #ifdef PC
 #   include	"pc.h"
 #   include	<pcc.h>
-#endif PC
+#endif /*PC*/
 
-extern	int flagwas;
+extern	int     flagwas;
+
+
 /*
- * Lvalue computes the address
- * of a qualified name and
+ * Lvalue computes the address of a qualified name and
  * leaves it on the stack.
  * for pc, it can be asked for either an lvalue or an rvalue.
  * the semantics are the same, only the code is different.
  */
 /*ARGSUSED*/
 struct nl *
-lvalue(var, modflag , required )
+lvalue(var, modflag, required)
 	struct tnode *var; 
-	int	modflag;
-	int	required;
+	int modflag;
+	int required;
 {
 #ifdef OBJ
 	register struct nl *p;
@@ -67,9 +68,8 @@ lvalue(var, modflag , required )
 	register struct tnode *c, *co;
 	int f, o, s;
 	/*
-	 * Note that the local optimizations
-	 * done here for offsets would more
-	 * appropriately be done in put.
+	 * Note that the local optimizations done here for offsets would 
+         * more appropriately be done in put.
 	 */
 	struct tnode	tr;	/* T_FIELD */ 
 	struct tnode	*tr_ptr;
@@ -86,16 +86,17 @@ lvalue(var, modflag , required )
 		error("Variable required");	/* Pass mesgs down from pt of call ? */
 		return (NLNIL);
 	}
-#	ifdef PC
+#ifdef PC
 		/*
 		 *	pc requires a whole different control flow
 		 */
 	    return pclvalue( var , modflag , required );
-#	endif PC
-#	ifdef OBJ
+#endif /*PC*/
+#ifdef OBJ
 		/*
 		 *	pi uses the rest of the function
 		 */
+	(void) required;
 	firstp = p = lookup(var->var_node.cptr);
 	if (p == NLNIL) {
 		return (NLNIL);
@@ -129,7 +130,7 @@ lvalue(var, modflag , required )
 			tr.tag = T_FIELD;
 			tr.field_node.id_ptr = var->var_node.cptr;
 			c = tr_ptr; /* c is a ptr to a tnode */
-#			ifdef PTREE
+#ifdef PTREE
 			    /*
 			     * mung var->fields to say which field this T_VAR is
 			     * for VarCopy
@@ -139,7 +140,7 @@ lvalue(var, modflag , required )
 
 			    var->var_node.fields = reclook( p -> type , 
 					    var->var_node.line_no );
-#			endif
+#endif
 			/* and fall through */
 		case REF:
 			/*
@@ -152,7 +153,7 @@ lvalue(var, modflag , required )
 			o = 0;
 			break;
 		case VAR:
-			if (p->type->class != CRANGE) {
+			if (p->type /*APY*/ && p->type->class != CRANGE) {
 			    f = 1;		/* no lv on stack yet */
 			    o = p->value[0];
 			} else {
@@ -305,13 +306,13 @@ lvalue(var, modflag , required )
 					error("%s is not a field in this record", co->field_node.id_ptr);
 					goto bad;
 				}
-#				ifdef PTREE
+#ifdef PTREE
 				    /*
 				     * mung co[3] to indicate which field
 				     * this is for SelCopy
 				     */
 				    co->field_node.nl_entry = p;
-#				endif
+#endif
 				if (modflag & MOD) {
 					p->nl_flags |= NMOD;
 				}
@@ -349,10 +350,12 @@ lvalue(var, modflag , required )
 bad:
 	cerror("Error occurred on qualification of %s", var->var_node.cptr);
 	return (NLNIL);
-#	endif OBJ
+#endif /*OBJ*/
 }
 
-int lptr(c)
+
+int
+lptr(c)
 	register struct tnode *c;
 {
 	register struct tnode *co;
@@ -360,7 +363,7 @@ int lptr(c)
 	for (; c != TR_NIL; c = c->list_node.next) {
 		co = c->list_node.list;
 		if (co == TR_NIL) {
-			return (NIL);
+			return (0);
 		}
 		switch (co->tag) {
 
@@ -378,15 +381,14 @@ int lptr(c)
 	return (0);
 }
 
+
 /*
- * Arycod does the
- * code generation
- * for subscripting.
- * n is the number of
- * subscripts already seen
+ * Arycod does the code generation for subscripting.
+ * n is the number of subscripts already seen
  * (CLN 09/13/83)
  */
-int arycod(np, el, n)
+int
+arycod(np, el, n)
 	struct nl *np;
 	struct tnode *el;
 	int n;
@@ -419,24 +421,24 @@ int arycod(np, el, n)
 		if ((p->class != CRANGE) &&
 			(constsub = constval(el->list_node.list))) {
 		    ap = con.ctype;
-		    sub = con.crval;
+		    sub = (long)con.crval;
 		    if (sub < p->range[0] || sub > p->range[1]) {
-			error("Subscript value of %D is out of range", (char *) sub);
+			error("Subscript value of %d is out of range", (char *) sub);
 			return (0);
 		    }
 		    sub -= p->range[0];
 		} else {
-#		    ifdef PC
+#ifdef PC
 			precheck( p , "_SUBSC" , "_SUBSCZ" );
-#		    endif PC
+#endif /*PC*/
 		    ap = rvalue(el->list_node.list, NLNIL , RREQ );
 		    if (ap == NIL) {
 			    return (0);
 		    }
-#		    ifdef PC
+#ifdef PC
 			postcheck(p, ap);
 			sconv(p2type(ap),PCCT_INT);
-#		    endif PC
+#endif /*PC*/
 		}
 		if (incompat(ap, p->type, el->list_node.list)) {
 			cerror("Array index type incompatible with declared index type");
@@ -450,13 +452,13 @@ int arycod(np, el, n)
 		} else {
 			w = aryconst(np, i);
 		}
-#		ifdef OBJ
+#ifdef OBJ
 		    if (constsub) {
 			sub *= w;
 			if (sub != 0) {
 			    w = bytes(sub, sub);
 			    (void) put(2, w <= 2 ? O_CON2 : O_CON4, sub);
-			    (void) gen(NIL, T_ADD, sizeof(char *), w);
+			    (void) gen(TNONE, T_ADD, sizeof(char *), w);
 			}
 			el = el->list_node.next;
 			continue;
@@ -489,8 +491,8 @@ int arycod(np, el, n)
 		    }
 		    el = el->list_node.next;
 		    continue;
-#		endif OBJ
-#		ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 			/*
 			 *	subtract off the lower bound
 			 */
@@ -536,7 +538,7 @@ int arycod(np, el, n)
 			 */
 		    putop( PCC_PLUS , PCCM_ADDTYPE( p2type( np -> type ) , PCCTM_PTR ) );
 		el = el->list_node.next;
-#		endif PC
+#endif /*PC*/
 	}
 	if (el != TR_NIL) {
 	    if (np->type->class != ARRAY) {
@@ -553,6 +555,7 @@ int arycod(np, el, n)
 	return (d);
 }
 
+
 #ifdef OBJ
 /*
  * Put out the conformant array bounds (lower bound, upper bound or width)
@@ -560,9 +563,10 @@ int arycod(np, el, n)
  * The value of i determines which is being put
  * i = 0: lower bound, i=1: upper bound, i=2: width
  */
+void
 putcbnds(ctype, i)
-struct nl *ctype;
-int i;
+        struct nl *ctype;
+        int i;
 {
 	switch(width(ctype->type)) {
 	    case 1:
@@ -579,4 +583,4 @@ int i;
 			(int)ctype->nptr[i]->value[0]);
 	}
 }
-#endif OBJ
+#endif /*OBJ*/

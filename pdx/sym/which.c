@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)which.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,6 +45,7 @@ static char sccsid[] = "@(#)which.c	8.1 (Berkeley) 6/6/93";
 #include "symtab.h"
 #include "mappings.h"
 #include "machine.h"
+#include "runtime.h"
 #include "sym.rep"
 
 /*
@@ -55,8 +56,8 @@ static char sccsid[] = "@(#)which.c	8.1 (Berkeley) 6/6/93";
  * Fields are purposely ignored; these can be gotten to via "findclass".
  */
 
-SYM *which(s)
-SYM *s;
+SYM *
+which(SYM *s)
 {
 	register SYM *p, *t, *f;
 
@@ -89,9 +90,8 @@ SYM *s;
  * pi gives them no type.
  */
 
-SYM *findsym(s, f)
-SYM *s;
-SYM *f;
+SYM *
+findsym(SYM *s, SYM *f)
 {
 	register SYM *t;
 
@@ -112,9 +112,8 @@ SYM *f;
  * given symbol but is of the given field.  Return NIL if there is none.
  */
 
-SYM *findclass(s, cl)
-SYM *s;
-char cl;
+SYM *
+findclass(SYM *s, char cl)
 {
 	register SYM *t;
 

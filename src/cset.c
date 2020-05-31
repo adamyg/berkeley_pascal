@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)cset.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,7 +45,7 @@ static char sccsid[] = "@(#)cset.c	8.1 (Berkeley) 6/6/93";
 #include "pc.h"
 #include <pcc.h>
 #include "align.h"
-#endif PC
+#endif /*PC*/
 
 /*
  * CONSETS causes compile time constant sets to be constructed here.
@@ -198,7 +198,7 @@ precset( r , settype , csetp )
 	csetp -> csettype = settype;
 #	ifndef CONSETS
 	    csetp -> comptime = FALSE;
-#	endif CONSETS
+#	endif /*CONSETS*/
 	setran( exptype );
 	if (((set.uprbp + 1) >> LG2BITSLONG) >= COMPSETSZE)
 		csetp -> comptime = FALSE;
@@ -225,11 +225,11 @@ precset( r , settype , csetp )
 				if ( setofint ) {
 				    csetp -> comptime = FALSE;
 				} else {
-				    error("Range upper bound of %D out of set bounds" , ((long)con.crval) );
+				    error("Range upper bound of %d out of set bounds" , ((long)con.crval) );
 				    csetp -> csettype = NIL;
 				}
 			    }
-#endif CONSETS
+#endif /*CONSETS*/
 			} else {
 			    csetp -> comptime = FALSE;
 			    t = rvalue(e->rang.expr2, NLNIL , RREQ );
@@ -248,11 +248,11 @@ precset( r , settype , csetp )
 				if ( setofint ) {
 				    csetp -> comptime = FALSE;
 				} else {
-				    error("Range lower bound of %D out of set bounds" , ((long)con.crval) );
+				    error("Range lower bound of %d out of set bounds" , ((long)con.crval) );
 				    csetp -> csettype = NIL;
 				}
 			    }
-#endif CONSETS
+#endif /*CONSETS*/
 			} else {
 			    csetp -> comptime = FALSE;
 			    t = rvalue(e->rang.expr1, NLNIL , RREQ );
@@ -281,11 +281,11 @@ pairhang:
 				if ( setofint ) {
 				    csetp -> comptime = FALSE;
 				} else {
-				    error("Value of %D out of set bounds" , ((long)con.crval) );
+				    error("Value of %d out of set bounds" , ((long)con.crval) );
 				    csetp -> csettype = NIL;
 				}
 			    }
-#endif CONSETS
+#endif /*CONSETS*/
 			} else {
 			    csetp -> comptime = FALSE;
 			    t = rvalue( e, NLNIL , RREQ );
@@ -317,7 +317,7 @@ singhang:
 	    } else {
 		r->cset_node.el_list = singp;
 	    }
-#	endif PC
+#	endif /*PC*/
 #	ifdef OBJ
 	    if ( singp != NIL ) {
 		for ( el = singp ; el->list_node.next != NIL ; el = el->list_node.next ) /* void */;
@@ -326,7 +326,7 @@ singhang:
 	    } else {
 		r->cset_node.el_list = pairp;
 	    }
-#	endif OBJ
+#	endif /*OBJ*/
 	if ( csetp -> csettype == NIL ) {
 	    csetp -> comptime = TRUE;
 	}
@@ -337,8 +337,8 @@ singhang:
     /*
      *	mask[i] has the low i bits turned off.
      */
-long	mask[] = {	
-#		ifdef DEC11
+const long mask[] = {	
+#ifdef DEC11
 		    0xffffffff , 0xfffffffe , 0xfffffffc , 0xfffffff8 ,
 		    0xfffffff0 , 0xffffffe0 , 0xffffffc0 , 0xffffff80 ,
 		    0xffffff00 , 0xfffffe00 , 0xfffffc00 , 0xfffff800 ,
@@ -348,7 +348,7 @@ long	mask[] = {
 		    0xff000000 , 0xfe000000 , 0xfc000000 , 0xf8000000 ,
 		    0xf0000000 , 0xe0000000 , 0xc0000000 , 0x80000000 ,
 		    0x00000000
-#		else
+#else
 		    0xffffffff , 0xfeffffff , 0xfcffffff , 0xf8ffffff ,
 		    0xf0ffffff , 0xe0ffffff , 0xc0ffffff , 0x80ffffff ,
 		    0x00ffffff , 0x00feffff , 0x00fcffff , 0x00f8ffff ,
@@ -358,8 +358,9 @@ long	mask[] = {
 		    0x000000ff , 0x000000fe , 0x000000fc , 0x000000f8 ,
 		    0x000000f0 , 0x000000e0 , 0x000000c0 , 0x00000080 ,
 		    0x00000000
-#		endif DEC11
-	    };
+#endif  /*DEC11*/
+        };
+
     /*
      *	given a csetstr, either
      *	    put out a compile time constant set and an lvalue to it.
@@ -367,11 +368,14 @@ long	mask[] = {
      *	    put out rvalues for the singletons and the pairs
      *	    and counts of each.
      */
-#endif CONSETS
+#endif /*CONSETS*/
+
+
+void
 postcset( r , csetp )
-    struct tnode	*r;
-    struct csetstr	*csetp;
-    {
+        struct tnode	*r;
+        struct csetstr	*csetp;
+{
 	register struct tnode	*el;
 	register struct tnode	*e;
 	int		lower;
@@ -388,7 +392,7 @@ postcset( r , csetp )
 #	ifdef PC
 	    int		label;
 	    char	labelname[ BUFSIZ ];
-#	endif PC
+#	endif /*PC*/
 
 	if ( csetp -> comptime ) {
 #ifdef CONSETS
@@ -401,9 +405,9 @@ postcset( r , csetp )
 		e = el->list_node.list;
 		if ( e->tag == T_RANG ) {
 		    (void) constval( e->rang.expr1 );
-		    lower = con.crval;
+		    lower = (int)con.crval;
 		    (void) constval( e->rang.expr2 );
-		    upper = con.crval;
+		    upper = (int)con.crval;
 		    if ( upper < lower ) {
 			continue;
 		    }
@@ -425,7 +429,7 @@ postcset( r , csetp )
 		    }
 		} else {
 		    (void) constval( e );
-		    temp = con.crval - set.lwrb;
+		    temp = (long)(con.crval - set.lwrb);
 		    cp = (char *)tempset;
 		    cp[temp >> LG2BITSBYTE] |= (1 << (temp & MSKBITSBYTE));
 		}
@@ -449,7 +453,7 @@ postcset( r , csetp )
 		putprintf("	.text", 0);
 		sprintf( labelname , PREFIXFORMAT , LABELPREFIX , (char *) label );
 		putleaf( PCC_ICON , 0 , 0 , PCCTM_PTR | PCCT_STRTY , labelname );
-#	    endif PC
+#	    endif /*PC*/
 #	    ifdef OBJ
 		(void) put(2, O_CON, (int)(((set.uprbp >> LG2BITSLONG) + 1) *
 				 (BITSPERLONG >> LG2BITSBYTE)));
@@ -458,10 +462,10 @@ postcset( r , csetp )
 		while ( lp < limit ) {
 		    (void) put(2, O_CASE4, (int) (*lp ++));
 		}
-#	    endif OBJ
+#	    endif /*OBJ*/
 #else
 		panic("const cset");
-#endif CONSETS
+#endif /*CONSETS*/
 	} else {
 #	    ifdef PC
 		putleaf( PCC_ICON , (int) csetp -> paircnt , 0 , PCCT_INT , (char *) 0 );
@@ -480,7 +484,7 @@ postcset( r , csetp )
 			putop( PCC_CM , PCCT_INT );
 		    }
 		}
-#	    endif PC
+#	    endif /*PC*/
 #	    ifdef OBJ
 		for ( el = r->cset_node.el_list ; el != NIL ; el = el->list_node.next ) {
 		    e = el->list_node.list;
@@ -493,6 +497,6 @@ postcset( r , csetp )
 		}
 		(void) put(2 , O_CON24 , (int)csetp -> singcnt );
 		(void) put(2 , O_CON24 , (int)csetp -> paircnt );
-#	    endif OBJ
+#	    endif /*OBJ*/
 	}
 }

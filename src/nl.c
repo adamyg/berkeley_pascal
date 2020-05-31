@@ -31,15 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)nl.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
+#include <whoami.h>
+#include <0.h>
 #ifdef PI
-#include "opcode.h"
-#include "objfmt.h"
+#include <opcode.h>
 
 /*
  * NAMELIST SEGMENT DEFINITIONS
@@ -49,9 +48,9 @@ struct nls {
 	struct nl *nls_high;
 } ntab[MAXNL], *nlact;
 
-struct	nl nl[INL];
-struct	nl *nlp = nl;
-struct	nls *nlact = ntab;
+struct	nl      nl[INL] = {0};
+struct	nl      *nlp = nl;
+struct	nls     *nlact = ntab;
 
     /*
      *	all these strings must be places where people can find them
@@ -129,6 +128,8 @@ char	*in_vars[] = {
 	    "output" ,
 	    0
 	};
+
+struct nl *input = NULL, *output = NULL;
 
     /*
      *	built in functions 
@@ -231,7 +232,7 @@ int in_fops[] =
 	O_SQR2,
 	O_SQRT,
 	O_SUCC2,
-	O_TRUNC,
+	O_TRUNCATE,
 	O_UNDEF|NSTAND,
 	/*
 	 * Extensions
@@ -284,23 +285,23 @@ int in_pops[] =
  * Initnl initializes the first namelist segment and then
  * initializes the name list for block 0.
  */
+void
 initnl()
-    {
+{
 	register char		**cp;
 	register struct nl	*np;
 	struct nl		*fp;
 	int			*ip;
 	long			*lp;
 
-#ifdef	DEBUG
-	if ( hp21mx )
+#if defined(DEBUG) && (hp21mx)
 	    {
-		MININT = -32768.;
-		MAXINT = 32767.;
+		XMININT = -32768.;
+		XMAXINT = 32767.;
 #ifndef	PI0
 #ifdef OBJ
 		genmx();
-#endif OBJ
+#endif /*OBJ*/
 #endif
 	    }
 #endif
@@ -377,7 +378,7 @@ initnl()
 #	ifdef PC
 	    input -> extra_flags |= NGLOBAL;
 	    output -> extra_flags |= NGLOBAL;
-#	endif PC
+#	endif /*PC*/
 
 	/*
 	 *	built in constants
@@ -392,8 +393,8 @@ initnl()
 	fp->chain = np;
 	if (opt('s'))
 		(nl + TBOOL)->chain = fp;
-	hdefnl ( *cp++ , CONST , nl + T4INT , 0 ) -> range[0] = MININT;
-	hdefnl ( *cp++ , CONST , nl + T4INT , 0 ) -> range[0] = MAXINT;
+	hdefnl ( *cp++ , CONST , nl + T4INT , 0 ) -> range[0] = (long)XMININT;
+	hdefnl ( *cp++ , CONST , nl + T4INT , 0 ) -> range[0] = (long)XMAXINT;
 	(void) hdefnl ( *cp++ , CONST , nl + T1CHAR , 0 );
 	(void) hdefnl ( *cp++ , CONST , nl + T1CHAR , 127 );
 	(void) hdefnl ( *cp++ , CONST , nl + T1CHAR , '\007' );
@@ -440,11 +441,10 @@ hdefnl(sym, cls, typ, val)
 }
 
 /*
- * Free up the name list segments
- * at the end of a statement/proc/func
- * All segments are freed down to the one in which
- * p points.
+ * Free up the name list segments at the end of a statement/proc/func
+ * All segments are freed down to the one in which p points.
  */
+void
 nlfree(p)
 	struct nl *p;
 {
@@ -459,16 +459,16 @@ nlfree(p)
 			panic("nlfree");
 	}
 }
-#endif PI
+#endif /*PI*/
 
 
 #ifndef PC
 #ifndef OBJ
-char	*VARIABLE	= "variable";
-#endif PC
-#endif OBJ
+const char *VARIABLE	= "variable";
+#endif /*PC*/
+#endif /*OBJ*/
 
-char	*classes[ ] = {
+const char *classes[ ] = {
 	"undefined",
 	"constant",
 	"type",
@@ -498,13 +498,13 @@ char	*classes[ ] = {
 
 #ifndef PC
 #ifndef OBJ
-char	*snark	= "SNARK";
+const char *snark = "SNARK";
 #endif
 #endif
 
 #ifdef PI
 #ifdef DEBUG
-char	*ctext[] =
+const char *ctext[] =
 {
 	"BADUSE",
 	"CONST",
@@ -534,17 +534,18 @@ char	*ctext[] =
 	"CRANGE"
 };
 
-char	*stars	= "\t***";
+const char *stars = "\t***";
+
 
 /*
- * Dump the namelist from the
- * current nlp down to 'to'.
- * All the namelist is dumped if
- * to is NIL.
+ * Dump the namelist from the current nlp down to 'to'.
+ * All the namelist is dumped if to is NIL.
  */
 /*VARARGS*/
+void
 dumpnl(to, rout)
 	struct nl *to;
+	const char *rout;
 {
 	register struct nl *p;
 	struct nls *nlsp;
@@ -555,7 +556,7 @@ dumpnl(to, rout)
 	if (to != NIL)
 		printf("\n\"%s\" Block=%d\n", rout, cbn);
 	nlsp = nlact;
-	head = NIL;
+	head = TNONE;
 	for (p = nlp; p != to;) {
 		if (p == nlsp->nls_low) {
 			if (nlsp == &ntab[0])
@@ -564,7 +565,7 @@ dumpnl(to, rout)
 			p = nlsp->nls_high;
 		}
 		p--;
-		if (head == NIL) {
+		if (head == TNONE) {
 			printf("\tName\tClass  Bn+Flags\tType\tVal\tChn\n");
 			head++;
 		}
@@ -615,7 +616,7 @@ con:
 						printf("\t%ld", p->range[0]);
 						break;
 					case TSTR:
-						printf("\t'%s'", p->ptr[0]);
+						printf("\t'%s'", (const char *)(p->ptr[0]));
 						break;
 					}
 				break;
@@ -631,8 +632,7 @@ con:
 				printf("\t%ld..%ld", p->range[0], p->range[1]);
 				break;
 			case CRANGE:
-				printf("\t%s..%s", p->nptr[0]->symbol,
-					p->nptr[1]->symbol);
+				printf("\t%s..%s", p->nptr[0]->symbol, p->nptr[1]->symbol);
 				break;
 			case RECORD:
 				printf("\t%d", v);
@@ -714,7 +714,7 @@ con:
 			if ( p -> extra_flags & NREGVAR )
 			    printf( "NREGVAR " );
 		    }
-#		endif PC
+#		endif /*PC*/
 #		ifdef PTREE
 		    pchr( '\t' );
 		    pPrintPointer( stdout , "%s" , p -> inTree );
@@ -726,12 +726,11 @@ con:
 }
 #endif
 
+
 
 /*
- * Define a new name list entry
- * with initial symbol, class, type
- * and value[0] as given.  A new name
- * list segment is allocated to hold
+ * Define a new name list entry with initial symbol, class, type
+ * and value[0] as given.  A new name list segment is allocated to hold
  * the next name list slot if necessary.
  */
 struct nl *
@@ -762,7 +761,7 @@ defnl(sym, cls, typ, val)
 	p->symbol = sym;
 	p->class = cls;
 	p->type = typ;
-	p->nl_block = cbn;
+	p->nl_block = (char)cbn;
 	p->value[0] = val;
 
 	/*
@@ -778,12 +777,12 @@ defnl(sym, cls, typ, val)
 	nlp++;
 	if (nlp >= nlact->nls_high) {
 		i = NLINC;
-		cp = (char *) malloc(NLINC * sizeof *nlp);
-		if (cp == 0) {
+		cp = (char *) calloc(NLINC, sizeof *nlp);
+		if (cp == NIL) {
 			i = NLINC / 2;
-			cp = (char *) malloc((NLINC / 2) * sizeof *nlp);
+			cp = (char *) calloc((NLINC / 2), sizeof *nlp);
 		}
-		if (cp == 0) {
+		if (cp == NIL) {
 			error("Ran out of memory (defnl)");
 			pexit(DIED);
 		}
@@ -799,11 +798,10 @@ defnl(sym, cls, typ, val)
 	return (p);
 }
 
+
 /*
- * Make a duplicate of the argument
- * namelist entry for, e.g., type
- * declarations of the form 'type a = b'
- * and array indicies.
+ * Make a duplicate of the argument namelist entry for, e.g., type
+ * declarations of the form 'type a = b' and array indicies.
  */
 struct nl *
 nlcopy(p)
@@ -818,21 +816,21 @@ nlcopy(p)
 	return (p2);
 }
 
+
 /*
  * Compute a namelist offset
  */
-nloff(p)
+int nloff(p)
 	struct nl *p;
 {
-
 	return (p - nl);
 }
+
+
 
 /*
- * Enter a symbol into the block
- * symbol table.  Symbols are hashed
- * 64 ways based on low 6 bits of the
- * character pointer into the string
+ * Enter a symbol into the block symbol table.  Symbols are hashed
+ * 64 ways based on low 6 bits of the character pointer into the string
  * table.
  */
 struct nl *

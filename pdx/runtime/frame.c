@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)frame.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -64,16 +65,21 @@ static char sccsid[] = "@(#)frame.c	8.1 (Berkeley) 6/6/93";
  * The storage is static.
  */
 
-#define MAXDEPTH 7
-#define dispblk(dp)		((dp - DISPLAY) / 2)
+#define MAXDEPTH	7
+
+//APY, was, #define dispblk(dp)	((((ADDRESS)dp) - DISPLAY) / 2)
+#define dispblk(dp)	((((ADDRESS)dp) - DISPLAY) / sizeof(struct framestack))
+
+LOCAL void getframe(FRAME *frp, ADDRESS *disp);
 
 LOCAL ADDRESS *display[MAXDEPTH];
 LOCAL int dispindex;
 
-FRAME *curframe()
+FRAME *
+curframe(void)
 {
 	static FRAME frame;
-	FRAME *frp;
+	FRAME   *frp;
 	ADDRESS *dp, *disp;
 	int i;
 
@@ -98,8 +104,8 @@ FRAME *curframe()
  * Writes over space pointed to by given argument.
  */
 
-FRAME *nextframe(frp)
-FRAME *frp;
+FRAME *
+nextframe(FRAME *frp)
 {
 	ADDRESS *fp;
 
@@ -117,9 +123,8 @@ FRAME *frp;
 /*
  * Return the frame associated with the given function.
  */
-
-FRAME *findframe(f)
-SYM *f;
+FRAME *
+findframe(SYM *f)
 {
 	static FRAME frame;
 	FRAME *frp, *prevfrp;
@@ -144,14 +149,13 @@ SYM *f;
  * Get the activation record associated with the given display pointer.
  */
 
-LOCAL getframe(frp, disp)
-FRAME *frp;
-ADDRESS *disp;
+LOCAL void
+getframe(FRAME *frp, ADDRESS *disp)
 {
 	if (disp == NIL) {
 		panic("bad disp in getframe");
 	}
-	dread(frp, disp, sizeof(FRAME));
+	dread(frp, (ADDRESS)disp, sizeof(FRAME));
 	frp->save_pc -= ENDOFF;
 }
 
@@ -159,12 +163,13 @@ ADDRESS *disp;
  * Return the address of the display in the px process for the given block.
  */
 
-ADDRESS *dispval(b)
-int b;
+ADDRESS *
+dispval(int b)
 {
 	ADDRESS *r;
 
-	dread(&r, (ADDRESS) (DISPLAY + 2*b), sizeof(r));
+//APY, was	dread(&r, (ADDRESS) (DISPLAY + 2*b), sizeof(r));
+	dread(&r, (ADDRESS) DISPLAY + (sizeof(struct framestack)*b), sizeof(r));
 	return r;
 }
 
@@ -172,11 +177,12 @@ int b;
  * Return the current display pointer.
  */
 
-ADDRESS *curdp()
+ADDRESS *
+curdp(void)
 {
 	ADDRESS *r;
 
-	dread(&r, (ADDRESS) DP, sizeof(r));
+	dread(&r, DP, sizeof(r));
 	return r;
 }
 
@@ -184,8 +190,8 @@ ADDRESS *curdp()
  * Return the contents of the given display pointer.
  */
 
-ADDRESS *contents(dp)
-ADDRESS *dp;
+ADDRESS *
+contents(ADDRESS *dp)
 {
 	ADDRESS *r;
 
@@ -199,9 +205,9 @@ ADDRESS *dp;
  * frame one up from the given one.
  */
 
-ADDRESS stkaddr(frp, b)
-FRAME *frp;
-int b;
+ADDRESS 
+stkaddr(FRAME *frp, int b)
 {
+        (void) frp;
 	return (ADDRESS) display[b];
 }

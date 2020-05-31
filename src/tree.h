@@ -1,3 +1,5 @@
+#ifndef TREE_H_INCLUDED
+#define TREE_H_INCLUDED
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -115,3 +117,7 @@
 #define T_LAST 81
 #define T_TYCRANG 82
 #define T_TYCARY 83
+#define T_LINEINFO 84
+#define T_COMMENT 85
+
+#endif

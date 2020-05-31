@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)clas.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,18 +42,14 @@ static char sccsid[] = "@(#)clas.c	8.1 (Berkeley) 6/6/93";
 #include "tree_ty.h"
 
 /*
- * This is the array of class
- * names for the classes returned
- * by classify.  The order of the 
- * classes is the same as the base
- * of the namelist, with special
- * negative index entries for structures,
- * scalars, pointers, sets and strings
- * to be collapsed into.
+ * This is the array of class names for the classes returned
+ * by classify.  The order of the classes is the same as the base
+ * of the namelist, with special negative index entries for structures,
+ * scalars, pointers, sets and strings to be collapsed into.
  */
-char	*clnxxxx[] =
+const char *clnxxxx[] =
 {
-	"file",			/* -7	TFILE */
+	"file", 		/* -7	TFILE */
 	"record",		/* -6	TREC */
 	"array",		/* -5	TARY */
 	"scalar",		/* -4	TSCAL */
@@ -61,20 +58,19 @@ char	*clnxxxx[] =
 	"string",		/* -1	TSTR */
 	"SNARK",		/*  0	NIL */
 	"Boolean",		/*  1	TBOOL */
-	"char",			/*  2	TCHAR */
+	"char", 		/*  2	TCHAR */
 	"integer",		/*  3	TINT */
-	"real",			/*  4	TREAL */
+	"real", 		/*  4	TREAL */
 	"\"nil\"",		/*  5	TNIL */
 };
 
-char **clnames	= &clnxxxx[-(TFIRST)];
+const char **clnames = &clnxxxx[-(TFIRST)];
 
 /*
- * Classify takes a pointer
- * to a type and returns one
- * of several interesting group
- * classifications for easy use.
+ * Classify takes a pointer to a type and returns one of several
+ * interesting group classifications for easy use.
  */
+int
 classify(p1)
 	struct nl *p1;
 {
@@ -84,7 +80,7 @@ classify(p1)
 swit:
 	if (p == NLNIL) {
 		nocascade();
-		return (NIL);
+		return (TNONE);
 	}
 	if (p == &nl[TSTR])
 		return (TSTR);
@@ -119,22 +115,24 @@ swit:
 		default:
 			{
 			    panic("clas");
-			    return(NIL);
+			    return(TNONE);
 			}
 	}
 }
 
-#ifndef	PI0
+
+#ifndef PI0
 /*
  * Is p a text file?
  */
+int
 text(p)
-	struct nl *p;
+        struct nl *p;
 {
-
 	return (p != NIL && p->class == FILET && p->type == nl+T1CHAR);
 }
 #endif
+
 
 /*
  * Scalar returns a pointer to
@@ -144,7 +142,7 @@ text(p)
  */
 struct nl *
 scalar(p1)
-	struct nl *p1;
+        struct nl *p1;
 {
 	register struct nl *p;
 
@@ -159,23 +157,21 @@ scalar(p1)
 }
 
 /*
- * Isa tells whether p
- * is one of a group of
- * namelist classes.  The
- * classes wanted are specified
- * by the characters in s.
- * (Note that s would more efficiently,
- * if less clearly, be given by a mask.)
+ * Isa tells whether p is one of a group of namelist classes.  The
+ * classes wanted are specified by the characters in s.
+ * (Note that s would more efficiently, if less clearly, be given
+ * by a mask.)
  */
+int
 isa(p, s)
 	register struct nl *p;
 	char *s;
 {
-	register i;
+	register int i;
 	register char *cp;
 
 	if (p == NIL)
-		return (NIL);
+		return (TNONE);
 	/*
 	 * map ranges down to
 	 * the base type
@@ -224,15 +220,17 @@ isa(p, s)
 			if (*cp++ == i)
 				return (1);
 	}
-	return (NIL);
+	return (TNONE);
 }
+
 
 /*
  * Isnta is !isa
  */
+int
 isnta(p, s)
-    struct nl *p;
-    char *s;
+	struct nl *p;
+	char *s;
 {
 
 	return (!isa(p, s));
@@ -241,7 +239,7 @@ isnta(p, s)
 /*
  * "shorthand"
  */
-char *
+const char *
 nameof(p)
 struct nl *p;
 {
@@ -249,9 +247,12 @@ struct nl *p;
 	return (clnames[classify(p)]);
 }
 
+
 #ifndef PI0
-/* find out for sure what kind of node this is being passed
-   possibly several different kinds of node are passed to it */
+/*
+ *  find out for sure what kind of node this is being passed
+ *  possibly several different kinds of node are passed to it
+ */
 int nowexp(r)
 	struct tnode *r;
 {
@@ -262,38 +263,38 @@ int nowexp(r)
 			error("Width expressions allowed only in writeln/write calls");
 		return (1);
 	}
-	return (NIL);
+	return (0);
 }
 #endif
 
     /*
-     *	is a variable a local, a formal parameter, or a global?
-     *	all this from just the offset:
-     *	    globals are at levels 0 or 1
-     *	    positives are parameters
-     *	    negative evens are locals
+     *  is a variable a local, a formal parameter, or a global?
+     *  all this from just the offset:
+     *      globals are at levels 0 or 1
+     *      positives are parameters
+     *      negative evens are locals
      */
 /*ARGSUSED*/
-whereis( offset , other_flags )
-    int		offset;
-    char	other_flags;
+int whereis( offset , other_flags )
+	int	offset;
+	char	other_flags;
 {
-    
-#   ifdef OBJ
+#ifdef OBJ
+	(void) other_flags;
 	return ( offset >= 0 ? PARAMVAR : LOCALVAR );
-#   endif OBJ
-#   ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	switch ( other_flags & ( NGLOBAL | NPARAM | NLOCAL | NNLOCAL) ) {
-	    default:
-		panic( "whereis" );
-	    case NGLOBAL:
-		return GLOBALVAR;
-	    case NPARAM:
-		return PARAMVAR;
-	    case NNLOCAL:
-		return NAMEDLOCALVAR;
-	    case NLOCAL:
-		return LOCALVAR;
+		default:
+			panic( "whereis" );
+		case NGLOBAL:
+			return GLOBALVAR;
+		case NPARAM:
+			return PARAMVAR;
+		case NNLOCAL:
+			return NAMEDLOCALVAR;
+		case NLOCAL:
+			return LOCALVAR;
 	}
-#   endif PC
+#endif /*PC*/
 }

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)fixbps.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,7 +46,8 @@ static char sccsid[] = "@(#)fixbps.c	8.1 (Berkeley) 6/6/93";
 #include "breakpoint.h"
 #include "bp.rep"
 
-fixbps()
+void
+fixbps(void)
 {
 	register BPINFO *p, *last, *next;
 

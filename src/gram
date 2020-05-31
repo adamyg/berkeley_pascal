@@ -1,7 +1,8 @@
-"@(#)gram 8.1 6/6/93"
+"@(#)gram 8.1 6/6/93 (modified)"
 /yyval/s/int/union semstack/
 s/ 0//
 /yypv/s/int/union semstack/
+/yyact/s//void yyact/
 /\*yysterm\[]/,$d
 1;/yyactr/ka
 'a,$s/yypv/yyYpv/g
@@ -10,7 +11,7 @@ s/ 0//
 	register struct tnode *p, *q;
 	yyYpv = yypv;
 .
-1;/^##/-w! y.tab.h
+1;/^##/-w! ytab.h
 /^int yylval 0/d
 /extern int yychar,/s//extern/
 /yyclearin/d

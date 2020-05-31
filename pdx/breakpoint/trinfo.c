@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)trinfo.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -50,6 +50,7 @@ static char sccsid[] = "@(#)trinfo.c	8.1 (Berkeley) 6/6/93";
 #include "tree.h"
 #include "source.h"
 #include "object.h"
+#include "mappings.h"
 #include "tree/tree.rep"
 #include "process/process.rep"
 #include "process/pxinfo.h"
@@ -60,7 +61,7 @@ static char sccsid[] = "@(#)trinfo.c	8.1 (Berkeley) 6/6/93";
  * MAXTRSIZE is the maximum size variable we allow.
  */
 
-#define MAXTRSIZE 512
+#define MAXTRSIZE       512
 
 /*
  * The tracing structure is a list of information about all the
@@ -68,25 +69,22 @@ static char sccsid[] = "@(#)trinfo.c	8.1 (Berkeley) 6/6/93";
  */
 
 typedef struct trinfo {
-    TRTYPE trtype;
-    ADDRESS traddr;
-    SYM *trblock;
-    NODE *trvar;
-    NODE *trcond;
-    char *trvalue;
+    TRTYPE      trtype;
+    ADDRESS     traddr;
+    SYM         *trblock;
+    NODE        *trvar;
+    NODE        *trcond;
+    char        *trvalue;
     struct trinfo *trnext;
 } TRINFO;
 
-LOCAL TRINFO *trhead;
+LOCAL TRINFO            *trhead;
 
 /*
  * add a variable to be traced
  */
-
-addvar(trtype, node, cond)
-TRTYPE trtype;
-NODE *node;
-NODE *cond;
+void
+addvar(TRTYPE trtype, NODE *node, NODE *cond)
 {
     register TRINFO *tp;
 
@@ -104,11 +102,8 @@ NODE *cond;
 /*
  * remove a variable from the trace list
  */
-
-delvar(trtype, node, cond)
-TRTYPE trtype;
-NODE *node;
-NODE *cond;
+void
+delvar(TRTYPE trtype, NODE *node, NODE *cond)
 {
     register TRINFO *tp, *last;
 
@@ -138,8 +133,8 @@ NODE *cond;
  * Print out any news about variables in the list whose
  * values have changed.
  */
-
-prvarnews()
+void
+prvarnews(void)
 {
     register TRINFO *tp;
     register NODE *p;
@@ -211,8 +206,8 @@ prvarnews()
  * this is because they are the same as in the breakpoint table and
  * are freed by the bpfree routine.
  */
-
-trfree()
+void
+trfree(void)
 {
     register TRINFO *tp, *next;
 

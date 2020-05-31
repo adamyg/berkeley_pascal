@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 4; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,16 +32,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printerror.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 /*
- * Print out an execution time error.
+ *  Print out an execution time error.
  */
-
 #include "defs.h"
-#include <signal.h>
+#include "machine/signal.h"
 #include "machine.h"
 #include "sym.h"
 #include "process/process.h"
@@ -49,39 +49,42 @@ static char sccsid[] = "@(#)printerror.c	8.1 (Berkeley) 6/6/93";
 #include "mappings.h"
 #include "pxerrors.h"
 #include "process/process.rep"
+#include "main.h"                   /*erecover*/
 
-#ifdef tahoe
+#if defined(tahoe) || defined(MSDOS)
 BOOLEAN shouldrestart;
 #endif
 
-printerror()
+void
+printerror(void)
 {
     register PROCESS *p;
 
     p = process;
-    if (p->signo != ESIGNAL && p->signo != SIGINT) {
-	error("signal %d at px pc %d, lc %d", p->signo, p->pc, pc);
+    if (p->signo != ESIGNAL && p->signo != SIGINT)
+    {
+        error("signal %d at px pc %ld", p->signo, pc);
     }
     curline = srcline(pc);
     curfunc = whatblock(pc);
     skimsource(srcfilename(pc));
     if (p->signo == ESIGNAL) {
-	printf("\nerror at ");
-	printwhere(curline, cursource);
+        printf("\nerror at ");
+        printwhere(curline, cursource);
         putchar('\n');
         printlines(curline, curline);
-#ifdef tahoe
-	/*
-	 * this px is no good; it is easier to kill it and start
-	 * a new one than to make it recover...
-	 * make runtime/callproc.c know it too.
-	 */
-	shouldrestart = TRUE;
+#if defined(tahoe)
+        /*
+         * this px is no good; it is easier to kill it and start
+         * a new one than to make it recover...
+         * make runtime/callproc.c know it too.
+         */
+        shouldrestart = TRUE;
 #endif
         erecover();
     } else {
-	printf("\n\ninterrupt at ");
-	printwhere(curline, cursource);
+        printf("\n\ninterrupt at ");
+        printwhere(curline, cursource);
         putchar('\n');
         printlines(curline, curline);
         erecover();

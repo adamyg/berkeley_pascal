@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)config.h	8.1 (Berkeley) 6/6/93
+ *	@(#)config.h	5.4 (Berkeley) 4/16/91
  */
 
     /*
@@ -42,24 +42,26 @@
     /*
      *	the version of translator
      */
-extern char	*version;
+extern const char	*version;
 
     /*
      *	the location of the error strings
      *	and the length of the path to it
      *	(in case of execution of pc0 as a.out)
      */
-extern char	*err_file;
-extern int	err_pathlen;
+extern const char	*err_file;
+extern const int	err_pathlen;
 
     /*
      *	the location of the short explanation
      *	and the length of the path to it
      *	the null at the end is so pix can change it to pi'x' from pi.
      */
-extern char	*how_file;
-extern int	how_pathlen;
-extern char	*px_header;
-extern char	*pi_comp;
-extern char	*px_intrp;
-extern char	*px_debug;
+extern const char	*how_file;
+extern const int	how_pathlen;
+extern const char	*px_header;
+extern const char	*pi_comp;
+extern const char	*px_intrp;
+extern const char	*px_debug;
+
+

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)setbps.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,7 +45,8 @@ static char sccsid[] = "@(#)setbps.c	8.1 (Berkeley) 6/6/93";
 #include "machine.h"
 #include "bp.rep"
 
-setallbps()
+void
+setallbps(void)
 {
 	register BPINFO *p;
 
@@ -57,8 +58,8 @@ setallbps()
 /*
  * undo damage done by "setallbps"
  */
-
-unsetallbps()
+void
+unsetallbps(void)
 {
 	register BPINFO *p;
 

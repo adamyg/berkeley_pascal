@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)TRdata.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -39,7 +39,7 @@ static char sccsid[] = "@(#)TRdata.c	8.1 (Berkeley) 6/6/93";
 #include "0.h"
 #ifdef	PI1
 #ifdef	DEBUG
-char	*trnames[] =
+const char *trnames[] =
 {
 	0,
 	"MINUS",

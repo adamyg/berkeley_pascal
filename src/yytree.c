@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yytree.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree.h"
-#include "tree_ty.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree.h>
+#include <tree_ty.h>
 
 extern	int *spacep;
 

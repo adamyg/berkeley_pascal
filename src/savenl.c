@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)savenl.c	8.2 (Berkeley) 5/24/94";
 #endif /* not lint */
 
@@ -64,57 +64,77 @@ static char sccsid[] = "@(#)savenl.c	8.2 (Berkeley) 5/24/94";
  */
 
 #include "whoami.h"
+
 #ifdef OBJ
-        /*
-	 *	and the rest of the file
-	 */
-#include "0.h"
-#include "objfmt.h"
-
-#undef NIL
-
-/*
- * pdx header files
- */
-
+      /*
+       * pdx header files
+       */
 #include "../pdx/defs.h"
 #include "../pdx/object.h"
 #include "../pdx/object/objsym.rep"
 #include "../pdx/mappings.h"
 #include "../pdx/mappings/filetab.h"
 
-LOCAL char symname[] = "/tmp/obj.symXXXXXX";
-LOCAL char strname[] = "/tmp/obj.strXXXXXX";
-LOCAL char filesname[] = "/tmp/obj.filesXXXXXX";
-LOCAL char linesname[] = "/tmp/obj.linesXXXXXX";
+#include "0.h"
+#include "objfmt.h"
 
-LOCAL FILE *symfp;
-LOCAL FILE *strfp;
-LOCAL FILE *filesfp;
-LOCAL FILE *linesfp;
+struct nlhdr    nlhdr = {0};
 
-LOCAL long nlsize;
+LOCAL char     symname[]    = "/tmp/obj.symXXXXXX";
+LOCAL char     strname[]    = "/tmp/obj.strXXXXXX";
+LOCAL char     filesname[]  = "/tmp/obj.filesXXXXXX";
+LOCAL char     linesname[]  = "/tmp/obj.linesXXXXXX";
 
-extern FILE *fopen();
+#if defined(WIN32)
+LOCAL char     t_symname[_MAX_PATH] = {0};
+LOCAL char     t_strname[_MAX_PATH] = {0};
+LOCAL char     t_filesname[_MAX_PATH] = {0};
+LOCAL char     t_linesname[_MAX_PATH] = {0};
+#endif
 
-LOCAL putblock();
-LOCAL putstring();
+
+LOCAL FILE      *symfp;
+LOCAL FILE      *strfp;
+LOCAL FILE      *filesfp;
+LOCAL FILE      *linesfp;
+
+LOCAL long      nlsize;
+
+LOCAL void      putblock(char *s);
+LOCAL void      putstring(char *s);
 
 /*
  * create temporary files for the namelist info
  */
-
+void
 startnlfile()
 {
+
 	nlsize = 0;
+
+#if defined(WIN32)
+	xmktemp(symname, t_symname, sizeof(t_symname));
+	xmktemp(strname, t_strname, sizeof(t_strname));
+	xmktemp(filesname, t_filesname, sizeof(t_filesname));
+	xmktemp(linesname, t_linesname, sizeof(t_linesname));
+	
+	symfp = fopen(t_symname, "wb");
+	strfp = fopen(t_strname, "wb");
+	filesfp = fopen(t_filesname, "wb");
+	linesfp = fopen(t_linesname, "wb");
+	
+#else
 	(void) mktemp(symname);
 	(void) mktemp(strname);
 	(void) mktemp(filesname);
 	(void) mktemp(linesname);
-	symfp = fopen(symname, "w");
-	strfp = fopen(strname, "w");
-	filesfp = fopen(filesname, "w");
-	linesfp = fopen(linesname, "w");
+	
+	symfp = fopen(symname, "wb");
+	strfp = fopen(strname, "wb");
+	filesfp = fopen(filesname, "wb");
+	linesfp = fopen(linesname, "wb");
+#endif
+	
 	if (symfp==NULL || strfp==NULL || filesfp==NULL || linesfp==NULL) {
 		fprintf(stderr, "can't create /tmp/obj");
 		pexit(NOSTART);
@@ -122,18 +142,19 @@ startnlfile()
 	newfile(filename, 1);
 }
 
+
 /*
  * now copy the temp files back to obj; strings, symbols, file names, and lines
  *
  * There's some efficiency garbage here that uses straight system
  * calls rather than standard I/O library calls.
  */
-
+void
 copynlfile()
 {
 	register int n;
-	int symfd, strfd, filesfd, linesfd;
-	char buff[BUFSIZ];
+	int      symfd, strfd, filesfd, linesfd;
+	char     buff[BUFSIZ];
 
 	(void) fclose((FILE *) symfp);
 	(void) fclose((FILE *) strfp);
@@ -143,18 +164,25 @@ copynlfile()
 		removenlfile();
 		return;
 	}
-	symfd = open(symname, 0);
-	strfd = open(strname, 0);
-	filesfd = open(filesname, 0);
-	linesfd = open(linesname, 0);
+	symfd = open(symname, O_RDONLY | O_BINARY);
+	strfd = open(strname, O_RDONLY | O_BINARY);
+	filesfd = open(filesname, O_RDONLY | O_BINARY);
+	linesfd = open(linesname, O_RDONLY | O_BINARY);
 	if (symfd < 0 || strfd < 0 || filesfd < 0 || linesfd < 0) {
 		fprintf(stderr, "sync error on /tmp/obj");
 		pexit(ERRS);
 	}
-	if (lseek(ofil, (off_t)0, 2) == -1)
-		perror("copynlfile: lseek"), panic("copynlfile");
-	write(ofil, (char *) (&nlhdr), sizeof(nlhdr));
+	(void) lseek(ofil, 0L, 2);
+#ifdef DEBUG
+        if (opt('x'))
+                dumphex(tell(ofil), &nlhdr, sizeof(nlhdr));
+#endif
+	write(ofil, (char *)(&nlhdr), sizeof(nlhdr));
 	n = read(strfd, buff, BUFSIZ - sizeof(nlhdr));
+#ifdef DEBUG
+        if (opt('x'))
+                dumphex(tell(ofil), buff, n);
+#endif
 	write(ofil, buff, n);
 	cat(strfd);
 	cat(symfd);
@@ -163,26 +191,44 @@ copynlfile()
 	removenlfile();
 }
 
+
+void
 cat(fd)
-int fd;
+        int fd;
 {
 	register int n;
 	char buff[BUFSIZ];
 
 	while ((n = read(fd, buff, BUFSIZ)) > 0) {
+#ifdef DEBUG
+                if (opt('x'))
+                        dumphex(tell(ofil), buff, n);
+#endif
 		write(ofil, buff, n);
 	}
 	(void) close(fd);
 }
 
+
+void
 removenlfile()
 {
+#if defined(WIN32)
+	unlink(t_symname);
+	unlink(t_strname);
+	unlink(t_filesname);
+	unlink(t_linesname);
+	
+#else
 	unlink(symname);
 	unlink(strname);
 	unlink(filesname);
 	unlink(linesname);
+#endif	
 }
 
+
+int
 nlhdrsize()
 {
 	int r;
@@ -195,6 +241,7 @@ nlhdrsize()
 	return r;
 }
 
+
 #define isblock(s)	(s->class == FUNC || s->class == PROC)
 #define isbuiltin(s)	((s->nl_block&037) == 0 && isblock(s))
 #define symno(p)	(p==NULL ? 0 : nloff(p))
@@ -204,11 +251,12 @@ struct nls {
 	struct nl *nls_high;
 };
 
-struct nl nl[], *nlp, ntab[], *nlact;
+extern struct nl nl[], *nlp, ntab[], *nlact;
 
 /*VARARGS*/
+void
 savenl(to, rout)
-struct nl *to;
+        struct nl *to;
 {
 	register struct nl *p;
 	register OBJSYM *s;
@@ -258,18 +306,19 @@ struct nl *to;
 	}
 }
 
+
 /*
  * Dump a line number and the current object location counter.
  *
  * To save space the difference from the previous line number and offset
  * (one byte each) is dumped.
  */
+LOCAL int       oline = 0;
+LOCAL int       olc = HEADER_BYTES;
 
-LOCAL int oline = 0;
-LOCAL int olc = HEADER_BYTES;
-
+void
 lineno(line)
-int line;
+        int line;
 {
 	OBJLINE info;
 
@@ -292,10 +341,10 @@ int line;
  *	the string table address of the file name
  *	an index into the current line number information
  */
-
+void
 newfile(s, line)
-char *s;
-int line;
+        char *s;
+        int line;
 {
 	FILETAB ft;
 
@@ -314,12 +363,13 @@ int line;
 	fwrite((char *) (&ft), sizeof(ft), 1, filesfp);
 }
 
+
 /*
  * put out a dummy symbol at the beginning of a block
  */
-
-LOCAL putblock(s)
-char *s;
+LOCAL void
+putblock(s)
+        char *s;
 {
 	static OBJSYM zerosym;
 
@@ -334,9 +384,9 @@ char *s;
 /*
  * put out a string to the string table file
  */
-
-LOCAL putstring(s)
-char *s;
+LOCAL void
+putstring(s)
+        char *s;
 {
 	register char *p;
 
@@ -347,4 +397,5 @@ char *s;
 	nlsize += (p - s + 1);
 	putc('\0', strfp);
 }
-#endif OBJ
+#endif /*OBJ*/
+

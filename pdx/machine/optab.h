@@ -56,8 +56,9 @@ typedef int ARGTYPE;
 #define STRING	10
 
 typedef struct {
-	char *opname;
+	const char *opname;
 	ARGTYPE argtype[MAXNARGS];
 } OPTAB;
 
-OPTAB optab[];
+extern const OPTAB optab[];
+

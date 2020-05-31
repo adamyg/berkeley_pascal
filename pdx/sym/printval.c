@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printval.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,16 +46,26 @@ static char sccsid[] = "@(#)printval.c	8.1 (Berkeley) 6/6/93";
 #include "tree.h"
 #include "process/process.h"
 #include "mappings.h"
+#include "runtime.h"
 #include "sym.rep"
 
-printval(s)
-SYM *s;
+LOCAL void printrecord(SYM *s);
+LOCAL void printfield(SYM *s);
+LOCAL void printarray(SYM *a);
+LOCAL void prtreal(double r);
+
+
+void
+printval(SYM *s)
 {
     SYM *t;
     ADDRESS a;
     int len;
+#ifdef tahoe
     double r;
+#endif
 
+    if (s == NIL) return; /*APY*/
     if (s->class == REF) {
 	s = s->type;
     }
@@ -133,10 +143,8 @@ SYM *s;
  * Print out an ordinal value (either an integer, character, or
  * an enumeration constant).
  */
-
-printordinal(v, t)
-long v;
-SYM *t;
+void
+printordinal(long v, SYM *t)
 {
     SYM *c;
     int iv;
@@ -165,8 +173,8 @@ SYM *t;
  * Print out the value of a record, field by field.
  */
 
-LOCAL printrecord(s)
-SYM *s;
+LOCAL void
+printrecord(SYM *s)
 {
     SYM *t;
 
@@ -187,8 +195,8 @@ SYM *s;
  * This is done because the fields are chained together backwards.
  */
 
-LOCAL printfield(s)
-SYM *s;
+LOCAL void
+printfield(SYM *s)
 {
     STACK *savesp;
 
@@ -216,8 +224,8 @@ SYM *s;
  */
 
 #ifdef tahoe
-LOCAL printarray(a)
-SYM *a;
+LOCAL void
+printarray(SYM *a)
 {
     STACK *savesp, *newsp;
     SYM *eltype;
@@ -279,8 +287,8 @@ SYM *a;
 }
 #else
 
-LOCAL printarray(a)
-SYM *a;
+LOCAL void
+printarray(SYM *a)
 {
     STACK *savesp, *newsp;
     SYM *eltype;
@@ -301,7 +309,7 @@ SYM *a;
     sp = newsp;
     printf(")");
 }
-#endif tahoe
+#endif  /*tahoe*/
 
 /*
  * Print out the value of a real number.
@@ -309,10 +317,9 @@ SYM *a;
  * from "%g" in printf.
  */
 
-LOCAL prtreal(r)
-double r;
+LOCAL void
+prtreal(double r)
 {
-    extern char *index();
     char buf[256];
 
     sprintf(buf, "%g", r);
@@ -323,7 +330,7 @@ double r;
     } else {
 	printf("%s", buf);
     }
-    if (index(buf, '.') == NIL) {
+    if (strchr(buf, '.') == NIL) {
 	printf(".0");
     }
 }

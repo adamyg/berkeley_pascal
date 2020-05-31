@@ -48,5 +48,6 @@ typedef struct bpinfo {
 	struct bpinfo *bpnext;
 } BPINFO;
 
-BPINFO *bphead;
-BPINFO *newbp();
+extern BPINFO 	        *bphead;
+extern BPINFO           *newbp(ADDRESS addr, BPTYPE type, SYM *block, 
+                                NODE *cond, NODE *node, LINENO line);

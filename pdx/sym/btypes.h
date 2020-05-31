@@ -37,7 +37,7 @@
  * basic types
  */
 
-SYM *t_int;
-SYM *t_real;
-SYM *t_char;
-SYM *t_boolean;
+extern SYM *t_int;
+extern SYM *t_real;
+extern SYM *t_char;
+extern SYM *t_boolean;

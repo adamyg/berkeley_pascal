@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,20 +31,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)flvalue.c	8.1 (Berkeley) 6/6/93";
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)flvalue.c	5.2 (Berkeley) 4/16/91";
 #endif /* not lint */
 
 #include "whoami.h"
 #include "0.h"
-#include "tree.h"
 #include "opcode.h"
-#include "objfmt.h"
-#include "tree_ty.h"
 #ifdef PC
 #   include "pc.h"
 #   include <pcc.h>
-#endif PC
+#endif /*PC*/
 #include "tmps.h"
 
     /*
@@ -54,15 +51,15 @@ static char sccsid[] = "@(#)flvalue.c	8.1 (Berkeley) 6/6/93";
      */
 struct nl *
 flvalue( r , formalp )
-    struct tnode *r; 	/* T_VAR */
-    struct nl	*formalp;
-    {
+        struct tnode *r;        /* T_VAR */
+        struct nl *formalp;
+{
 	struct nl	*p;
 	struct nl	*tempnlp;
 	char		*typename;
 #ifdef PC
 	char		extname[ BUFSIZ ];
-#endif PC
+#endif /*PC*/
 
 	if ( r == TR_NIL ) {
 	    return NLNIL;
@@ -87,12 +84,12 @@ flvalue( r , formalp )
 		    }
 #		    ifdef OBJ
 			(void) put(2, PTR_RV | bn << 8+INDX, (int)p->value[NL_OFFS]);
-#		    endif OBJ
+#		    endif /*OBJ*/
 #		    ifdef PC
 			putRV( p -> symbol , bn , p -> value[ NL_OFFS ] , 
 				p -> extra_flags ,
 				p2type( p ) );
-#		    endif PC
+#		    endif /*PC*/
 		    return p;
 	    case FUNC:
 	    case PROC:
@@ -114,7 +111,7 @@ flvalue( r , formalp )
 			(void) put(2 , O_LV | cbn << 8 + INDX ,
 				(int)tempnlp -> value[ NL_OFFS ] );
 			(void) put(2, O_FSAV | bn << 8, (long)p->value[NL_ENTLOC]);
-#		    endif OBJ
+#		    endif /*OBJ*/
 #		    ifdef PC
 			putleaf( PCC_ICON , 0 , 0 ,
 			    PCCM_ADDTYPE( PCCTM_PTR , PCCM_ADDTYPE( PCCTM_FTN , PCCTM_PTR|PCCT_STRTY ) ) ,
@@ -129,11 +126,11 @@ flvalue( r , formalp )
 				tempnlp -> extra_flags , PCCT_STRTY );
 			putop( PCC_CM , PCCT_INT );
 			putop( PCC_CALL , PCCTM_PTR | PCCT_STRTY );
-#		    endif PC
+#		    endif /*PC*/
 		    return p;
 	    default:
 		    error("Variable given, %s required for %s parameter %s" ,
 			    typename , typename , formalp -> symbol );
 		    return NLNIL;
 	}
-    }
+}

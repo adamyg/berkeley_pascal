@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)conv.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -40,8 +41,8 @@ static char sccsid[] = "@(#)conv.c	8.1 (Berkeley) 6/6/93";
 #include "0.h"
 #include "opcode.h"
 #ifdef PC
-#   include	<pcc.h>
-#endif PC
+#include <pcc.h>
+#endif /*PC*/
 #include "tree_ty.h"
 
 #ifndef PC
@@ -51,6 +52,7 @@ static char sccsid[] = "@(#)conv.c	8.1 (Berkeley) 6/6/93";
  * Mostly used for different
  * length integers and "to real" conversions.
  */
+void
 convert(p1, p2)
 	struct nl *p1, *p2;
 {
@@ -81,7 +83,8 @@ convert(p1, p2)
 	}
 }
 #endif 
-#endif PC
+#endif /*PC*/
+
 
 /*
  * Compat tells whether
@@ -90,18 +93,19 @@ convert(p1, p2)
  * context, i.e. value parameters,
  * indicies for 'in', etc.
  */
+int
 compat(p1, p2, t)
 	struct nl *p1, *p2;
 	struct tnode *t;
 {
-	register c1, c2;
+	register int c1, c2;
 
 	c1 = classify(p1);
-	if (c1 == NIL)
-		return (NIL);
+	if (c1 == TNONE)
+		return (0);
 	c2 = classify(p2);
-	if (c2 == NIL)
-		return (NIL);
+	if (c2 == TNONE)
+		return (0);
 	switch (c1) {
 		case TBOOL:
 		case TCHAR:
@@ -124,7 +128,7 @@ compat(p1, p2, t)
 					cerror("This resulted because you used '/' which always returns real rather");
 					cerror("than 'div' which divides integers and returns integers");
 					divflg = TRUE;
-					return (NIL);
+					return (0);
 				}
 			}
 #endif
@@ -134,7 +138,7 @@ compat(p1, p2, t)
 				break;
 			if (scalar(p1) != scalar(p2)) {
 				derror("Type clash: non-identical scalar types");
-				return (NIL);
+				return (0);
 			}
 			return (1);
 		case TSTR:
@@ -142,9 +146,15 @@ compat(p1, p2, t)
 				break;
 			if (width(p1) != width(p2)) {
 				derror("Type clash: unequal length strings");
-				return (NIL);
+				return (0);
 			}
 			return (1);
+#ifdef STRINGS
+		case TSTR2:
+			if (c2 != TSTR && c2 != TSTR2)
+				break;
+			return (1);
+#endif
 		case TNIL:
 			if (c2 != TPTR)
 				break;
@@ -153,23 +163,24 @@ compat(p1, p2, t)
 			if (c1 != c2)
 				break;
 			derror("Type clash: files not allowed in this context");
-			return (NIL);
+			return (0);
 		default:
 			if (c1 != c2)
 				break;
 			if (p1 != p2) {
 				derror("Type clash: non-identical %s types", clnames[c1]);
-				return (NIL);
+				return (0);
 			}
 			if (p1->nl_flags & NFILES) {
 				derror("Type clash: %ss with file components not allowed in this context", clnames[c1]);
-				return (NIL);
+				return (0);
 			}
 			return (1);
 	}
 	derror("Type clash: %s is incompatible with %s", clnames[c1], clnames[c2]);
-	return (NIL);
+	return (0);
 }
+
 
 #ifndef PI0
 #ifndef PC
@@ -180,12 +191,13 @@ compat(p1, p2, t)
  * assignment to a variable
  * of type q.
  */
+void
 rangechk(p, q)
 	struct nl *p, *q;
 {
 	register struct nl *rp;
 #ifdef OBJ
-	register op;
+	register int op;
 	int wq, wrp;
 #endif
 
@@ -196,7 +208,7 @@ rangechk(p, q)
 		return;
 	if (q == NIL)
 		return;
-#	ifdef OBJ
+#ifdef OBJ
 	    /*
 	     * When op is 1 we are checking length
 	     * 4 numbers against length 2 bounds,
@@ -212,25 +224,28 @@ rangechk(p, q)
 	    switch (rp->class) {
 	    case RANGE:
 		    if (rp->range[0] != 0) {
-#    		    ifndef DEBUG
+#ifndef DEBUG
 			    if (wrp <= 2)
 				    (void) put(3, O_RANG2+op, ( short ) rp->range[0],
 						     ( short ) rp->range[1]);
 			    else if (rp != nl+T4INT)
 				    (void) put(3, O_RANG4+op, rp->range[0], rp->range[1] );
-#    		    else
-			    if (!hp21mx) {
+#else
+#if !defined(hp21mx) && (!hp21mx)
+//			    if (!hp21mx) {
 				    if (wrp <= 2)
 					    (void) put(3, O_RANG2+op,( short ) rp->range[0],
 							    ( short ) rp->range[1]);
 				    else if (rp != nl+T4INT)
 					    (void) put(3, O_RANG4+op,rp->range[0],
 							     rp->range[1]);
-			    } else
+#else
+//			    } else
 				    if (rp != nl+T2INT && rp != nl+T4INT)
 					    (void) put(3, O_RANG2+op,( short ) rp->range[0],
 							    ( short ) rp->range[1]);
-#    		    endif
+#endif							    
+#endif
 			break;
 		    }
 		    /*
@@ -246,17 +261,18 @@ rangechk(p, q)
 	    default:
 		    panic("rangechk");
 	    }
-#	endif OBJ
-#	ifdef PC
-		/*
-		 *	pc uses precheck() and postcheck().
-		 */
+#endif /*OBJ*/
+#ifdef PC
+	    /*
+	     *	pc uses precheck() and postcheck().
+	     */
 	    panic("rangechk()");
-#	endif PC
+#endif /*PC*/
 }
 #endif
 #endif
 #endif
+
 
 #ifdef PC
     /*
@@ -265,11 +281,11 @@ rangechk(p, q)
      *	for the beginning of a function call which is completed by postcheck.
      *  (name1 is for a full check; name2 assumes a lower bound of zero)
      */
+void
 precheck( p , name1 , name2 )
-    struct nl	*p;
-    char	*name1 , *name2;
-    {
-
+        struct nl *p;
+        char *name1 , *name2;
+{
 	if ( opt( 't' ) == 0 ) {
 	    return;
 	}
@@ -310,11 +326,12 @@ precheck( p , name1 , name2 )
      *	the second argument is the lower bound of the range,
      *	the third argument is the upper bound of the range.
      */
+void
 postcheck(need, have)
-    struct nl	*need;
-    struct nl	*have;
+    struct nl *need;
+    struct nl *have;
 {
-    struct nl	*p;
+    struct nl *p;
 
     if ( opt( 't' ) == 0 ) {
 	return;
@@ -361,9 +378,11 @@ postcheck(need, have)
 	    break;
     }
 }
-#endif PC
+#endif /*PC*/
+
 
 #ifdef DEBUG
+void
 conv(dub)
 	int *dub;
 {

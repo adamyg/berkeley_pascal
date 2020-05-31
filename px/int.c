@@ -33,9 +33,10 @@
  */
 
 #if !defined(lint) && defined(SCCS)
-static char copyright[] =
+const char px_copyright[] =
 "@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n";
+	The Regents of the University of California.  All rights reserved.\n"\
+"@(#) Copyright (c) 2020, Adam Young.\n";
 #endif /* not lint */
 
 #if !defined(lint) && defined(SCCS)
@@ -79,17 +80,15 @@ static jmp_buf _exitjmp;
 #if defined(PDX_TRAP)
 extern char *end;
 extern loopaddr();
-extern union progcntr pdx_pc;	/* address of interpreter program cntr */
-static void inittrap();
+extern union progcntr pdx_pc; /* address of interpreter program cntr */
+static void inittrap(union disply *dispaddr, struct disp *dpaddr, char *endaddr, union progcntr *pcaddr, char **loopaddrp);
 #endif
 
 int
-px_main(argc, argv)
-	int argc;
-	char **argv;
+px_main(int argc, const char **argv)
 {
-	register char *objprog, *file;
-	const char *name;
+	register char *objprog;
+	const char *file, *name;
 	register long bytesread, bytestoread, block;
 	register FILE *prog;
 	struct pxhdr pxhd;
@@ -279,8 +278,7 @@ complete(int code)
 
 
 void
-px_exit(code)
-	int code;
+px_exit(int code)
 {
 	complete(code);
 	longjmp(_exitjmp, code ? code : 1);
@@ -294,7 +292,7 @@ compare(const char *arg0, const char *name)
 #if defined(unix)
 	const char *p;
 
-	if ((p = strrchr(argv, '/')) != NULL)		/* strip path */
+	if ((p = strrchr(argv, '/')) != NULL) /* strip path */
 		arg0 = p + 1;
 	return (strcmp(arg0, name) == 0 ? 1 : 0);
 
@@ -302,14 +300,14 @@ compare(const char *arg0, const char *name)
 	const char *p1, *p2, *d;
 	int len;
 
-	p1 = strrchr(arg0, '/');			/* strip path */
+	p1 = strrchr(arg0, '/'); /* strip path */
 	p2 = strrchr(arg0, '\\');
 	if (p1 || p2)
 		arg0 = (p2 > p1 ? p2 : p1) + 1;
 	else if (NULL != (p1 = strrchr(arg0, ':')))
 		arg0 = p1 + 1;
 
-	if ((d = strrchr(arg0, '.')) != NULL)		/* strip extension */
+	if ((d = strrchr(arg0, '.')) != NULL) /* strip extension */
 		len = d - arg0;
 	else len = strlen(arg0);
 

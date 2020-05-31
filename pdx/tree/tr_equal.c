@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)tr_equal.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -44,9 +44,8 @@ static char sccsid[] = "@(#)tr_equal.c	8.1 (Berkeley) 6/6/93";
 #include "tree.h"
 #include "tree.rep"
 
-BOOLEAN tr_equal(t1, t2)
-register NODE *t1;
-register NODE *t2;
+BOOLEAN 
+tr_equal(register NODE *t1, register NODE *t2)
 {
 	if (t1 == NIL && t2 == NIL) {
 		return(TRUE);
@@ -95,4 +94,5 @@ register NODE *t2;
 			panic("tr_equal: bad degree for op %d\n", t1->op);
 	}
 	/*NOTREACHED*/
+	return (FALSE);
 }

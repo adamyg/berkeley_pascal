@@ -31,11 +31,12 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)pccaseop.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "whoami.h"
+
 #ifdef PC
     /*
      *	and the rest of the file
@@ -64,11 +65,11 @@ struct ct {
      */
 #if defined(vax) || defined(tahoe)
 #   define	FORCENAME	"r0"
-#endif vax || tahoe
+#endif /*vax || tahoe*/
 #ifdef mc68000
 #   define	FORCENAME	"d0"
 #   define	ADDRTEMP	"a0"
-#endif mc68000
+#endif /*mc68000*/
 
     /*
      *	given a tree for a case statement, generate code for it.
@@ -84,6 +85,7 @@ struct ct {
      *				[2]	list of constant labels
      *				[3]	statement
      */
+void
 pccaseop( tcase )
     WHI_CAS *tcase;
 {
@@ -171,7 +173,7 @@ pccaseop( tcase )
     }
 	/*
 	 */
-    ctab = (struct ct *) malloc( count * sizeof( struct ct ) );
+    ctab = (struct ct *) calloc( count, sizeof( struct ct ) );
     if ( ctab == (struct ct *) 0 ) {
 	error("Ran out of memory (case)");
 	pexit( DIED );
@@ -281,6 +283,7 @@ pccaseop( tcase )
     /*
      *	direct switch
      */
+void
 directsw( ctab , count )
     struct ct	*ctab;
     int		count;
@@ -289,7 +292,7 @@ directsw( ctab , count )
     long	i;
     long	j;
 
-#   ifdef vax
+#ifdef vax
 	if (opt('J')) {
 	    /*
 	     *	We have a table of absolute addresses.
@@ -317,9 +320,9 @@ directsw( ctab , count )
 		    (int) ctab[1].cconst ,
 		    (int) (ctab[ count ].cconst - ctab[1].cconst ));
 	}
-#   endif vax
+#endif /*vax*/
 
-#   ifdef tahoe
+#ifdef tahoe
 	if (opt('J')) {
 	    /*
 	     *	We have a table of absolute addresses.
@@ -348,9 +351,9 @@ directsw( ctab , count )
 		    (int) (ctab[ count ].cconst - ctab[1].cconst ));
 	    putprintf("	.align 1", 0);
 	}
-#   endif tahoe
+#endif /*tahoe*/
 
-#   ifdef mc68000
+#ifdef mc68000
 	/*
 	 *	subl	to make d0 a 0-origin byte offset.
 	 *	cmpl	check against upper limit.
@@ -383,7 +386,7 @@ directsw( ctab , count )
 	    putprintf("	movw	pc@(6,%s:w),%s", 0, FORCENAME, FORCENAME);
 	    putprintf("	jmp	pc@(2,%s:w)", 0, FORCENAME);
 	}
-#   endif mc68000
+#endif /*mc68000*/
     (void) putlab( (char *) fromlabel );
     i = 1;
     j = ctab[1].cconst;
@@ -412,19 +415,20 @@ directsw( ctab , count )
 	}
 	j++;
     }
-#   if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 	    /*
 	     *	execution continues here if value not in range of case.
 	     */
 	if (!opt('J'))
 	    putjbr( (long) ctab[0].clabel );
-#   endif vax || tahoe
+#endif /*vax || tahoe*/
 }
 
     /*
      *	binary switch
      *	special case out default label and start recursion.
      */
+void
 binarysw( ctab , count )
     struct ct	*ctab;
     int		count;
@@ -436,41 +440,41 @@ binarysw( ctab , count )
     /*
      *	recursive log( count ) search.
      */
+void
 bsrecur( deflabel , ctab , count )
     int		deflabel;
     struct ct	*ctab;
     int		count;
 {
-
     if ( count <= 0 ) {
 	putjbr((long) deflabel);
 	return;
     } else if ( count == 1 ) {
-#	if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 	    putprintf("	cmpl	%s,$%d", 0, (int) FORCENAME, (int) ctab[1].cconst);
 	    putprintf("	jeql	%s%d", 0, (int) LABELPREFIX, ctab[1].clabel);
 	    putjbr((long) deflabel);
-#	endif vax || tahoe
-#	ifdef mc68000
+#endif /*vax || tahoe*/
+#ifdef mc68000
 	    putprintf("	cmpl	#%d,%s", 0, ctab[1].cconst, (int) FORCENAME);
 	    putprintf("	jeq	L%d", 0, (int) LABELPREFIX, ctab[1].clabel);
 	    putjbr((long) deflabel);
-#	endif mc68000
+#endif /*mc68000*/
 	return;
     } else {
 	int	half = ( count + 1 ) / 2;
 	int	gtrlabel = (int) getlab();
 
-#	if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 	    putprintf("	cmpl	%s,$%d", 0, (int) FORCENAME, (int) ctab[half].cconst);
 	    putprintf("	jgtr	%s%d", 0, (int) LABELPREFIX, gtrlabel);
 	    putprintf("	jeql	%s%d", 0, (int) LABELPREFIX, ctab[half].clabel);
-#	endif vax || tahoe
-#	ifdef mc68000
+#endif /*vax || tahoe*/
+#ifdef mc68000
 	    putprintf("	cmpl	#%d,%s", 0, (int) ctab[half].cconst, (int) FORCENAME);
 	    putprintf("	jgt	%s%d", 0, (int) LABELPREFIX, gtrlabel);
 	    putprintf("	jeq	%s%d", 0, (int) LABELPREFIX, ctab[half].clabel);
-#	endif mc68000
+#endif /*mc68000*/
 	bsrecur( deflabel , &ctab[0] , half - 1 );
 	(void) putlab((char *) gtrlabel);
 	bsrecur( deflabel , &ctab[ half ] , count - half );
@@ -478,6 +482,8 @@ bsrecur( deflabel , ctab , count )
     }
 }
 
+
+void
 itesw( ctab , count )
     struct ct	*ctab;
     int		count;
@@ -485,18 +491,20 @@ itesw( ctab , count )
     int	i;
 
     for ( i = 1 ; i <= count ; i++ ) {
-#	if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe)
 	    putprintf("	cmpl	%s,$%d", 0, (int) FORCENAME, (int) ctab[i].cconst);
 	    putprintf("	jeql	%s%d", 0, (int) LABELPREFIX, ctab[i].clabel);
-#	endif vax || tahoe
-#	ifdef mc68000
+#endif /*vax || tahoe*/
+#ifdef mc68000
 	    putprintf("	cmpl	#%d,%s", 0, (int) ctab[i].cconst, (int) FORCENAME);
 	    putprintf("	jeq	%s%d", 0, (int) LABELPREFIX, ctab[i].clabel);
-#	endif mc68000
+#endif /*mc68000*/
     }
     putjbr((long) ctab[0].clabel);
     return;
 }
+
+
 int
 casecmp( this , that )
     struct ct 	*this;
@@ -510,4 +518,5 @@ casecmp( this , that )
 	return 0;
     }
 }
-#endif PC
+#endif /*PC*/
+

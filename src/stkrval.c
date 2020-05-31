@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)stkrval.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -43,7 +43,7 @@ static char sccsid[] = "@(#)stkrval.c	8.1 (Berkeley) 6/6/93";
 #include "align.h"
 #ifdef PC
 #   include <pcc.h>
-#endif PC
+#endif /*PC*/
 #include "tree_ty.h"
 
 /*
@@ -92,10 +92,10 @@ stkrval(r, contype , required )
 	case T_NIL:
 #		ifdef OBJ
 		    (void) put(2, O_CON14, 0);
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    putleaf( PCC_ICON , 0 , 0 , PCCT_INT , (char *) 0 );
-#		endif PC
+#		endif /*PC*/
 		return (nl+TNIL);
 
 	case T_FCALL:
@@ -120,14 +120,14 @@ stkrval(r, contype , required )
 				return(stklval(r, NOFLAGS));
 #			ifdef OBJ
 				return (stackRV(p));
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    q = rvalue( r , contype , (int) required );
 			    if (isa(q, "sbci")) {
 				sconv(p2type(q),PCCT_INT);
 			    }
 			    return q;
-#			endif PC
+#			endif /*PC*/
 
 		case WITHPTR:
 		case REF:
@@ -161,7 +161,7 @@ ind:
 					    (void) put(2, O_IND, w);
 					    return(q);
 			    }
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    if ( required == RREQ ) {
 				putop( PCCOM_UNARY PCC_MUL , p2type( q ) );
@@ -170,7 +170,7 @@ ind:
 				}
 			    }
 			    return q;
-#			endif PC
+#			endif /*PC*/
 
 		case CONST:
 			if (r->var_node.qual != TR_NIL) {
@@ -201,10 +201,10 @@ cstrng:
 #				ifdef OBJ
 				    (void) put(2, O_LVCON, lenstr(cp1, w - c));
 				    putstr(cp1, w - c);
-#				endif OBJ
+#				endif /*OBJ*/
 #				ifdef PC
 				    putCONG( cp1 , w , LREQ );
-#				endif PC
+#				endif /*PC*/
 				/*
 				 * Define the string temporarily
 				 * so later people can know its
@@ -218,11 +218,11 @@ cstrng:
 			if (q == nl+T1CHAR) {
 #			    ifdef OBJ
 				(void) put(2, O_CONC4, (int)p->value[0]);
-#			    endif OBJ
+#			    endif /*OBJ*/
 #			    ifdef PC
 				putleaf(PCC_ICON, p -> value[0], 0, PCCT_INT, 
 						(char *) 0);
-#			    endif PC
+#			    endif /*PC*/
 			    return(q);
 			}
 			/*
@@ -231,19 +231,15 @@ cstrng:
 #			ifdef OBJ
 			    switch (width(q)) {
 			    case 8:
-#ifndef DEBUG
-				    (void) put(2, O_CON8, p->real);
-				    return(q);
+#if defined(DEBUG) && (hp21mx)
+				    f.pdouble = p->real;
+				    conv((int *) (&f.pdouble));
+				    l = f.plong[1];
+				    (void) put(2, O_CON4, l);
 #else
-				    if (hp21mx) {
-					    f.pdouble = p->real;
-					    conv((int *) (&f.pdouble));
-					    l = f.plong[1];
-					    (void) put(2, O_CON4, l);
-				    } else
-					    (void) put(2, O_CON8, p->real);
-				    return(q);
+				    (void) put(2, O_CON8, p->real);
 #endif
+				    return(q);
 			    case 4:
 				    (void) put(2, O_CON4, p->range[0]);
 				    return(q);
@@ -256,14 +252,14 @@ cstrng:
 			    default:
 				    panic("stkrval");
 			    }
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    q = rvalue( r , contype , (int) required );
 			    if (isa(q,"sbci")) {
 				sconv(p2type(q),PCCT_INT);
 			    }
 			    return q;
-#			endif PC
+#			endif /*PC*/
 
 		case FUNC:
 		case FFUNC:
@@ -296,13 +292,13 @@ cstrng:
 			    p = funccod(r);
 			    if (width(p) <= 2)
 				    (void) put(1, O_STOI);
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    p = pcfunccod( r );
 			    if (isa(p,"sbci")) {
 				sconv(p2type(p),PCCT_INT);
 			    }
-#			endif PC
+#			endif /*PC*/
 			return (p);
 
 		case TYPE:
@@ -338,12 +334,12 @@ cstrng:
 #		ifdef OBJ
 		    if (width(p) <= 2)
 			    (void) put(1, O_STOI);
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    if (isa(p,"sbci")) {
 			sconv(p2type(p),PCCT_INT);
 		    }
-#		endif PC
+#		endif /*PC*/
 		return (p);
 	case T_CSET:
 		p = rvalue(r, contype , (int) required );
@@ -368,27 +364,27 @@ cstrng:
 		case T_INT:
 			f.pdouble = atof(r->const_node.cptr);
 conint:
-			if (f.pdouble > MAXINT || f.pdouble < MININT) {
+             		if (f.pdouble > XMAXINT || f.pdouble < XMININT) {
 				error("Constant too large for this implementation");
 				return (NLNIL);
 			}
-			l = f.pdouble;
+			l = (long)f.pdouble;
 			if (bytes(l, l) <= 2) {
 #			    ifdef OBJ
 				(void) put(2, O_CON24, (short)l);
-#			    endif OBJ
+#			    endif /*OBJ*/
 #			    ifdef PC
 				putleaf( PCC_ICON , (short) l , 0 , PCCT_INT , 
 						(char *) 0 );
-#			    endif PC
+#			    endif /*PC*/
 				return(nl+T4INT);
 			}
 #			ifdef OBJ
 			    (void) put(2, O_CON4, l); 
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    putleaf( PCC_ICON , (int) l , 0 , PCCT_INT , (char *) 0 );
-#			endif PC
+#			endif /*PC*/
 			return (nl+T4INT);
 	
 		/*
@@ -397,10 +393,10 @@ conint:
 		case T_FINT:
 #		   	ifdef OBJ
 			    (void) put(2, O_CON8, atof(r->const_node.cptr));
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    putCON8( atof( r->const_node.cptr ) );
-#			endif PC
+#			endif /*PC*/
 			return (nl+TDOUBLE);
 	
 		/*
@@ -413,11 +409,11 @@ conint:
 			if (cp[1] == 0) {
 #				ifdef OBJ
 				    (void) put(2, O_CONC4, cp[0]);
-#				endif OBJ
+#				endif /*OBJ*/
 #				ifdef PC
 				    putleaf( PCC_ICON , cp[0] , 0 , PCCT_INT , 
 						(char *) 0 );
-#				endif PC
+#				endif /*PC*/
 				return(nl+T1CHAR);
 			}
 			goto cstrng;
@@ -461,4 +457,4 @@ struct nl
 	}
 	return (q);
 }
-#endif OBJ
+#endif /*OBJ*/

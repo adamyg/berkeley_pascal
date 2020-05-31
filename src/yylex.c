@@ -31,14 +31,16 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yylex.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
+
+#include <assert.h>
 
 /*
  * Scanner
@@ -49,10 +51,10 @@ int	yylacnt;
 
 struct	yytok Yla[YYLASIZ];
 
+void
 unyylex(y)
 	struct yytok *y;
 {
-
 	if (yylacnt == YYLASIZ)
 		panic("unyylex");
 	copy((char *) &Yla[yylacnt], (char *) y, sizeof Yla[0]);
@@ -60,9 +62,10 @@ unyylex(y)
 
 }
 
+int
 yylex()
 {
-	register c;
+	register int c;
 	register int **ip;
 	register char *cp;
 	int f;
@@ -80,6 +83,9 @@ yylex()
 #ifdef PXP
 	yytokcnt++;
 #endif
+
+        assert(sizeof(yylval) >= sizeof(char *));
+#define ICAST(__x)      ((int) __x)
 
 next:
 	/*
@@ -152,7 +158,7 @@ next:
 					yerror("Octal constants are non-standard");
 				}
 				*cp = 0;
-				yylval = copystr(token);
+				yylval = ICAST(copystr(token));
 				return (YBINT);
 			}
 			if (c == '.') {
@@ -160,7 +166,7 @@ next:
 				if (c == '.') {
 					*cp = 0;
 					yysavc = YDOTDOT;
-					yylval = copystr(token);
+					yylval = ICAST(copystr(token));
 					return (YINT);
 				}
 infpnumb:
@@ -198,7 +204,7 @@ infpnumb:
 			}
 			*cp = 0;
 			yysavc = c;
-			yylval = copystr(token);
+			yylval = ICAST(copystr(token));
 			if (f)
 				return (YNUMB);
 			return (YINT);
@@ -234,7 +240,7 @@ infpnumb:
 				*cp++ = 0;
 			}
 			yysavc = c;
-			yylval = copystr(token);
+			yylval = ICAST(copystr(token));
 			return (YSTRING);
 		case '.':
 			c = readch();
@@ -354,6 +360,7 @@ illch:
 	}
 }
 
+void
 yyset()
 {
 
@@ -368,9 +375,9 @@ yyset()
  * input line to at most 72 chars
  * for the u option.
  */
+void
 setuflg()
 {
-
 	if (charbuf[71] != '\n') {
 		charbuf[72] = '\n';
 		charbuf[73] = 0;

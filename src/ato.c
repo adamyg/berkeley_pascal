@@ -31,9 +31,9 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)ato.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#endif  /* not lint */
 
 #include "whoami.h"
 #include "0.h"
@@ -66,8 +66,6 @@ a8tol(cp)
 }
 
 /*
- * Note that the version of atof
- * used in this compiler does not
- * (sadly) complain when floating
- * point numbers are too large.
+ * Note that the version of atof used in this compiler does not
+ * (sadly) complain when floating point numbers are too large.
  */

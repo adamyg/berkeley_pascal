@@ -31,28 +31,25 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)lookup.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
 #include "whoami.h"
 #include "0.h"
 
-struct nl *disptab[077+1];
+struct nl *disptab[077+1] = {0};
 
 /*
- * Lookup is called to
- * find a symbol in the
- * block structure symbol
- * table and returns a pointer to
- * its namelist entry.
+ * Lookup is called to find a symbol in the block structure symbol
+ * table and returns a pointer to its namelist entry.
  */
 struct nl *
 lookup(s)
 	register char *s;
 {
 	register struct nl *p;
-	register struct udinfo;
+//	register struct udinfo;
 
 	if (s == NIL) {
 		nocascade();
@@ -70,19 +67,17 @@ lookup(s)
 	return (p);
 }
 
+
 #ifndef PI0
-int	flagwas;
+int	flagwas = 0;
 #endif
+
 /*
  * Lookup1 is an internal lookup.
- * It is not an error to call lookup1
- * if the symbol is not defined.  Also
- * lookup1 will return FVARs while
- * lookup never will, thus asgnop
- * calls it when it thinks you are
- * assigning to the function variable.
+ * It is not an error to call lookup1 if the symbol is not defined.  Also
+ * lookup1 will return FVARs while lookup never will, thus asgnop
+ * calls it when it thinks you are assigning to the function variable.
  */
-
 struct nl *
 lookup1(s)
 	register char *s;
@@ -132,7 +127,9 @@ lookup1(s)
 	return (NLNIL);
 }
 
+
 #ifndef PI01
+int
 nlfund(sp)
 	char *sp;
 {

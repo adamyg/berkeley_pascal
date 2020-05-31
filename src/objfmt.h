@@ -1,6 +1,8 @@
+#ifndef OBJFMT_H_INCLUDED
+#define OBJFMT_H_INCLUDED
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,8 +14,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -30,245 +32,275 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)objfmt.h	8.2 (Berkeley) 5/24/94
+ *      @(#)objfmt.h    5.4 (Berkeley) 4/16/91
  */
 
 /*
  * The size of the display.
  */
-#define DSPLYSZ 20
+#define DSPLYSZ            20
 
 /*
- *	The structure of the runtime display
+ *      The structure of the runtime display
  */
 #ifdef OBJ
 struct dispsave {
-	char *locvars;		/* pointer to local variables */
-	struct blockmark *stp;	/* pointer to local stack frame */
+        char               *locvars;            /* pointer to local variables */
+        struct blockmark   *stp;                /* pointer to local stack frame */
 };
-	/*
-	 * The following union allows fast access to
-	 * precomputed display entries
-	 */
-union display {
-	struct dispsave frame[DSPLYSZ];
-	char *raw[2*DSPLYSZ];
+        /*
+         * The following union allows fast access to
+         * precomputed display entries
+         */
+extern union display {
+        struct dispsave    frame[DSPLYSZ];
+        char               *raw[2*DSPLYSZ];
 } display;
-#endif OBJ
+#endif /*OBJ*/
+
 #ifdef PC
+#ifdef i80x86
+        /*
+         *      the display is just the saved bp.
+         *      arguments are at positive offsets,
+         *      locals are at negative offsets.
+         *      there are no offsets within the saved display structure.
+         */
+    struct dispsave {
+        char    *savedbp;
+    } display[ DSPLYSZ ];
+
+#   define      AP_OFFSET       (0)
+#   define      FP_OFFSET       (0)
+#endif /*i80x86*/
 #ifdef vax
-	/*
-	 *	the display is made up of saved AP's and FP's.
-	 *	FP's are used to find locals,
-	 *	and AP's are used to find parameters.
-	 *	FP and AP are untyped pointers,
-	 *	but are used throughout as (char *).
-	 *	the display is used by adding AP_OFFSET or FP_OFFSET to the 
-	 *	address of the approriate display entry.
-	 */
+        /*
+         *      the display is made up of saved AP's and FP's.
+         *      FP's are used to find locals,
+         *      and AP's are used to find parameters.
+         *      FP and AP are untyped pointers,
+         *      but are used throughout as (char *).
+         *      the display is used by adding AP_OFFSET or FP_OFFSET to the
+         *      address of the approriate display entry.
+         */
     struct dispsave {
-	char	*savedAP;
-	char	*savedFP;
+        char    *savedAP;
+        char    *savedFP;
     } display[ DSPLYSZ ];
 
-#   define	AP_OFFSET	( 0 )
-#   define	FP_OFFSET	( sizeof (char *) )
-#endif vax
+#   define      AP_OFFSET       (0)
+#   define      FP_OFFSET       (sizeof (char *))
+#endif /*vax*/
 #ifdef mc68000
-	/*
-	 *	the display is just the saved a6.
-	 *	arguments are at positive offsets,
-	 *	locals are at negative offsets.
-	 *	there are no offsets within the saved display structure.
-	 */
+        /*
+         *      the display is just the saved a6.
+         *      arguments are at positive offsets,
+         *      locals are at negative offsets.
+         *      there are no offsets within the saved display structure.
+         */
     struct dispsave {
-	char	*saveda6;
+        char    *saveda6;
     } display[ DSPLYSZ ];
 
-#   define	AP_OFFSET	(0)
-#   define	FP_OFFSET	(0)
-#endif mc68000
+#   define      AP_OFFSET       (0)
+#   define      FP_OFFSET       (0)
+#endif /*mc68000*/
 #ifdef tahoe
-	/*
-	 *	the display is just the saved FP.
-	 *	arguments are at positive offsets,
-	 *	locals are at negative offsets.
-	 *	there are no offsets within the saved display structure.
-	 */
+        /*
+         *      the display is just the saved FP.
+         *      arguments are at positive offsets,
+         *      locals are at negative offsets.
+         *      there are no offsets within the saved display structure.
+         */
     struct dispsave {
-	char	*savedFP;
+        char    *savedFP;
     } display[ DSPLYSZ ];
 
-#   define	AP_OFFSET	0
-#   define	FP_OFFSET	0
-#endif tahoe
-#endif PC
+#   define      AP_OFFSET       0
+#   define      FP_OFFSET       0
+#endif /*tahoe*/
+#endif /*PC*/
 
     /*
-     *	the structure below describes the block mark used by the architecture.
-     *	this is the space used by the machine between the arguments and the
-     *	whatever is used to point to the arguments.
+     *  the structure below describes the block mark used by the architecture.
+     *  this is the space used by the machine between the arguments and the
+     *  whatever is used to point to the arguments.
      */
 #ifdef OBJ
 struct blockmark {
-	char *tos;		/* pointer to top of stack frame */
-	struct iorec *file;	/* pointer to active file name */
-	struct hdr {
-		long framesze;	/* number of bytes of local vars */
-		long nargs;	/* number of bytes of arguments */
-		long tests;	/* TRUE => perform runtime tests */
-		short offset;	/* offset of procedure in source file */
-		char name[1];	/* name of active procedure */
-	} *entry;
-	struct dispsave odisp;	/* previous display value for this level */
-	struct dispsave *dp;	/* pointer to active display entry */
-	char *pc;		/* previous location counter */
-	long lino;		/* previous line number */
+        char *tos;                              /* pointer to top of stack frame */
+        struct iorec *file;                     /* pointer to active file name */
+        struct hdr {
+                long  framesze;                 /* number of bytes of local vars */
+                long  nargs;                    /* number of bytes of arguments */
+                long  tests;                    /* TRUE => perform runtime tests */
+                short offset;                   /* offset of procedure in source file */
+                char  name[1];                  /* name of active procedure */
+        } *entry;
+        struct dispsave odisp;                  /* previous display value for this level */
+        struct dispsave *dp;                    /* pointer to active display entry */
+        char *pc;                               /* previous location counter */
+        long lino;                              /* previous line number */
 };
-#endif OBJ
+#endif /*OBJ*/
 #ifdef PC
+#ifdef i80x86
+        /*
+         *      XXX - there's the saved bp (from the jsr)
+         *      and the saved sp (from the link a6).
+         */
+    struct blockmark {
+        char    *savedbp;
+        char    *savedsp;
+    };
+#endif /*i80x86*/
 #ifdef vax
-	/*
-	 *	since we have the ap pointing to the number of args:
-	 */
+        /*
+         *      since we have the ap pointing to the number of args:
+         */
     struct blockmark {
-        long	nargs;
+        long    nargs;
     };
-#endif vax
+#endif /*vax*/
 #ifdef mc68000
-	/*
-	 *	there's the saved pc (from the jsr)
-	 *	and the saved a6 (from the link a6).
-	 */
+        /*
+         *      there's the saved pc (from the jsr)
+         *      and the saved a6 (from the link a6).
+         */
     struct blockmark {
-	char	*savedpc;
-	char	*saveda6;
+        char    *savedpc;
+        char    *saveda6;
     };
-#endif mc68000
+#endif /*mc68000*/
 #ifdef tahoe
-	/*
-	 *	since we have the fp pointing to its predecessor
-	 */
+        /*
+         *      since we have the fp pointing to its predecessor
+         */
     struct blockmark {
-	long	savedfp;
+        long    savedfp;
     };
-#endif tahoe
-#endif PC
+#endif /*tahoe*/
+#endif /*PC*/
 
     /*
-     *	formal routine structure:
+     *  formal routine structure:
      */
+#if defined(PC) || defined(OBJ)
 struct formalrtn {
-	long		(*fentryaddr)();	/* formal entry point */
-	long		fbn;			/* block number of function */
-	struct dispsave	fdisp[ DSPLYSZ ];	/* saved at first passing */
+        long            (*fentryaddr)();        /* formal entry point */
+        long            fbn;                    /* block number of function */
+        struct dispsave fdisp[ DSPLYSZ ];       /* saved at first passing */
 };
-#ifndef PC
-#ifndef OBJ
-struct formalrtn	frtn;
-#endif
-#endif
+extern struct formalrtn frtn;
 
-#define	FENTRYOFFSET	0
-#define FBNOFFSET	( FENTRYOFFSET + sizeof frtn.fentryaddr )
-#define	FDISPOFFSET	( FBNOFFSET + sizeof frtn.fbn )
+#define FENTRYOFFSET    0
+#define FBNOFFSET       (FENTRYOFFSET + sizeof frtn.fentryaddr)
+#define FDISPOFFSET     (FBNOFFSET + sizeof frtn.fbn)
+#endif
 
 #ifdef OBJ
-	/*
-	 *	the creation time, the size and the magic number of the obj file
-	 */
+        /*
+         *      the creation time, the size and the magic number of the obj file
+         */
     struct pxhdr {
-	    long	maketime;
-	    long	objsize;
-	    long	symtabsize;
-	    short	magicnum;
+            long        maketime;
+            long        objsize;
+            long        symtabsize;
+            short       magicnum;
     };
 
 /*
- *	START defines the beginning of the text space.
- *	This should be the defined external label "start",
- *	however there is no way to access externals from C
- *	whose names do not begin with an "_".
+ *      START defines the beginning of the text space.
+ *      This should be the defined external label "start",
+ *      however there is no way to access externals from C
+ *      whose names do not begin with an "_".
  */
+#ifdef i80x86
+#   define HEADER_BYTES 128                     /* FIXME: the size of px_header */
+#   define START 0x0                            /* beginning of text */
+#endif /*i80x86*/
 #ifdef vax
-#   define HEADER_BYTES	2048			/* the size of px_header */
-#   define START 0x0				/* beginning of text */
-#endif vax
+#   define HEADER_BYTES 2048                    /* the size of px_header */
+#   define START 0x0                            /* beginning of text */
+#endif /*vax*/
 #ifdef tahoe
-#   define HEADER_BYTES	2560			/* the size of px_header */
-#   define START 0x0				/* beginning of text */
-#endif tahoe
+#   define HEADER_BYTES 2560                    /* the size of px_header */
+#   define START 0x0                            /* beginning of text */
+#endif /*tahoe*/
 #ifdef mc68000
-#   define HEADER_BYTES	6092			/* the size of px_header */
-#   define START 0x8000				/* beginning of text */
-#endif mc68000
-#   define INDX 1				/* amt to shift display index */
-#endif OBJ
+#   define HEADER_BYTES 6092                    /* the size of px_header */
+#   define START 0x8000                         /* beginning of text */
+#endif /*mc68000*/
+#   define INDX 1                               /* amt to shift display index */
+#endif /*OBJ*/
 
-	    /*
-	     *	these are because of varying sizes of pointers
-	     */
+            /*
+             *  these are because of varying sizes of pointers
+             */
 #ifdef ADDR16
-#	define PTR_AS O_AS2
-#	define PTR_RV O_RV2
-#	define PTR_IND O_IND2
-#	define PTR_CON O_CON2
-#	define PTR_DUP O_SDUP2
-#	define CON_INT O_CON2
-#	define INT_TYP (nl + T2INT)
-#	define PTR_DCL char *
-#	define TOOMUCH 50000
-#	define SHORTADDR 65536
-#	define MAXSET 65536		/* maximum set size */
-#endif ADDR16
+#       define PTR_AS           O_AS2
+#       define PTR_RV           O_RV2
+#       define PTR_IND          O_IND2
+#       define PTR_CON          O_CON2
+#       define PTR_DUP          O_SDUP2
+#       define CON_INT          O_CON2
+#       define INT_TYP          (nl + T2INT)
+#       define PTR_DCL          char *
+#       define TOOMUCH          50000
+#       define SHORTADDR        65536
+#       define MAXSET           65536           /* maximum set size */
+#endif /*ADDR16*/
 #ifdef ADDR32
-#	define PTR_AS O_AS4
-#	define PTR_RV O_RV4
-#	define PTR_IND O_IND4
-#	define PTR_CON O_CON4
-#	define PTR_DUP O_SDUP4
-#	define CON_INT O_CON24
-#	define INT_TYP (nl + T4INT)
-#	define PTR_DCL unsigned long		/* for pointer variables */
-#	define SHORTADDR 32768			/* maximum short address */
-#	define TOOMUCH 65536			/* maximum variable size */
-#	define MAXSET 65536			/* maximum set size */
-#endif ADDR32
-	/*
-	 * Offsets due to the structure of the runtime stack.
-	 * DPOFF1	is the amount of fixed storage in each block allocated
-	 * 		as local variables for the runtime system.
-	 *		since locals are allocated negative offsets,
-	 *		-DPOFF1 is the last used implicit local offset.
-	 * DPOFF2	is the size of the block mark.
-	 *		since arguments are allocated positive offsets,
-	 *		DPOFF2 is the end of the implicit arguments.
-	 *		for obj, the first argument has the highest offset
-	 *		from the stackpointer.  and the block mark is an
-	 *		implicit last parameter.
-	 *		for pc, the first argument has the lowest offset
-	 *		from the argumentpointer.  and the block mark is an
-	 *		implicit first parameter.
-	 */
-#	ifdef OBJ
-#	    ifdef ADDR32
-#		define MAGICNUM 0403	/* obj magic number */
-#		define DPOFF1		0
-#		define DPOFF2		(sizeof (struct blockmark))
-#		define INPUT_OFF	-8	/* offset of `input' */
-#		define OUTPUT_OFF	-4	/* offset of `output' */
-#	    endif ADDR32
-#	    ifdef ADDR16
-#		define MAGICNUM 0404
-#		define DPOFF1		0
-#		define DPOFF2		(sizeof (struct blockmark))
-#		define INPUT_OFF	-2
-#		define OUTPUT_OFF	-4
-#	    endif ADDR16
-#	endif OBJ
-#	ifdef	PC
-#	    define DPOFF1	( sizeof (struct rtlocals) )
-#	    define DPOFF2	( sizeof (struct blockmark) )
-#	    define INPUT_OFF	0
-#	    define OUTPUT_OFF	0
-#	endif PC
+#       define PTR_AS           O_AS4
+#       define PTR_RV           O_RV4
+#       define PTR_IND          O_IND4
+#       define PTR_CON          O_CON4
+#       define PTR_DUP          O_SDUP4
+#       define CON_INT          O_CON24
+#       define INT_TYP          (nl + T4INT)
+#       define PTR_DCL          unsigned long   /* for pointer variables */
+#       define SHORTADDR        32768           /* maximum short address */
+#       define TOOMUCH          65536           /* maximum variable size */
+#       define MAXSET           65536           /* maximum set size */
+#endif /*ADDR32*/
+        /*
+         * Offsets due to the structure of the runtime stack.
+         * DPOFF1       is the amount of fixed storage in each block allocated
+         *              as local variables for the runtime system.
+         *              since locals are allocated negative offsets,
+         *              -DPOFF1 is the last used implicit local offset.
+         * DPOFF2       is the size of the block mark.
+         *              since arguments are allocated positive offsets,
+         *              DPOFF2 is the end of the implicit arguments.
+         *              for obj, the first argument has the highest offset
+         *              from the stackpointer.  and the block mark is an
+         *              implicit last parameter.
+         *              for pc, the first argument has the lowest offset
+         *              from the argumentpointer.  and the block mark is an
+         *              implicit first parameter.
+         */
+#       ifdef OBJ
+#           ifdef ADDR32
+#               define MAGICNUM         0403    /* obj magic number */
+#               define DPOFF1           0
+#               define DPOFF2           (sizeof (struct blockmark))
+#               define INPUT_OFF        -8      /* offset of `input' */
+#               define OUTPUT_OFF       -4      /* offset of `output' */
+#           endif /*ADDR32*/
+#           ifdef ADDR16
+#               define MAGICNUM         0404
+#               define DPOFF1           0
+#               define DPOFF2           (sizeof (struct blockmark))
+#               define INPUT_OFF        -2
+#               define OUTPUT_OFF       -4
+#           endif /*ADDR16*/
+#       endif /*OBJ*/
+#       ifdef PC
+#           define DPOFF1               (sizeof (struct rtlocals))
+#           define DPOFF2               (sizeof (struct blockmark))
+#           define INPUT_OFF            0
+#           define OUTPUT_OFF           0
+#       endif /*PC*/
+
+#endif /*OBJFMT_H_INCLUDED*/
+

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)tfree.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -44,8 +44,8 @@ static char sccsid[] = "@(#)tfree.c	8.1 (Berkeley) 6/6/93";
 #include "sym.h"
 #include "tree.rep"
 
-tfree(p)
-register NODE *p;
+void
+tfree(register NODE *p)
 {
 	if (p == NIL) {
 		return;

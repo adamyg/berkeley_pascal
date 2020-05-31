@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)tracestop.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,12 +51,18 @@ static char sccsid[] = "@(#)tracestop.c	8.1 (Berkeley) 6/6/93";
 #include "tree.rep"
 
 LOCAL SYM *tcontainer();
+LOCAL void traceall(int cmd, NODE *where, NODE *cond);
+LOCAL void traceinst(int cmd, NODE *exp, NODE *where, NODE *cond);
+LOCAL void traceat(int cmd, NODE *exp, NODE *where, NODE *cond);
+LOCAL void tracedata(int cmd, NODE *exp, NODE *where, NODE *cond);
+LOCAL void stopvar(int cmd, NODE *exp, NODE *where, NODE *cond);
+LOCAL void stopinst(int cmd, NODE *where, NODE *cond);
 
 /*
  * Process a trace/untrace command, basically checking arguments
  * and translate to a call of the appropriate routine.
  */
-
+void
 trace(cmd, exp, where, cond)
 int cmd;
 NODE *exp;
@@ -91,7 +97,8 @@ NODE *cond;
  * he/she wants to see tracing after continuing execution.
  */
 
-LOCAL traceall(cmd, where, cond)
+LOCAL void
+traceall(cmd, where, cond)
 int cmd;
 NODE *where;
 NODE *cond;
@@ -145,7 +152,8 @@ NODE *cond;
  * Set up the appropriate breakpoint for tracing an instruction.
  */
 
-LOCAL traceinst(cmd, exp, where, cond)
+LOCAL void
+traceinst(cmd, exp, where, cond)
 int cmd;
 NODE *exp;
 NODE *where;
@@ -186,7 +194,8 @@ NODE *cond;
  * set a breakpoint to print an expression at a given line or address
  */
 
-LOCAL traceat(cmd, exp, where, cond)
+LOCAL void
+traceat(cmd, exp, where, cond)
 int cmd;
 NODE *exp;
 NODE *where;
@@ -223,7 +232,8 @@ NODE *cond;
  * we want to be on regardless of whether they say "cont" or "run".
  */
 
-LOCAL tracedata(cmd, exp, block, cond)
+LOCAL void
+tracedata(cmd, exp, block, cond)
 int cmd;
 NODE *exp;
 NODE *block;
@@ -265,7 +275,7 @@ NODE *cond;
 /*
  * Setting and unsetting of stops.
  */
-
+void
 stop(cmd, exp, where, cond)
 int cmd;
 NODE *exp;
@@ -304,7 +314,8 @@ NODE *cond;
 	}
 }
 
-LOCAL stopinst(cmd, where, cond)
+LOCAL void
+stopinst(cmd, where, cond)
 int cmd;
 NODE *where;
 NODE *cond;
@@ -333,7 +344,8 @@ NODE *cond;
  * the variable list.
  */
 
-LOCAL stopvar(cmd, exp, where, cond)
+LOCAL void
+stopvar(cmd, exp, where, cond)
 int cmd;
 NODE *exp;
 NODE *where;

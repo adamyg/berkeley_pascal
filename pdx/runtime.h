@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -40,18 +41,46 @@
  * even compiler dependent.
  */
 
-BOOLEAN isactive();		/* tell if a symbol is currently active */
-ADDRESS entry_addr();		/* entry address of current proc/func */
-ADDRESS entry_point();		/* point where environment is setup */
-ADDRESS return_addr();		/* return address of current proc/func */
-ADDRESS caller_addr();		/* entry of caller of current proc/func */
-int where();			/* print out currently active procedures */
-int dump();			/* dump the world */
-int callproc();			/* call a procedure */
-int procreturn();		/* return from a "call"-ed procedure */
-ADDRESS address();		/* address of a variable */
-ADDRESS firstline();		/* address of first line in a procedure */
-int findbeginning();		/* find address of beginning of a procedure */
-int runtofirst();		/* step to first line in current procedure */
-ADDRESS lastaddr();		/* address of last line in program */
-ADDRESS fparamaddr();		/* entry address of a function parameter */
+/*isactive.c*/
+
+				/* tell if a symbol is currently active */
+extern BOOLEAN		isactive(SYM *f);
+
+
+/*entry.c*/
+
+				/* return address of current proc/func */
+extern ADDRESS		return_addr(void);
+
+				/* entry of caller of current proc/func */
+extern ADDRESS		caller_addr(void);
+
+				/* entry address of a function parameter */
+extern ADDRESS		fparamaddr(ADDRESS a);
+
+/*x.c*/
+				/* print out currently active procedures */
+extern void		where(void);
+
+				/* dump the world */
+extern void		dump(void);
+
+extern void		callproc(NODE *procnode, NODE *arglist);
+
+extern void		procreturn(SYM *f);
+
+				/* address of a variable */
+extern ADDRESS		address(register SYM *s, FRAME *frame);
+
+				/* address of first line in a procedure */
+extern ADDRESS		firstline(SYM *f);
+
+				/* find address of beginning of a procedure */
+extern void		findbeginning(SYM *f);
+
+				/* step to first line in current procedure */
+extern void		runtofirst(void);
+
+				/* address of last line in program */
+extern ADDRESS		lastaddr(void);
+

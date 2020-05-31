@@ -32,6 +32,8 @@
  *
  *	@(#)pxinfo.h	8.1 (Berkeley) 6/6/93
  */
+#ifndef PXINFO_H_INCLUDED
+#define PXINFO_H_INCLUDED
 
 /*
  * This is the information we get after the initial trap that px does.
@@ -53,8 +55,8 @@ typedef struct {
 	short trp_savemask;
 	short trp_removed;
 	int trp_oldfp;
-	ADDRESS *disp;
-	ADDRESS *dp;
+	ADDRESS disp;
+	ADDRESS dp;
 	ADDRESS objstart;
 	ADDRESS pcaddr;
 	ADDRESS loopaddr;
@@ -62,20 +64,23 @@ typedef struct {
 #else
 typedef struct {
 	int nargs;
-	ADDRESS *disp;
-	ADDRESS *dp;
+	ADDRESS disp;
+	ADDRESS dp;
 	ADDRESS objstart;
 	ADDRESS pcaddr;
 	ADDRESS loopaddr;
 } TRAPARGS;
 #endif
 
-ADDRESS *DISPLAY;
-ADDRESS *DP;
-ADDRESS ENDOFF;
-ADDRESS PCADDR;
-ADDRESS LOOPADDR;
+extern ADDRESS DISPLAY;
+extern ADDRESS DP;
+extern ADDRESS ENDOFF;
+extern ADDRESS PCADDR;
+extern ADDRESS LOOPADDR;
 #ifdef tahoe
-ADDRESS RETLOC;
-ADDRESS INTFP;
+extern ADDRESS RETLOC;
+extern ADDRESS INTFP;
 #endif
+
+#endif /*PXINFO_H_INCLUDED*/
+

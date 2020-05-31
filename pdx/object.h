@@ -40,18 +40,27 @@
  * it contains the routines that read symbol and line number information.
  */
 
-char *objname;			/* name of object file */
-int objsize;			/* size of object code */
+extern const char *objname;     /* name of object file */
+extern int objsize;             /* size of object code */
 
-struct {
-	unsigned int stringsize;	/* size of the dumped string table */
-	unsigned int nsyms;		/* number of symbols */
-	unsigned int nfiles;		/* number of files */
-	unsigned int nlines;		/* number of lines */
-} nlhdr;
+struct nlhdr {
+    unsigned int stringsize;    /* size of the dumped string table */
+    unsigned int nsyms;         /* number of symbols */
+    unsigned int nfiles;        /* number of files */
+    unsigned int nlines;        /* number of lines */
+};
+extern struct nlhdr nlhdr;
 
-char *stringtab;	/* string table */
-char *dotpfile;		/* name of compiled file */
+extern char *stringtab;         /* string table */
+extern char *dotpfile;          /* name of compiled file */
 
-int readobj();		/* read in the object file */
-int objfree();		/* release storage for object file information */
+                                /* read in the object file */
+extern FILE *           openobj(const char *file);
+extern void             readobj(FILE *fp);
+extern void             readsyms(FILE *fp);
+extern int              backpatch(void);
+extern void             chkpatch(SYM **p);
+
+                                /* release storage for object file information */
+extern void             objfree(void);
+

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)optab.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)optab.c	8.1 (Berkeley) 6/6/93";
 
 #include "optab.h"
 
-OPTAB optab[] ={
+const OPTAB optab[] ={
 	{ "badop0" },
 	{ "nodump", PSUBOP, LWORD, HWORD, STRING },
 #ifdef ADDR32
@@ -203,9 +203,9 @@ OPTAB optab[] ={
 	{ "*conc" },
 	{ "*conc4" },
 	{ "*abort" },
-	{ "pxpbuf", HWORD },
+	{ "*bpt" }, /*breakpoint*/
+	{ "pxpbuf", LWORD, LWORD /*CASE4,CASE4*/ },
 	{ "count", HWORD },
-	{ "badop159" },
 	{ "case1op", HWORD },
 	{ "case2op", HWORD },
 	{ "case4op", HWORD },

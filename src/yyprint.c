@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yyprint.c	8.2 (Berkeley) 5/27/94";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
 
 char	*tokname();
 
@@ -63,7 +63,6 @@ charname(ch , which )
 	return (tokname(&Ych , which ));
 }
 
-char strname[] = "'x'\0'x'\0'x'\0'x'";
 /*
  * Printing representation of a token
  * 'which' as above.
@@ -73,10 +72,10 @@ tokname(tp , which )
 	register struct yytok *tp;
 	int	 	      which;
 {
-	char *cp;
-	static char buf[16];
+	static char buf[16+1];
+
 	register struct kwtab *kp;
-	char	*cp2;
+	char *cp, *cp2;
 
 	cp2 = "";
 	switch (tp->Yychar) {
@@ -112,7 +111,7 @@ tokname(tp , which )
 			break;
 		default:
 			if (tp->Yychar < 256) {
-				bcopy("'x'\0'x'\0'x'\0'x'", buf, 16);
+				memcpy(buf, "'x'\0'x'\0'x'\0'x'", sizeof(buf));
 				cp = buf;
 				/*
 				 * for four times reentrant code!

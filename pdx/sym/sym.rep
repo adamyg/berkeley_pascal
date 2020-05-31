@@ -38,7 +38,7 @@
  */
 
 struct sym {
-	char *symbol;
+	const char *symbol;
 	char class;
 	char blkno;
 	SYM *type;

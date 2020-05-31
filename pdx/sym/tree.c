@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)tree.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,34 +51,33 @@ static char sccsid[] = "@(#)tree.c	8.1 (Berkeley) 6/6/93";
 #include "sym.rep"
 #include "tree/tree.rep"
 
-typedef char *ARGLIST;
+LOCAL void chkfield(NODE *r, SYM *f);
+LOCAL SYM *mkstring(char *str);
+LOCAL SYM *namenode(NODE *p, SYM *s);
+LOCAL void convert(NODE **tp, SYM *typeto, OP op);
+LOCAL void chkclass(NODE *p, int class);
 
-#define nextarg(arglist, type)  ((type *) (arglist += sizeof(type)))[-1]
-
-LOCAL SYM *mkstring();
-LOCAL SYM *namenode();
 
 /*
  * Determine the type of a parse tree.  While we're at, check
  * the parse tree out.
  */
 
-SYM *treetype(p, ap)
-register NODE *p;
-register ARGLIST ap;
+SYM *
+treetype(register NODE *p, va_list ap)
 {
     switch(p->op) {
 	case O_NAME: {
 	    SYM *s;
 
-	    s = nextarg(ap, SYM *);
+	    s = va_arg(ap, SYM *);
 	    s = which(s);
 	    return namenode(p, s);
 	    /* NOTREACHED */
 	}
 
 	case O_WHICH:
-	    p->nameval = nextarg(ap, SYM *);
+	    p->nameval = va_arg(ap, SYM *);
 	    p->nameval = which(p->nameval);
 	    return NIL;
 
@@ -103,7 +102,7 @@ register ARGLIST ap;
 	}
 
 	case O_INDIR:
-	    p->left = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
 	    chkclass(p->left, PTR);
 	    return rtype(p->left->nodetype)->type;
 
@@ -137,8 +136,8 @@ register ARGLIST ap;
 	case O_CALL: {
 	    SYM *s;
 
-	    p->left = nextarg(ap, NODE *);
-	    p->right = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
+	    p->right = va_arg(ap, NODE *);
 	    s = p->left->nodetype;
 	    if (isblock(s) && isbuiltin(s)) {
 		p->op = (OP) s->symvalue.token.tokval;
@@ -155,7 +154,7 @@ register ARGLIST ap;
 	case O_NEG: {
 	    SYM *s;
 
-	    p->left = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
 	    s = p->left->nodetype;
 	    if (!compatible(s, t_int)) {
 		if (!compatible(s, t_real)) {
@@ -180,8 +179,8 @@ register ARGLIST ap;
 	    BOOLEAN t1real, t2real;
 	    SYM *t1, *t2;
 
-	    p->left = nextarg(ap, NODE *);
-	    p->right = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
+	    p->right = va_arg(ap, NODE *);
 	    t1 = rtype(p->left->nodetype);
 	    t2 = rtype(p->right->nodetype);
 	    t1real = (t1 == t_real);
@@ -214,24 +213,24 @@ register ARGLIST ap;
 	}
 
 	case O_DIVF:
-	    p->left = nextarg(ap, NODE *);
-	    p->right = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
+	    p->right = va_arg(ap, NODE *);
 	    convert(&p->left, t_real, O_ITOF);
 	    convert(&p->right, t_real, O_ITOF);
 	    return t_real;
 
 	case O_DIV:
 	case O_MOD:
-	    p->left = nextarg(ap, NODE *);
-	    p->right = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
+	    p->right = va_arg(ap, NODE *);
 	    convert(&p->left, t_int, O_NOP);
 	    convert(&p->right, t_int, O_NOP);
 	    return t_int;
 
 	case O_AND:
 	case O_OR:
-	    p->left = nextarg(ap, NODE *);
-	    p->right = nextarg(ap, NODE *);
+	    p->left = va_arg(ap, NODE *);
+	    p->right = va_arg(ap, NODE *);
 	    chkboolean(p->left);
 	    chkboolean(p->right);
 	    return t_boolean;
@@ -247,9 +246,8 @@ register ARGLIST ap;
  * the dot routine.
  */
 
-LOCAL SYM *namenode(p, s)
-NODE *p;
-SYM *s;
+LOCAL SYM *
+namenode(NODE *p, SYM *s)
 {
     NODE *np;
 
@@ -275,12 +273,10 @@ SYM *s;
  * Note the tree is call by address, hence the #define below.
  */
 
-LOCAL convert(tp, typeto, op)
-NODE **tp;
-SYM *typeto;
-OP op;
+LOCAL void
+convert(NODE **tp, SYM *typeto, OP op)
 {
-#define tree    (*tp)
+#define tree (*tp)
 
     SYM *s;
 
@@ -289,7 +285,7 @@ OP op;
     if (typeto == t_real && compatible(s, t_int)) {
 	tree = build(op, tree);
     } else if (!compatible(s, typeto)) {
-	trerror("%t is improper type");
+	trerror("%t is improper type", tree);
     } else if (op != O_NOP && s != typeto) {
 	tree = build(op, tree);
     }
@@ -306,9 +302,8 @@ OP op;
  * active block but not within the static scope of the current procedure.
  */
 
-NODE *dot(record, field)
-NODE *record;
-SYM *field;
+NODE *
+dot(NODE *record, SYM *field)
 {
     register NODE *p;
     register SYM *s;
@@ -343,8 +338,8 @@ SYM *field;
  * error checking.
  */
 
-NODE *subscript(a, slist)
-NODE *a, *slist;
+NODE *
+subscript(NODE *a, NODE *slist)
 {
     register SYM *t;
     register NODE *p;
@@ -384,9 +379,8 @@ NODE *a, *slist;
  * Evaluate a subscript (possibly more than one index).
  */
 
-long evalindex(arraytype, subs)
-SYM *arraytype;
-NODE *subs;
+long
+evalindex(SYM *arraytype, NODE *subs)
 {
     long lb, ub, index, i;
     SYM *t, *indextype;
@@ -422,9 +416,8 @@ NODE *subs;
  * Check that a record.field usage is proper.
  */
 
-LOCAL chkfield(r, f)
-NODE *r;
-SYM *f;
+LOCAL void
+chkfield(NODE *r, SYM *f)
 {
     register SYM *s;
 
@@ -446,12 +439,11 @@ SYM *f;
 /*
  * Check to see if a tree is boolean-valued, if not it's an error.
  */
-
-chkboolean(p)
-register NODE *p;
+void
+chkboolean(register NODE *p)
 {
     if (p->nodetype != t_boolean) {
-	trerror("found %t, expected boolean expression");
+	trerror("found %t, expected boolean expression", p);
     }
 }
 
@@ -459,9 +451,8 @@ register NODE *p;
  * Check to make sure the given tree has a type of the given class.
  */
 
-LOCAL chkclass(p, class)
-NODE *p;
-int class;
+LOCAL void
+chkclass(NODE *p, int class)
 {
     SYM tmpsym;
 
@@ -476,8 +467,8 @@ int class;
  * scan the string for '' that collapse to ', and chop off the ends.
  */
 
-LOCAL SYM *mkstring(str)
-char *str;
+LOCAL SYM *
+mkstring(char *str)
 {
     register char *p, *q;
     SYM *s, *t;
@@ -513,9 +504,8 @@ char *str;
 /*
  * Free up the space allocated for a string type.
  */
-
-unmkstring(s)
-SYM *s;
+void
+unmkstring(SYM *s)
 {
     dispose(s->chain);
 }

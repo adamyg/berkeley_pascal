@@ -31,24 +31,23 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yycopy.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include	"whoami.h"
-#include	"0.h"
-#include 	"tree_ty.h"		/* must be included for yy.h */
-#include	"yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>    /* must be included for yy.h */
+#include <yy.h>
 
-OYcopy ()
-    {
+void
+OYcopy()
+{
 	register int	*r0 = ((int *) & OY);
 	register int	*r1 = ((int *) & Y);
 	register int	r2 = ( sizeof ( struct yytok ) ) / ( sizeof ( int ) );
 
-	do
-	    {
+	do {
 		* r0 ++ = * r1 ++ ;
-	    }
-	    while ( -- r2 > 0 );
-    }
+	} while ( -- r2 > 0 );
+}

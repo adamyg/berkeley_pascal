@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)misc.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -47,19 +48,17 @@ static char sccsid[] = "@(#)misc.c	8.1 (Berkeley) 6/6/93";
 #include "mappings.h"
 #include "sym.h"
 #include "symtab.h"
+#include "runtime.h"
 
-extern char *getenv();
-
-#define DEF_EDITOR	"vi"
+#define DEF_EDITOR      "vi"
 
 /*
  * Invoke an editor on the given file.  Which editor to use might change
  * installation to installation.  For now, we use "vi".  In any event,
  * the environment variable "EDITOR" overrides any default.
  */
-
-edit(filename)
-char *filename;
+void
+edit(const char *filename)
 {
 	char *ed;
 	FILE *fp;
@@ -90,33 +89,38 @@ char *filename;
 	}
 }
 
+
 /*
  * Send some nasty mail to the current pdx support person.
  */
-
-gripe()
+void
+gripe(void)
 {
-	char *maintainer = "4bsd-bugs@Berkeley.EDU";
+#if defined(unix)
+	static const char *maintainer = "4bsd-bugs@Berkeley.EDU";
 
 	puts("Type control-D to end your message.  Be sure to include");
 	puts("your name and the name of the file you are debugging.");
 	putchar('\n');
 	call("Mail", stdin, stdout, maintainer, NIL);
 	puts("Thank you.");
+#endif
 }
+
 
 /*
  * Give the user some help.
  */
-
-help()
+void
+help(void)
 {
 	puts("pdx command subset summary:");
 	putchar('\n');
 	puts("run                    - begin execution of the program");
+	puts("restart                - restart the session");
 	puts("cont                   - continue execution");
-	puts("step                   - single step one line");
-	puts("next                   - step to next line (skip over calls)");
+	puts("step [count]           - single step one or more lines");
+	puts("next [count]           - step to next line (skip over calls)");
 	puts("trace <line#>          - trace execution of the line");
 	puts("trace <proc>           - trace calls to the procedure");
 	puts("trace <var>            - trace changes to the variable");
@@ -125,26 +129,28 @@ help()
 	puts("stop in <proc>         - suspend execution when <proc> is called");
 	puts("status                 - print trace/stop's in effect");
 	puts("delete <number>        - remove trace or stop of given number");
-	puts("call <proc>            - call the procedure");
+//TODO	puts("call <proc>            - call the procedure");
 	puts("where                  - print currently active procedures");
 	puts("print <exp>            - print the value of the expression");
 	puts("whatis <name>          - print the declaration of the name");
 	puts("list <line>, <line>    - list source lines");
+#if defined(unix)
 	puts("edit <proc>            - edit file containing <proc>");
 	puts("gripe                  - send mail to the person in charge of pdx");
+#endif
 	puts("quit                   - exit pdx");
 }
+
 
 /*
  * Divert output to the given file name.
  * Cannot redirect to an existing file.
  */
+LOCAL int       so_fd;
+LOCAL BOOLEAN   notstdout;
 
-LOCAL int so_fd;
-LOCAL BOOLEAN notstdout;
-
-setout(filename)
-char *filename;
+void
+setout(const char *filename)
 {
 	FILE *fp;
 
@@ -154,7 +160,7 @@ char *filename;
 	} else {
 		so_fd = dup(1);
 		close(1);
-		if (creat(filename, 0666) == NIL) {
+		if (-1 == creat(filename, 0666)) {
 			unsetout();
 			error("can't create %s", filename);
 		}
@@ -162,11 +168,12 @@ char *filename;
 	}
 }
 
+
 /*
  * Revert output to standard output.
  */
-
-unsetout()
+void
+unsetout(void)
 {
 	fflush(stdout);
 	close(1);
@@ -177,7 +184,9 @@ unsetout()
 	notstdout = FALSE;
 }
 
-BOOLEAN isredirected()
+
+BOOLEAN
+isredirected(void)
 {
 	return(notstdout);
 }

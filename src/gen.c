@@ -1,6 +1,7 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,9 +32,9 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)gen.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)gen.c	5.2 (Berkeley) 4/16/91";
+#endif  /* not lint */
 
 #include "whoami.h"
 #ifdef OBJ
@@ -41,15 +42,12 @@ static char sccsid[] = "@(#)gen.c	8.1 (Berkeley) 6/6/93";
      *	and the rest of the file
      */
 #include "0.h"
-#include "tree.h"
 #include "opcode.h"
-#include "objfmt.h"
+
 
 /*
- * This array tells the type
- * returned by an arithmetic
- * operation.  It is indexed
- * by the logarithm of the
+ * This array tells the type returned by an arithmetic
+ * operation.  It is indexed by the logarithm of the
  * lengths base 2.
  */
 #ifndef	DEBUG
@@ -75,6 +73,7 @@ char	arret1[] = {
 char	*arret = arret0;
 #endif
 
+
 /*
  * These array of arithmetic and set
  * operators are indexed by the
@@ -82,31 +81,28 @@ char	*arret = arret0;
  * on their order.  They thus take
  * on the flavor of magic.
  */
-int	arop[] = {
+int  arop[] = {
 	0, O_NEG2, O_MOD2, O_DIV2, O_DVD2, O_MUL2, O_ADD2, O_SUB2,
 	O_REL2, O_REL2, O_REL2, O_REL2, O_REL2, O_REL2
 };
-int	setop[] = {
+int  setop[] = {
 	O_MULT, O_ADDT, O_SUBT,
 	O_RELT, O_RELT, O_RELT, O_RELT, O_RELT, O_RELT,
 };
 
 /*
- * The following array is
- * used when operating on
- * two reals since they are
- * shoved off in a corner in
- * the interpreter table.
+ * The following array is used when operating on two reals since they are
+ * shoved off in a corner in the interpreter table.
  */
-int	ar8op[] = {
+int  ar8op[] = {
 	O_DVD8, O_MUL8, O_ADD8, O_SUB8,
 	O_REL8, O_REL8, O_REL8, O_REL8, O_REL8, O_REL8,
 };
 
+
 /*
- * The following arrays, which are linearizations
- * of two dimensional arrays, are the offsets for
- * arithmetic, relational and assignment operations
+ * The following arrays, which are linearizations of two dimensional arrays, 
+ * are the offsets for arithmetic, relational and assignment operations
  * indexed by the logarithms of the argument widths.
  */
 #ifndef	DEBUG
@@ -178,9 +174,9 @@ char *asgntab = asgntb0;
 #endif
 
 #ifdef DEBUG
+void
 genmx()
 {
-
 	arret = arret1;
 	artab = artab1;
 	reltab = reltab1;
@@ -189,15 +185,14 @@ genmx()
 #endif
 
 /*
- * Gen generates code for assignments,
- * and arithmetic and string operations
- * and comparisons.
+ * Gen generates code for assignments, and arithmetic and string operations
+ * and comparisons. 
  */
 struct nl *
 gen(p, o, w1, w2)
 	int p, o, w1, w2;
 {
-	register i, j;
+	register int i, j;
 	int op;
 
 	switch (p) {
@@ -207,12 +202,11 @@ gen(p, o, w1, w2)
 		case NIL:
 			i = j = -1;
 			/*
-			 * Take the log2 of the widths
-			 * and linearize them for indexing.
+			 * Take the log2 of the widths and linearize them for indexing.
 			 * width for indexing.
 			 */
-#ifdef DEBUG
-			if (hp21mx) {
+#if defined(DEBUG) && (hp21mx)
+                        {
 				if (w1 == 4)
 					w1 = 8;
 				if (w2 == 4)
@@ -236,6 +230,7 @@ gen(p, o, w1, w2)
 			return (op == O_DVD2 && !divchk ? nl+TDOUBLE : nl+arret[i]);
 		case TREC:
 		case TSTR:
+//		case TSTR2:
 			(void) put(2, O_RELG | (o - T_EQ) << 8+INDX, w1);
 			return (nl+TBOOL);
 		case TSET:
@@ -246,4 +241,4 @@ gen(p, o, w1, w2)
 			return (o >= T_EQ ? nl+TBOOL : nl+TSET);
 	}
 }
-#endif OBJ
+#endif /*OBJ*/

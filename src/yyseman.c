@@ -35,10 +35,10 @@
 static char sccsid[] = "@(#)yyseman.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
 
 /*
  * Assign semantics to a generated token
@@ -53,7 +53,7 @@ static char sccsid[] = "@(#)yyseman.c	8.1 (Berkeley) 6/6/93";
  * to do repair, e.g. by giving generated integers
  * the value 1, etc.
  */
-nullsem(ch)
+int nullsem(ch)
 	int ch;
 {
 
@@ -63,7 +63,7 @@ nullsem(ch)
 		case YNUMB:
 		case YBINT:
 		case YSTRING:
-			return (NIL);
+			return (0);
 		default:
 			return (-yyeline);
 	}

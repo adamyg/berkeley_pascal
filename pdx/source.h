@@ -37,9 +37,20 @@
  * Definitions for interfacing with source management routines.
  */
 
-char *cursource;		/* current source file name */
-LINENO lastlinenum;		/* last source line number */
+extern const char *cursource;   /* current source file name */
+extern LINENO lastlinenum;      /* last source line number */
 
-int skimsource();		/* get seek pointers to source lines */
-int chkline();			/* checks to see that a line number is valid */
-int printlines();		/* print out from first line to second */
+
+/*source.c*/
+                                /* set the name of the parent object */
+void                skimconfig(const char *objname, const char **includes);
+
+                                /* get seek pointers to source lines */
+void                skimsource(const char *file);
+
+                                /* checks to see that a line number is valid */
+void                chkline(LINENO linenum);
+
+                                /* print out from first line to second */
+void                printlines(LINENO l1, LINENO l2);
+

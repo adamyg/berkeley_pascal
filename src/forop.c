@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,8 +31,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)forop.c	8.1 (Berkeley) 6/6/93";
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)forop.c	5.2 (Berkeley) 4/16/91";
 #endif /* not lint */
 
 #include	"whoami.h"
@@ -43,7 +43,7 @@ static char sccsid[] = "@(#)forop.c	8.1 (Berkeley) 6/6/93";
 #ifdef PC
 #    include	"pc.h"
 #    include	<pcc.h>
-#endif PC
+#endif /*PC*/
 #include	"tmps.h"
 #include	"tree_ty.h"
 
@@ -57,7 +57,7 @@ static char sccsid[] = "@(#)forop.c	8.1 (Berkeley) 6/6/93";
      *	an ordinal-type, and the initial-value and the final-value shall be
      *	of a type compatible with this type.  The statement of a for-statement
      *	shall not contain an assigning-reference to the control-variable
-     *	of the for-statement.  The value of the final-value shall be 
+     *	of the for-statement.  The value of the final-value shall be
      *	assignment-compatible with the control-variable when the initial-value
      *	is assigned to the control-variable.  After a for-statement is
      *	executed (other than being left by a goto-statement leading out of it)
@@ -99,9 +99,10 @@ static char sccsid[] = "@(#)forop.c	8.1 (Berkeley) 6/6/93";
      *	  [3]	termination expression
      *	  [4]	statement
      */
-forop( tree_node)
-    struct tnode	*tree_node;
-    {
+void
+forop(tree_node)
+        struct tnode	*tree_node;
+{
 	struct tnode	*lhs;
 	VAR_NODE	*lhs_node;
 	FOR_NODE	*f_node;
@@ -109,7 +110,7 @@ forop( tree_node)
 	struct nl	*fortype;
 #ifdef PC
 	int		forp2type;
-#endif PC
+#endif /*PC*/
 	int		forwidth;
 	struct tnode	*init_node;
 	struct nl	*inittype;
@@ -126,7 +127,7 @@ forop( tree_node)
 
 	goc = gocnt;
 	forvar = NLNIL;
-	if ( tree_node == TR_NIL ) { 
+	if ( tree_node == TR_NIL ) {
 	    goto byebye;
 	}
 	f_node = &(tree_node->for_node);
@@ -144,7 +145,7 @@ nogood:
 	    if (forvar != NIL) {
 		forvar->value[ NL_FORV ] = FORVAR;
 	    }
-	    (void) rvalue( init_node , NLNIL , RREQ ); 
+	    (void) rvalue( init_node , NLNIL , RREQ );
 	    (void) rvalue( term_node , NLNIL , RREQ );
 	    statement( stat_node );
 	    goto byebye;
@@ -163,7 +164,7 @@ nogood:
 	    goto nogood;
 	}
 	if (forvar->class == WITHPTR) {
-	    error("For variable %s cannot be an element of a record", 
+	    error("For variable %s cannot be an element of a record",
 			lhs_node->cptr);
 	    goto nogood;
 	}
@@ -171,11 +172,11 @@ nogood:
 	    ( ( bn != cbn ) ||
 #ifdef OBJ
 		(whereis(forvar->value[NL_OFFS], 0) == PARAMVAR)
-#endif OBJ
+#endif /*OBJ*/
 #ifdef PC
 		(whereis(forvar->value[NL_OFFS], forvar->extra_flags)
 		    == PARAMVAR )
-#endif PC
+#endif /*PC*/
 	    ) ) {
 	    standard();
 	    error("For variable %s must be declared in the block in which it is used", forvar->symbol);
@@ -201,7 +202,7 @@ nogood:
 	forwidth = lwidth(fortype);
 #	ifdef PC
 	    forp2type = p2type(fortype);
-#	endif PC
+#	endif /*PC*/
 	    /*
 	     *	allocate temporaries for the initial and final expressions
 	     *	and maybe a register to shadow the for variable.
@@ -215,10 +216,10 @@ nogood:
 		 */
 	    putRV((char *) 0 , cbn , initnlp -> value[ NL_OFFS ] ,
 		    initnlp -> extra_flags , PCCT_INT );
-#	endif PC
+#	endif /*PC*/
 #	ifdef OBJ
 	    (void) put(2, O_LV | cbn<<8+INDX, initnlp -> value[ NL_OFFS ] );
-#	endif OBJ
+#	endif /*OBJ*/
 	inittype = rvalue( init_node , fortype , RREQ );
 	if ( incompat( inittype , fortype , init_node ) ) {
 	    cerror("Type of initial expression clashed with index type in 'for' statement");
@@ -238,14 +239,14 @@ nogood:
 		 */
 	    putRV((char *) 0 , cbn , termnlp -> value[ NL_OFFS ] ,
 		    termnlp -> extra_flags , PCCT_INT );
-#	endif PC
+#	endif /*PC*/
 #	ifdef OBJ
 	    (void) gen(O_AS2, O_AS2, sizeof(long), width(inittype));
 		/*
 		 * compute and save the termination expression
 		 */
 	    (void) put(2, O_LV | cbn<<8+INDX, termnlp -> value[ NL_OFFS ] );
-#	endif OBJ
+#	endif /*OBJ*/
 	termtype = rvalue( term_node , fortype , RREQ );
 	if ( incompat( termtype , fortype , term_node ) ) {
 	    cerror("Type of limit expression clashed with index type in 'for' statement");
@@ -316,7 +317,7 @@ nogood:
 		    shadownlp -> extra_flags, forp2type);
 	    putop(PCC_ASSIGN, forp2type);
 	    putdot(filename, line);
-#	endif PC
+#	endif /*PC*/
 #	ifdef OBJ
 	    (void) gen(O_AS2, O_AS2, sizeof(long), width(termtype));
 		/*
@@ -324,7 +325,7 @@ nogood:
 		 */
 	    (void) put(2, O_RV4 | cbn<<8+INDX, initnlp -> value[ NL_OFFS ] );
 	    (void) put(2, O_RV4 | cbn<<8+INDX, termnlp -> value[ NL_OFFS ] );
-	    (void) gen(NIL, tree_node->tag == T_FORU ? T_LE : T_GE, sizeof(long),
+	    (void) gen(TNONE, tree_node->tag == T_FORU ? T_LE : T_GE, sizeof(long),
 			sizeof(long));
 	    after = (int) getlab();
 	    (void) put(2, O_IF, after);
@@ -344,6 +345,7 @@ nogood:
 		 * assign the initial expression to the shadow
 		 * checking the assignment if necessary.
 		 */
+printf("sym=%s,%s\n", shadownlp->symbol, initnlp->symbol);
 	    (void) put(2, O_LV | cbn<<8+INDX, shadownlp -> value[ NL_OFFS ] );
 	    (void) put(2, O_RV4 | cbn<<8+INDX, initnlp -> value[ NL_OFFS ] );
 	    rangechk(fortype, nl+T4INT);
@@ -360,7 +362,7 @@ nogood:
 	    (void) lvalue(lhs, NOUSE, RREQ);
 	    (void) stackRV(shadownlp);
 	    (void) gen(O_AS2, O_AS2, forwidth, sizeof(long));
-#	endif OBJ
+#	endif /*OBJ*/
 	    /*
 	     *	shadowing the real for variable
 	     *	with the shadow temporary:
@@ -435,7 +437,7 @@ nogood:
 		 * and here we are
 		 */
 	    (void) putlab( (char *) after );
-#	endif PC
+#	endif /*PC*/
 #	ifdef OBJ
 		/*
 		 * okay, so we have to do it again.
@@ -453,7 +455,7 @@ nogood:
 		 * and here we are
 		 */
 	    patch( (PTR_DCL) after );
-#	endif OBJ
+#	endif /*OBJ*/
 byebye:
 	noreach = FALSE;
 	if (forvar != NLNIL) {
@@ -463,4 +465,4 @@ byebye:
 	if ( goc != gocnt ) {
 	    putcnt();
 	}
-    }
+}

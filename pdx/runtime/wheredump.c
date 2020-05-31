@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)wheredump.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,8 +46,11 @@ static char sccsid[] = "@(#)wheredump.c	8.1 (Berkeley) 6/6/93";
 #include "machine.h"
 #include "object.h"
 #include "mappings.h"
+#include "process/process.h"
+#include "symtab.h"
 
-where()
+void
+where(void)
 {
     FRAME *frp;
     ADDRESS prevpc;
@@ -78,8 +81,8 @@ where()
  * Dump the world to the given file.
  * Like "where", but variables are dumped also.
  */
-
-dump()
+void
+dump(void)
 {
     FRAME *frp;
     ADDRESS prevpc;

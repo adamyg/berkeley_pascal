@@ -30,24 +30,38 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
 #ifndef lint
 static char copyright[] =
 "@(#) Copyright (c) 1980, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
-#endif /* not lint */
+#endif  /* not lint */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)opc.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#endif  /* not lint */
 
 #include "OPnames.h"
 
-main()  {
-	register int i;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
-	for (i = 0;  i < 256;  i++)
-		if (otext[i])
-			printf("#define O_%s %04o\n", otext[i]+1, i);
+void main() {
+	char value[20+1] = {0};
+	register int i;
+		    
+	(void) copyright;
+	
+	for (i = 0; i < 256; i++) {
+		if (otext[i]) {
+			assert(strlen(otext[i]+1) < 20);
+			snprintf(value, sizeof(value), "%s %04o", otext[i]+1, i);
+		} else {
+			snprintf(value, sizeof(value), "BADOP%d %04o", i, i);
+		}
+		printf("#define O_%-20s /* 0x%02x / %u */\n", value, i, i);
+	}
+
 	exit(0);
 }

@@ -41,15 +41,27 @@ static char copyright[] =
 static char sccsid[] = "@(#)pmerge.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
+
+#if defined(unix)
+#include <unistd.h>
+#else
+#include <io.h>
+#include <process.h>
+#endif
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
 #define mktemp _mktemp
+#define unlink _unlink
+#define strdup _strdup
 #endif
 
 #define PRGFILE 0
@@ -81,7 +93,7 @@ void	quit(char *fp);
  * Remove temporary files if interrupted
  */
 void
-onintr(unused)
+onintr(int unused)
 {
 	int i;
 

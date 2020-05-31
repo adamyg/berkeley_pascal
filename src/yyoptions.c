@@ -31,23 +31,24 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yyoptions.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>    /* must be included for yy.h */
+#include <yy.h>
 
 /*
  * Options processes the option
  * strings which can appear in
  * comments and returns the next character.
  */
+int
 options()
 {
-	register c;
+	register int c;
 #ifdef PI0
 	register ch;
 #endif
@@ -78,7 +79,7 @@ options()
 				c = 't';
 				/* and fall through */
 			case 'g':
-#		    endif PC
+#		    endif /*PC*/
 			case 'k':
 			case 'l':
 			case 'n':

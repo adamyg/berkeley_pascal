@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)bpact.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -54,7 +54,12 @@ static char sccsid[] = "@(#)bpact.c	8.1 (Berkeley) 6/6/93";
 
 typedef enum { SAVE, NOSAVE } SAVEBP;
 
-LOCAL SAVEBP handlebp();
+LOCAL SAVEBP handlebp(BPINFO *p);
+LOCAL void prbpfound(BPINFO *p);
+LOCAL void prbphandled(void);
+LOCAL void prbpnosave(void);
+LOCAL void prbpsave(void);
+
 
 /*
  * A "delayed" breakpoint is one that has an action involving execution
@@ -62,11 +67,11 @@ LOCAL SAVEBP handlebp();
  * procedure to the first line before printing parameters.
  */
 
-LOCAL short delayed;
+LOCAL short             delayed;
 
-#define NONE 0
-#define DELAY_CALL 1
-#define DELAY_STOP 2
+#define NONE            0
+#define DELAY_CALL      1
+#define DELAY_STOP      2
 
 /*
  * Take action at a breakpoint; if it's not a breakpoint return FALSE.
@@ -88,7 +93,8 @@ LOCAL short delayed;
 	bptype == STOP_ON || bptype == STOP_OFF \
 )
 
-BOOLEAN bpact()
+BOOLEAN 
+bpact(void)
 {
 	register BPINFO *p;
 	BPINFO *prev, *next;
@@ -158,8 +164,8 @@ BOOLEAN bpact()
  * or not to save the breakpoint.
  */
 
-LOCAL SAVEBP handlebp(p)
-BPINFO *p;
+LOCAL SAVEBP 
+handlebp(BPINFO *p)
 {
 	register SYM *s, *t;
 	SAVEBP r;
@@ -288,11 +294,11 @@ BPINFO *p;
 		 * Further breakpoint processing is not done, since if
 		 * there were any it wouldn't be associated with the call.
 		 */
-		case CALLPROC:
-			procreturn(p->bpblock);
-			delbp(p->bpid);
-			erecover();
-			/* NOTREACHED */
+//TODO		case CALLPROC:
+//TODO			procreturn(p->bpblock);
+//TODO			delbp(p->bpid);
+//TODO			erecover();
+//TODO			/* NOTREACHED */
 
 		case END_BP:
 			r = NOSAVE;
@@ -315,8 +321,8 @@ LOCAL char *prbptype[] ={
 	"STOP_ON", "STOP_OFF",
 };
 
-LOCAL prbpfound(p)
-BPINFO *p;
+LOCAL void
+prbpfound(BPINFO *p)
 {
 	if (option('b')) {
 		printf("%s breakpoint found at pc %d, line %d -- ",
@@ -324,14 +330,16 @@ BPINFO *p;
 	}
 }
 
-LOCAL prbphandled()
+LOCAL void
+prbphandled(void)
 {
 	if (option('b')) {
 		printf("handled, ");
 	}
 }
 
-LOCAL prbpnosave()
+LOCAL void
+prbpnosave(void)
 {
 	if (option('b')) {
 		printf("not saved\n");
@@ -339,10 +347,12 @@ LOCAL prbpnosave()
 	}
 }
 
-LOCAL prbpsave()
+LOCAL void
+prbpsave(void)
 {
 	if (option('b')) {
 		printf("saved\n");
 		fflush(stdout);
 	}
 }
+

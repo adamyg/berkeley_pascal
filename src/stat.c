@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)stat.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,17 +43,23 @@ static char sccsid[] = "@(#)stat.c	8.1 (Berkeley) 6/6/93";
 #ifdef PC
 #   include <pcc.h>
 #   include "pc.h"
-#endif PC
+#endif /*PC*/
+#ifdef OBJ
+#   include "align.h"
+#endif
 #include "tmps.h"
+#include "pmon.h"
 
-int cntstat;
-short cnts = 3;
+int	cntstat = 0;
+short	cnts	= 3;	/*(sizeof(struct pmon_header)/sizeof(long))-1*/
+
 #include "opcode.h"
 #include "tree_ty.h"
 
 /*
  * Statement list
  */
+void
 statlist(r)
 	struct tnode *r;
 {
@@ -62,9 +69,11 @@ statlist(r)
 		statement(sl->list_node.list);
 }
 
+
 /*
  * Statement
  */
+void
 statement(r)
 	struct tnode *r;
 {
@@ -82,7 +91,7 @@ top:
 	}
 	if (tree_node == TR_NIL)
 		return;
-	line = tree_node->lined.line_no; 
+	line = tree_node->lined.line_no;
 	if (tree_node->tag == T_LABEL) {
 		labeled(tree_node->label_node.lbl_ptr);
 		tree_node = tree_node->label_node.stmnt;
@@ -98,12 +107,12 @@ top:
 	switch (tree_node->tag) {
 		case T_PCALL:
 			putline();
-#			ifdef OBJ
+#ifdef OBJ
 			    proc(tree_node);
-#			endif OBJ
-#			ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 			    pcproc( tree_node );
-#			endif PC
+#endif /*PC*/
 			break;
 		case T_ASGN:
 			putline();
@@ -141,12 +150,12 @@ top:
 					break;
 				case T_CASE:
 					putline();
-#					ifdef OBJ
+#ifdef OBJ
 					    caseop(&(tree_node->whi_cas));
-#					endif OBJ
-#					ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 					    pccaseop(&(tree_node->whi_cas));
-#					endif PC
+#endif /*PC*/
 					break;
 				case T_WITH:
 					withop(&(tree_node->with_node));
@@ -162,13 +171,15 @@ top:
 	 * expressions, e.g. STRs, and WITHPTRs from withs.
 	 */
 	nlfree(snlp);
-	    /*
-	     *	free any temporaries allocated for this statement
-	     *	these come from strings and sets.
-	     */
+	/*
+	 * free any temporaries allocated for this statement
+	 * these come from strings and sets.
+	 */
 	tmpfree(&soffset);
 }
 
+
+void
 ungoto()
 {
 	register struct nl *p;
@@ -184,41 +195,43 @@ ungoto()
 					p->value[NL_GOLEV] = DEAD;
 }
 
+void
 putcnt()
 {
-
 	if (monflg == FALSE) {
 		return;
 	}
 	inccnt( getcnt() );
 }
 
+
 int
 getcnt()
-    {
-	
+{
 	return ++cnts;
-    }
+}
 
+
+void
 inccnt( counter )
-    int	counter;
-    {
-
-#	ifdef OBJ
+        int	counter;
+{
+#ifdef OBJ
 	    (void) put(2, O_COUNT, counter );
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    putRV( PCPCOUNT , 0 , counter * sizeof (long) , NGLOBAL , PCCT_INT );
 	    putleaf( PCC_ICON , 1 , 0 , PCCT_INT , (char *) 0 );
 	    putop( PCCOM_ASG PCC_PLUS , PCCT_INT );
 	    putdot( filename , line );
-#	endif PC
-    }
+#endif /*PC*/
+}
 
+
+void
 putline()
 {
-
-#	ifdef OBJ
+#ifdef OBJ
 	    if (opt('p') != 0)
 		    (void) put(2, O_LINO, line);
 
@@ -226,9 +239,8 @@ putline()
 	     * put out line number information for pdx
 	     */
 	    lineno(line);
-
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    static lastline;
 
 	    if ( line != lastline ) {
@@ -248,19 +260,20 @@ putline()
 		    putdot( filename , line );
 		}
 	    }
-#	endif PC
+#endif /*PC*/
 }
+
 
 /*
  * With varlist do stat
  *
- * With statement requires an extra word
- * in automatic storage for each level of withing.
- * These indirect pointers are initialized here, and
- * the scoping effect of the with statement occurs
- * because lookup examines the field names of the records
- * associated with the WITHPTRs on the withlist.
+ * With statement requires an extra word in automatic storage for eachi
+ * level of withing. These indirect pointers are initialized here, and
+ * the scoping effect of the with statement occurs because lookup examines
+ * the field names of the records associated with the WITHPTRs oni
+ * the withlist.
  */
+void
 withop(s)
 	WITH_NODE *s;
 {
@@ -278,13 +291,13 @@ withop(s)
 		     *	since we have to use it before we know its type;
 		     *	but we use its runtime location for the with pointer.
 		     */
-#		ifdef OBJ
-		    (void) put(2, O_LV | cbn <<8+INDX, tempnlp -> value[ NL_OFFS ] );
-#		endif OBJ
-#		ifdef PC
-		    putRV( (char *) 0 , cbn , tempnlp -> value[ NL_OFFS ] ,
-			    tempnlp -> extra_flags , PCCTM_PTR|PCCT_STRTY );
-#		endif PC
+#ifdef OBJ
+		(void) put(2, O_LV | cbn <<8+INDX, tempnlp -> value[ NL_OFFS ] );
+#endif /*OBJ*/
+#ifdef PC
+		putRV( (char *) 0 , cbn , tempnlp -> value[ NL_OFFS ] ,
+		        tempnlp -> extra_flags , PCCTM_PTR|PCCT_STRTY );
+#endif /*PC*/
 		r = lvalue(p->list_node.list, MOD , LREQ );
 		if (r == NLNIL)
 			continue;
@@ -293,27 +306,30 @@ withop(s)
 			continue;
 		}
 		r = defnl((char *) 0, WITHPTR, r, tempnlp -> value[ NL_OFFS ] );
-#		ifdef PC
-		    r -> extra_flags |= tempnlp -> extra_flags;
-#		endif PC
+#ifdef PC
+		r -> extra_flags |= tempnlp -> extra_flags;
+#endif /*PC*/
 		r->nl_next = withlist;
 		withlist = r;
-#		ifdef OBJ
-		    (void) put(1, PTR_AS);
-#		endif OBJ
-#		ifdef PC
-		    putop( PCC_ASSIGN , PCCTM_PTR|PCCT_STRTY );
-		    putdot( filename , line );
-#		endif PC
+#ifdef OBJ
+		(void) put(1, PTR_AS);
+#endif /*OBJ*/
+#ifdef PC
+		putop( PCC_ASSIGN , PCCTM_PTR|PCCT_STRTY );
+		putdot( filename , line );
+#endif /*PC*/
 	}
 	statement(s->stmnt);
 	withlist = swl;
 }
 
-extern	flagwas;
+
+extern	int flagwas;
+
 /*
  * var := expr
  */
+void
 asgnop(r)
 	ASG_NODE *r;
 {
@@ -345,14 +361,14 @@ asgnop(r)
 				p = rvalue(r->rhs_expr, NLNIL , RREQ );
 				return;
 			}
-#			ifdef OBJ
+#ifdef OBJ
 			    (void) put(2, O_LV | bn << 8+INDX, (int)p->value[NL_OFFS]);
 			    if (isa(p->type, "i") && width(p->type) == 1)
 				    (void) asgnop1(r, nl+T2INT);
 			    else
 				    (void) asgnop1(r, p->type);
-#			endif OBJ
-#			ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 				/*
 				 * this should be the lvalue of the fvar,
 				 * but since the second pass knows to use
@@ -364,7 +380,7 @@ asgnop(r)
 			    putRV( p -> symbol , bn , p -> value[ NL_OFFS ] ,
 				    p -> extra_flags , p2type( p -> type ) );
 			    (void) asgnop1( r , p -> type );
-#			endif PC
+#endif /*PC*/
 			return;
 		}
 	}
@@ -373,8 +389,7 @@ asgnop(r)
 
 /*
  * Asgnop1 handles all assignments.
- * If p is not nil then we are assigning
- * to a function variable, otherwise
+ * If p is not nil then we are assigning to a function variable, otherwise
  * we look the variable up ourselves.
  */
 struct nl *
@@ -383,16 +398,16 @@ asgnop1(r, p)
 	register struct nl *p;
 {
 	register struct nl *p1;
-	int	clas;
+	int clas;
 #ifdef OBJ
 	int w;
-#endif OBJ
+#endif /*OBJ*/
 
 #ifdef OBJ
 	if (p == NLNIL) {
-	    p = lvalue(r->lhs_var, MOD|ASGN|NOUSE , LREQ );
+	    p = lvalue( r->lhs_var, MOD|ASGN|NOUSE, LREQ );
 	    if ( p == NLNIL ) {
-		(void) rvalue( r->rhs_expr , NLNIL , RREQ );
+		(void) rvalue( r->rhs_expr, NLNIL ,RREQ );
 		return NLNIL;
 	    }
 	    w = width(p);
@@ -403,16 +418,19 @@ asgnop1(r, p)
 	     */
 	    w = width(p);
 	    if (w < 2)
-		w = 2;
+		        w = 2;
 	}
 	clas = classify(p);
 	if ((clas == TARY || clas == TSTR) && p->chain->class == CRANGE) {
-	    p1 = lvalue(r->rhs_expr, p , LREQ ); /* SHOULD THIS BE rvalue? */
+	    p1 = lvalue(r->rhs_expr, TNONE, LREQ);
+#ifdef XXX
+WAS	    p1 = lvalue(r->rhs_expr, p, LREQ); /* SHOULD THIS BE rvalue? */
+#endif
 	} else {
-	    p1 = rvalue(r->rhs_expr, p , RREQ );
+	    p1 = rvalue(r->rhs_expr, p, RREQ);
 	}
-#   endif OBJ
-#   ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	if (p == NLNIL) {
 	    /* check for conformant array type */
 	    codeoff();
@@ -431,7 +449,7 @@ asgnop1(r, p)
 		 * the lefthandside of asignments, what i need here is
 		 * an rvalue.
 		 */
-		p = lvalue( r->lhs_var , MOD|ASGN|NOUSE , RREQ );
+		p = lvalue( r->lhs_var, MOD|ASGN|NOUSE, RREQ );
 	    }
 	    if ( p == NLNIL ) {
 		(void) rvalue( r->rhs_expr , NLNIL , RREQ );
@@ -460,14 +478,14 @@ asgnop1(r, p)
 		p1 = rvalue( r->rhs_expr , p , LREQ );
 		break;
 	}
-#	endif PC
+#endif /*PC*/
 	if (p1 == NLNIL)
 		return (NLNIL);
 	if (incompat(p1, p, r->rhs_expr)) {
 		cerror("Type of expression clashed with type of variable in assignment");
 		return (NLNIL);
 	}
-#	ifdef OBJ
+#ifdef OBJ
 	    switch (classify(p)) {
 		    case TINT:
 		    case TBOOL:
@@ -488,11 +506,11 @@ asgnop1(r, p)
 				w = width(p1->type);
 				putcbnds(p1, 1);
 				putcbnds(p1, 0);
-				gen(NIL, T_SUB, w, w);
+				gen(TNONE, T_SUB, w, w);
 				put(2, w > 2? O_CON24: O_CON2, 1);
-				gen(NIL, T_ADD, w, w);
+				gen(TNONE, T_ADD, w, w);
 				putcbnds(p1, 2);
-				gen(NIL, T_MULT, w, w);
+				gen(TNONE, T_MULT, w, w);
 				put(1, O_VAS);
 				break;
 			    }
@@ -501,8 +519,8 @@ asgnop1(r, p)
 			    (void) put(2, O_AS, w);
 			    break;
 	    }
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    switch (classify(p)) {
 		    case TINT:
 		    case TBOOL:
@@ -528,9 +546,10 @@ asgnop1(r, p)
 			    putdot( filename , line );
 			    break;
 	    }
-#	endif PC
+#endif /*PC*/
 	return (p);	/* Used by for statement */
 }
+
 
 #ifdef PC
 /*
@@ -577,16 +596,17 @@ pcasgconf(r, p)
 	putdot( filename , line);
 	return p;
 }
-#endif PC
+#endif /*PC*/
 
 /*
  * if expr then stat [ else stat ]
  */
+void
 ifop(if_n)
 	IF_NODE *if_n;
 {
 	register struct nl *p;
-	register l1, l2;	/* l1 is start of else, l2 is end of else */
+	register int l1, l2;	/* l1 is start of else, l2 is end of else */
 	int goc;
 	bool nr;
 
@@ -608,15 +628,15 @@ ifop(if_n)
 		noreach = FALSE;
 		return;
 	}
-#	ifdef OBJ
+#ifdef OBJ
 	    l1 = put(2, O_IF, getlab());
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    l1 = (int) getlab();
 	    putleaf( PCC_ICON , l1 , 0 , PCCT_INT , (char *) 0 );
 	    putop( PCC_CBRANCH , PCCT_INT );
 	    putdot( filename , line );
-#	endif PC
+#endif /*PC*/
 	putcnt();
 	statement(if_n->then_stmnt);
 	nr = noreach;
@@ -627,13 +647,13 @@ ifop(if_n)
 		--level;
 		ungoto();
 		++level;
-#		ifdef OBJ
+#ifdef OBJ
 		    l2 = put(2, O_TRA, getlab());
-#		endif OBJ
-#		ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		    l2 = (int) getlab();
 		    putjbr( (long) l2 );
-#		endif PC
+#endif /*PC*/
 		patch((PTR_DCL)l1);
 		noreach = FALSE;
 		statement(if_n->else_stmnt);
@@ -646,9 +666,11 @@ ifop(if_n)
 		putcnt();
 }
 
+
 /*
  * while expr do stat
  */
+void
 whilop(w_node)
 	WHI_CAS *w_node;
 {
@@ -673,22 +695,22 @@ whilop(w_node)
 		return;
 	}
 	l2 = getlab();
-#	ifdef OBJ
+#ifdef OBJ
 	    (void) put(2, O_IF, l2);
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    putleaf( PCC_ICON , (int) l2 , 0 , PCCT_INT , (char *) 0 );
 	    putop( PCC_CBRANCH , PCCT_INT );
 	    putdot( filename , line );
-#	endif PC
+#endif /*PC*/
 	putcnt();
 	statement(w_node->stmnt_list);
-#	ifdef OBJ
+#ifdef OBJ
 	    (void) put(2, O_TRA, l1);
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    putjbr( (long) l1 );
-#	endif PC
+#endif /*PC*/
 	patch((PTR_DCL) l2);
 	if (goc != gocnt)
 		putcnt();
@@ -697,11 +719,12 @@ whilop(w_node)
 /*
  * repeat stat* until expr
  */
+void
 repop(r)
 	REPEAT *r;
 {
 	register struct nl *p;
-	register l;
+	register int l;
 	int goc;
 
 	goc = gocnt;
@@ -716,14 +739,14 @@ repop(r)
 		error("Until expression type must be Boolean, not %s, in repeat statement", nameof(p));
 		return;
 	}
-#	ifdef OBJ
+#ifdef OBJ
 	    (void) put(2, O_IF, l);
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    putleaf( PCC_ICON , l , 0 , PCCT_INT , (char *) 0 );
 	    putop( PCC_CBRANCH , PCCT_INT );
 	    putdot( filename , line );
-#	endif PC
+#endif /*PC*/
 	if (goc != gocnt)
 		putcnt();
 }

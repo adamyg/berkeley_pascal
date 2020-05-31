@@ -230,11 +230,11 @@ labels:
 		;
 label_decl:
 	YINT
-		= $$.tr_entry = newlist($1.i_entry == NIL ? TR_NIL :
+		= $$.tr_entry = newlist($1.i_entry == TNONE ? TR_NIL :
 					(struct tnode *) *hash($1.cptr, 1));
 		|
 	label_decl ',' YINT
-		= $$.tr_entry = addlist($1.tr_entry, $3.i_entry == NIL ?
+		= $$.tr_entry = addlist($1.tr_entry, $3.i_entry == TNONE ?
 				TR_NIL : (struct tnode *) *hash($3.cptr, 1));
 		;
 
@@ -252,7 +252,7 @@ const_decl:
 		|
 	YCONST error
 		= {
-			constbeg($1.i_entry);
+			constbeg($1.i_entry, lineof($1.i_entry));
 Cerror:
 			yyPerror("Malformed const declaration", PDECL);
 		  }
@@ -475,7 +475,7 @@ simple_type_list:
  */
 field_list:
 	fixed_part variant_part
-		= $$.tr_entry = tree4(T_FLDLST, lineof(NIL), 
+		= $$.tr_entry = tree4(T_FLDLST, lineof(TNONE), 
 				fixlist($1.tr_entry), $2.tr_entry);
 		;
 fixed_part:

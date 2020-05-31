@@ -31,32 +31,35 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)p2put.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
     /*
-     *	functions to help pi put out
-     *	polish postfix binary portable c compiler intermediate code
-     *	thereby becoming the portable pascal compiler
+     *	functions to help pi put out polish postfix binary portable 
+     *  c compiler intermediate code thereby becoming the portable 
+     *  pascal compiler
      */
 
-#include	"whoami.h"
+#include "whoami.h"
 #ifdef PC
-#include	"0.h"
+#include "0.h"
 #include	"objfmt.h"
-#include	<pcc.h>
-#include	"pc.h"
-#include	"align.h"
-#include	"tmps.h"
+#include <pcc.h>
+#include "pc.h"
+#include "align.h"
+#include "tmps.h"
+
+
 
     /*
      *	emits an ftext operator and a string to the pcstream
      */
+void
 puttext( string )
-    char	*string;
-    {
-	int	length = str4len( string );
+        char *string;
+{
+	int length = str4len( string );
 
 	if ( !CGENNING )
 	    return;
@@ -67,33 +70,37 @@ puttext( string )
 	    }
 #	endif
 	p2string( string );
-    }
+}
+
 
 int
 str4len( string )
-    char	*string;
-    {
-	
+        char *string;
+{
 	return ( ( strlen( string ) + 3 ) / 4 );
-    }
+}
 
     /*
      *	put formatted text into a buffer for printing to the pcstream.
      *	a call to putpflush actually puts out the text.
-     *	none of arg1 .. arg5 need be present.
-     *	and you can add more if you need them.
+     *	none of arg1 .. arg5 need be present. and you can add more if you need them.
      */
 /* VARARGS */
-putprintf( format , incomplete , arg1 , arg2 , arg3 , arg4 , arg5 )
-    char	*format;
-    int		incomplete;
-    {
+void
+//  putprintf( format , incomplete , arg1 , arg2 , arg3 , arg4 , arg5 )
+putprintf( const char *format , int incomplete , ... )
+{
 	static char	ppbuffer[ BUFSIZ ];
 	static char	*ppbufp = ppbuffer;
+	va_list ap;
 
 	if ( !CGENNING )
 	    return;
-	sprintf( ppbufp , format , arg1 , arg2 , arg3 , arg4 , arg5 );
+	va_start(ap, incomplete );
+//	sprintf( ppbufp , format , arg1 , arg2 , arg3 , arg4 , arg5 );
+	vsprintf( ppbufp , format , ap );
+	va_end(ap);
+	
 	ppbufp = &( ppbuffer[ strlen( ppbuffer ) ] );
 	if ( ppbufp >= &( ppbuffer[ BUFSIZ ] ) )
 	    panic( "putprintf" );
@@ -107,6 +114,7 @@ putprintf( format , incomplete , arg1 , arg2 , arg3 , arg4 , arg5 )
      *	emit a left bracket operator to pcstream
      *	with function number, the maximum temp register, and total local bytes
      */
+void
 putlbracket(ftnno, sizesp)
     int		ftnno;
     struct om	*sizesp;
@@ -114,16 +122,16 @@ putlbracket(ftnno, sizesp)
     int	maxtempreg;	
     int	alignedframesize;
 
-#   if defined(vax) || defined(tahoe)
+#   if defined(vax) || defined(tahoe) || defined(i80x86)
 	maxtempreg = sizesp->curtmps.next_avail[REG_GENERAL];
-#   endif vax || tahoe
+#   endif /*vax || tahoe*/
 #   ifdef mc68000
 	    /*
 	     *	this is how /lib/f1 wants it.
 	     */
 	maxtempreg =	(sizesp->curtmps.next_avail[REG_ADDR] << 4)
 		      | (sizesp->curtmps.next_avail[REG_DATA]);
-#   endif mc68000
+#   endif /*mc68000*/
     alignedframesize = roundup((int)(BITSPERBYTE * -sizesp->curtmps.om_off),
 	(long)(BITSPERBYTE * A_STACK));
     p2word( PCCM_TRIPLE( PCCF_FLBRAC , maxtempreg , ftnno ) );
@@ -141,41 +149,42 @@ putlbracket(ftnno, sizesp)
      *	which for the binary interface
      *	forces the stack allocate and register mask
      */
+void
 putrbracket( ftnno )
-    int	ftnno;
-    {
-
+        int	ftnno;
+{
 	p2word( PCCM_TRIPLE( PCCF_FRBRAC , 0 , ftnno ) );
 #	ifdef DEBUG
 	    if ( opt( 'k' ) ) {
 		fprintf( stdout , "PCCF_FRBRAC |   0 | %d\n" , ftnno );
 	    }
 #	endif
-    }
+}
 
     /*
      *	emit an eof operator
      */
+void
 puteof()
-    {
-	
+{
 	p2word( PCCF_FEOF );
 #	ifdef DEBUG
 	    if ( opt( 'k' ) ) {
 		fprintf( stdout , "PCCF_FEOF\n" );
 	    }
 #	endif
-    }
+}
 
     /*
      *	emit a dot operator,
      *	with a source file line number and name
      *	if line is negative, there was an error on that line, but who cares?
      */
+void
 putdot( filename , line )
-    char	*filename;
-    int		line;
-    {
+        char	*filename;
+        int     line;
+{
 	int	length = str4len( filename );
 
 	if ( line < 0 ) {
@@ -188,18 +197,19 @@ putdot( filename , line )
 	    }
 #	endif
 	p2string( filename );
-    }
+}
 
     /*
      *	put out a leaf node
      */
+void
 putleaf( op , lval , rval , type , name )
-    int		op;
-    int		lval;
-    int		rval;
-    int		type;
-    char	*name;
-    {
+        int op;
+        int lval;
+        int rval;
+        int type;
+        char *name;
+{
 	if ( !CGENNING )
 	    return;
 	switch ( op ) {
@@ -249,13 +259,14 @@ putleaf( op , lval , rval , type , name )
      *	special cases for registers and for named globals,
      *	whose names are their rvalues.
      */
+void
 putRV( name , level , offset , other_flags , type )
-    char	*name;
-    int		level;
-    int		offset;
-    char	other_flags;
-    int		type;
-    {
+        char *name;
+        int level;
+        int offset;
+        char other_flags;
+        int type;
+{
 	char	extname[ BUFSIZ ];
 	char	*printname;
 
@@ -292,6 +303,7 @@ putRV( name , level , offset , other_flags , type )
      *	special case for
      *	    named globals, whose lvalues are just their names as constants.
      */
+void
 putLV( name , level , offset , other_flags , type )
     char	*name;
     int		level;
@@ -364,9 +376,10 @@ putLV( name , level , offset , other_flags , type )
      *	the constant is declared in aligned data space
      *	and a PCC_NAME leaf put out for it
      */
+void
 putCON8( val )
-    double	val;
-    {
+        double	val;
+{
 	char	*label;
 	char	name[ BUFSIZ ];
 
@@ -376,12 +389,12 @@ putCON8( val )
 	putprintf( "	.data" , 0 );
 	aligndot(A_DOUBLE);
 	(void) putlab( label );
-#	if defined(vax) || defined(tahoe)
+#	if defined(vax) || defined(tahoe) || defined(i80x86)
 	    putprintf( "	.double 0d%.20e" , 0 , val );
-#	endif vax || tahoe
+#	endif /*vax || tahoe*/
 #	ifdef mc68000
 	    putprintf( "	.long 	0x%x,0x%x", 0, val);
-#	endif mc68000
+#	endif /*mc68000*/
 	putprintf( "	.text" , 0 );
 	sprintf( name , PREFIXFORMAT , LABELPREFIX , label );
 	putleaf( PCC_NAME , 0 , 0 , PCCT_DOUBLE , name );
@@ -392,11 +405,12 @@ putCON8( val )
 	 * an lvalue (for assignment rhs's) is the name as a constant, 
 	 * an rvalue (for parameters) is just the name.
 	 */
+void
 putCONG( string , length , required )
-    char	*string;
-    int		length;
-    int		required;
-    {
+        char	*string;
+        int	length;
+        int	required;
+{
 	char	name[ BUFSIZ ];
 	char	*label;
 	char	*cp;
@@ -463,10 +477,12 @@ p2type( np )
 
     return typerecur( np , 0 );
 }
+
+int
 typerecur( np , quals )
-    struct nl	*np;
-    int		quals;
-    {
+        struct nl	*np;
+        int		quals;
+{
 	
 	if ( np == NIL || quals > MAXQUALS ) {
 	    return PCCT_UNDEF;
@@ -541,15 +557,17 @@ typerecur( np , quals )
 		panic( "p2type" );
 		/* NOTREACHED */
 	}
+	return 0;
     }
 
     /*
      *	put a typed operator to the pcstream
      */
+void
 putop( op , type )
-    int		op;
-    int		type;
-    {
+        int		op;
+        int		type;
+{
 	extern char	*p2opname();
 	
 	if ( !CGENNING )
@@ -561,19 +579,20 @@ putop( op , type )
 			, p2opname( op ) , op , type );
 	    }
 #	endif
-    }
+}
 
     /*
      *	put out a structure operator (STASG, STARG, STCALL, UNARY STCALL )
      *	which looks just like a regular operator, only the size and
      *	alignment go in the next consecutive words
      */
+void
 putstrop( op , type , size , alignment )
-    int	op;
-    int	type;
-    int	size;
-    int	alignment;
-    {
+        int op;
+        int type;
+        int size;
+        int alignment;
+{
 	extern char	*p2opname();
 	
 	if ( !CGENNING )
@@ -581,93 +600,93 @@ putstrop( op , type , size , alignment )
 	p2word( PCCM_TRIPLE( op , 0 , type ) );
 	p2word( size );
 	p2word( alignment );
-#	ifdef DEBUG
+#ifdef DEBUG
 	    if ( opt( 'k' ) ) {
 		fprintf( stdout , "%s (%d) |   0 | 0x%x	%d %d\n"
 			, p2opname( op ) , op , type , size , alignment );
 	    }
-#	endif
-    }
+#endif
+}
 
     /*
      *	the string names of p2ops
      */
-
 struct p2op {
-    int op;
-    char *name;
+        int op;
+        const char *name;
 };
 
-static struct p2op	p2opnames[] = {
-	PCC_ERROR, "PCC_ERROR",
-	PCC_NAME, "PCC_NAME",
-	PCC_STRING, "PCC_STRING",
-	PCC_ICON, "PCC_ICON",
-	PCC_FCON, "PCC_FCON",
-	PCC_PLUS, "PCC_PLUS",
-	PCC_MINUS, "PCC_MINUS",
-	PCC_UMINUS, "PCC_UMINUS",
-	PCC_MUL, "PCC_MUL",
-	PCC_DEREF, "PCC_DEREF",
-	PCC_AND, "PCC_AND",
-	PCC_ADDROF, "PCC_ADDROF",
-	PCC_OR, "PCC_OR",
-	PCC_ER, "PCC_ER",
-	PCC_QUEST, "PCC_QUEST",
-	PCC_COLON, "PCC_COLON",
-	PCC_ANDAND, "PCC_ANDAND",
-	PCC_OROR, "PCC_OROR",
-	PCC_CM, "PCC_CM",
-	PCC_ASSIGN, "PCC_ASSIGN",
-	PCC_COMOP, "PCC_COMOP",
-	PCC_DIV, "PCC_DIV",
-	PCC_MOD, "PCC_MOD",
-	PCC_LS, "PCC_LS",
-	PCC_RS, "PCC_RS",
-	PCC_DOT, "PCC_DOT",
-	PCC_STREF, "PCC_STREF",
-	PCC_CALL, "PCC_CALL",
-	PCC_UCALL, "PCC_UCALL",
-	PCC_FORTCALL, "PCC_FORTCALL",
-	PCC_UFORTCALL, "PCC_UFORTCALL",
-	PCC_NOT, "PCC_NOT",
-	PCC_COMPL, "PCC_COMPL",
-	PCC_INCR, "PCC_INCR",
-	PCC_DECR, "PCC_DECR",
-	PCC_EQ, "PCC_EQ",
-	PCC_NE, "PCC_NE",
-	PCC_LE, "PCC_LE",
-	PCC_LT, "PCC_LT",
-	PCC_GE, "PCC_GE",
-	PCC_GT, "PCC_GT",
-	PCC_ULE, "PCC_ULE",
-	PCC_ULT, "PCC_ULT",
-	PCC_UGE, "PCC_UGE",
-	PCC_UGT, "PCC_UGT",
-	PCC_REG, "PCC_REG",
-	PCC_OREG, "PCC_OREG",
-	PCC_CCODES, "PCC_CCODES",
-	PCC_FREE, "PCC_FREE",
-	PCC_STASG, "PCC_STASG",
-	PCC_STARG, "PCC_STARG",
-	PCC_STCALL, "PCC_STCALL",
-	PCC_USTCALL, "PCC_USTCALL",
-	PCC_FLD, "PCC_FLD",
-	PCC_SCONV, "PCC_SCONV",
-	PCC_PCONV, "PCC_PCONV",
-	PCC_PMCONV, "PCC_PMCONV",
-	PCC_PVCONV, "PCC_PVCONV",
-	PCC_FORCE, "PCC_FORCE",
-	PCC_CBRANCH, "PCC_CBRANCH",
-	PCC_INIT, "PCC_INIT",
-	PCC_CAST, "PCC_CAST",
+
+static const struct p2op p2opnames[] = {
+	PCC_ERROR,      "PCC_ERROR",
+	PCC_NAME,       "PCC_NAME",
+	PCC_STRING,     "PCC_STRING",
+	PCC_ICON,       "PCC_ICON",
+	PCC_FCON,       "PCC_FCON",
+	PCC_PLUS,       "PCC_PLUS",
+	PCC_MINUS,      "PCC_MINUS",
+	PCC_UMINUS,     "PCC_UMINUS",
+	PCC_MUL,        "PCC_MUL",
+	PCC_DEREF,      "PCC_DEREF",
+	PCC_AND,        "PCC_AND",
+	PCC_ADDROF,     "PCC_ADDROF",
+	PCC_OR,         "PCC_OR",
+	PCC_ER,         "PCC_ER",
+	PCC_QUEST,      "PCC_QUEST",
+	PCC_COLON,      "PCC_COLON",
+	PCC_ANDAND,     "PCC_ANDAND",
+	PCC_OROR,       "PCC_OROR",
+	PCC_CM,         "PCC_CM",
+	PCC_ASSIGN,     "PCC_ASSIGN",
+	PCC_COMOP,      "PCC_COMOP",
+	PCC_DIV,        "PCC_DIV",
+	PCC_MOD,        "PCC_MOD",
+	PCC_LS,         "PCC_LS",
+	PCC_RS,         "PCC_RS",
+	PCC_DOT,        "PCC_DOT",
+	PCC_STREF,      "PCC_STREF",
+	PCC_CALL,       "PCC_CALL",
+	PCC_UCALL,      "PCC_UCALL",
+	PCC_FORTCALL,   "PCC_FORTCALL",
+	PCC_UFORTCALL,  "PCC_UFORTCALL",
+	PCC_NOT,        "PCC_NOT",
+	PCC_COMPL,      "PCC_COMPL",
+	PCC_INCR,       "PCC_INCR",
+	PCC_DECR,       "PCC_DECR",
+	PCC_EQ,         "PCC_EQ",
+	PCC_NE,         "PCC_NE",
+	PCC_LE,         "PCC_LE",
+	PCC_LT,         "PCC_LT",
+	PCC_GE,         "PCC_GE",
+	PCC_GT,         "PCC_GT",
+	PCC_ULE,        "PCC_ULE",
+	PCC_ULT,        "PCC_ULT",
+	PCC_UGE,        "PCC_UGE",
+	PCC_UGT,        "PCC_UGT",
+	PCC_REG,        "PCC_REG",
+	PCC_OREG,       "PCC_OREG",
+	PCC_CCODES,     "PCC_CCODES",
+	PCC_FREE,       "PCC_FREE",
+	PCC_STASG,      "PCC_STASG",
+	PCC_STARG,      "PCC_STARG",
+	PCC_STCALL,     "PCC_STCALL",
+	PCC_USTCALL,    "PCC_USTCALL",
+	PCC_FLD,        "PCC_FLD",
+	PCC_SCONV,      "PCC_SCONV",
+	PCC_PCONV,      "PCC_PCONV",
+	PCC_PMCONV,     "PCC_PMCONV",
+	PCC_PVCONV,     "PCC_PVCONV",
+	PCC_FORCE,      "PCC_FORCE",
+	PCC_CBRANCH,    "PCC_CBRANCH",
+	PCC_INIT,       "PCC_INIT",
+	PCC_CAST,       "PCC_CAST",
 	-1, ""
-    };
+        };
 
 char *
 p2opname( op )
-    register int	op;
-    {
+        register int	op;
+{
 	static char		*p2map[PCC_MAXOP+1];
 	static bool		mapready = FALSE;
 	register struct p2op	*pp;
@@ -678,7 +697,8 @@ p2opname( op )
 	    mapready = TRUE;
 	}
 	return ( p2map[ op ] ? p2map[ op ] : "unknown" );
-    }
+}
+
 
     /*
      *	low level routines
@@ -687,19 +707,20 @@ p2opname( op )
     /*
      *	puts a long word on the pcstream
      */
+void
 p2word( word )
-    int		word;
-    {
-
+        int	word;
+{
 	putw( word , pcstream );
-    }
+}
 
     /*
      *	put a length 0 mod 4 null padded string onto the pcstream
      */
+void
 p2string( string )
-    char	*string;
-    {
+        char	*string;
+{
 	int	slen = strlen( string );
 	int	wlen = ( slen + 3 ) / 4;
 	int	plen = ( wlen * 4 ) - slen;
@@ -710,22 +731,23 @@ p2string( string )
 	    putc( *cp , pcstream );
 	for ( p = 1 ; p <= plen ; p++ )
 	    putc( '\0' , pcstream );
-#	ifdef DEBUG
+#ifdef DEBUG
 	    if ( opt( 'k' ) ) {
 		fprintf( stdout , "\"%s" , string );
 		for ( p = 1 ; p <= plen ; p++ )
 		    fprintf( stdout , "\\0" );
 		fprintf( stdout , "\"\n" );
 	    }
-#	endif
+#endif
     }
 
     /*
      *	puts a name on the pcstream
      */
+void
 p2name( name )
-    char	*name;
-    {
+        char	*name;
+{
 	int	pad;
 
 	fprintf( pcstream , NAMEFORMAT , name );
@@ -743,44 +765,44 @@ p2name( name )
 		fprintf( stdout , "\n" );
 	    }
 #	endif
-    }
+}
     
     /*
      *	put out a jump to a label
      */
+void
 putjbr( label )
-    long	label;
-    {
-
+        long label;
+{
 	printjbr( LABELPREFIX , label );
-    }
+}
 
     /*
      *	put out a jump to any kind of label
      */
+void
 printjbr( prefix , label )
-    char	*prefix;
-    long	label;
-    {
-
-#	if defined(vax) || defined(tahoe)
+        char	*prefix;
+        long	label;
+{
+#if defined(vax) || defined(tahoe) || defined(i80x86)
 	    putprintf( "	jbr	" , 1 );
 	    putprintf( PREFIXFORMAT , 0 , prefix , label );
-#	endif vax || tahoe
-#	ifdef mc68000
+#endif /*vax || tahoe*/
+#ifdef mc68000
 	    putprintf( "	jra	" , 1 );
 	    putprintf( PREFIXFORMAT , 0 , prefix , label );
-#	endif mc68000
-    }
+#endif /*mc68000*/
+}
 
     /*
      *	another version of put to catch calls to put
      */
 /* VARARGS */
+void
 put()
-    {
+{
+        panic("put()");
+}
+#endif /*PC*/
 
-	panic("put()");
-    }
-
-#endif PC

@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)srcline.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -43,9 +44,13 @@ static char sccsid[] = "@(#)srcline.c	8.1 (Berkeley) 6/6/93";
 #include "mappings.h"
 #include "object.h"
 #include "linetab.h"
+#include "filetab.h"
 
-LINENO srcline(addr)
-ADDRESS addr;
+LINETAB	*linetab = 0;
+FILETAB *filetab = 0;
+
+LINENO 
+srcline(ADDRESS addr)
 {
 	register ADDRESS i, j, k;
 	ADDRESS a;
@@ -82,8 +87,8 @@ ADDRESS addr;
  * look for a line exactly corresponding to the given address
  */
 
-LINENO linelookup(addr)
-ADDRESS addr;
+LINENO 
+linelookup(ADDRESS addr)
 {
 	register ADDRESS i, j, k;
 	ADDRESS a;

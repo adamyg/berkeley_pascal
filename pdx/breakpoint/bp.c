@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)bp.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -48,19 +49,24 @@ static char sccsid[] = "@(#)bp.c	8.1 (Berkeley) 6/6/93";
 #include "object.h"
 #include "bp.rep"
 
-unsigned int uniqueid;
+unsigned int uniqueid = 0;
+
+unsigned short tracing = 0;
+unsigned short var_tracing = 0;
+unsigned short inst_tracing = 0;
+
+BOOLEAN isstopped = 0;
+
+BPINFO *bphead = 0;
+
 
 /*
  * Add a breakpoint to the list, return a pointer to it.
  */
 
-BPINFO *newbp(addr, type, block, cond, node, line)
-ADDRESS addr;
-BPTYPE type;
-SYM *block;
-NODE *cond;
-NODE *node;
-LINENO line;
+BPINFO 
+*newbp(ADDRESS addr, BPTYPE type, SYM *block, NODE *cond,
+                NODE *node, LINENO line)
 {
 	register BPINFO *p;
 
@@ -86,14 +92,9 @@ LINENO line;
  * Just for folks outside of "breakpoint" who don't know that
  * a BPINFO exists.
  */
-
-addbp(addr, type, block, cond, node, line)
-ADDRESS addr;
-BPTYPE type;
-SYM *block;
-NODE *cond;
-NODE *node;
-LINENO line;
+void
+addbp(ADDRESS addr, BPTYPE type, SYM *block, 
+        NODE *cond, NODE *node, LINENO line)
 {
 
 	(void) newbp(addr, type, block, cond, node, line);
@@ -105,8 +106,8 @@ LINENO line;
  * Print out a cryptic error message if it can't be found.
  */
 
-delbp(id)
-unsigned int id;
+void
+delbp(unsigned int id)
 {
 	register BPINFO *p, *last;
 
@@ -150,8 +151,8 @@ unsigned int id;
 /*
  * Free all storage in the breakpoint table.
  */
-
-bpfree()
+void
+bpfree(void)
 {
 	register BPINFO *p, *next;
 

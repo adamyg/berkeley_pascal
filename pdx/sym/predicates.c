@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)predicates.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,8 +51,8 @@ static char sccsid[] = "@(#)predicates.c	8.1 (Berkeley) 6/6/93";
  * is a cycle from s->func to s via chain pointers.
  */
 
-BOOLEAN isparam(s)
-SYM *s;
+BOOLEAN 
+isparam(SYM *s)
 {
     register SYM *t;
 
@@ -68,8 +68,8 @@ SYM *s;
  * Test if a symbol is a var parameter, i.e. has class REF.
  */
 
-BOOLEAN isvarparam(s)
-SYM *s;
+BOOLEAN 
+isvarparam(SYM *s)
 {
     return (BOOLEAN) s->class == REF;
 }
@@ -79,8 +79,8 @@ SYM *s;
  * with do).
  */
 
-BOOLEAN isvariable(s)
-SYM *s;
+BOOLEAN 
+isvariable(SYM *s)
 {
     return s->class == VAR || s->class == FVAR || s->class == REF;
 }
@@ -90,8 +90,8 @@ SYM *s;
  * main program.
  */
 
-BOOLEAN isblock(s)
-register SYM *s;
+BOOLEAN 
+isblock(register SYM *s)
 {
     return(s->class == FUNC || s->class == PROC || s->class == PROG);
 }
@@ -101,8 +101,8 @@ register SYM *s;
  * reserved word.
  */
 
-BOOLEAN isbuiltin(s)
-SYM *s;
+BOOLEAN 
+isbuiltin(register SYM *s)
 {
     return(s->blkno == 0 && s->class != PROG && s->class != VAR);
 }
@@ -114,8 +114,8 @@ SYM *s;
  * Integers and reals are not compatible since they cannot always be mixed.
  */
 
-BOOLEAN compatible(t1, t2)
-register SYM *t1, *t2;
+BOOLEAN 
+compatible(register SYM *t1, register SYM *t2)
 {
     register BOOLEAN b;
 
@@ -162,9 +162,8 @@ register SYM *t1, *t2;
  * The symbol must be within the given function.
  */
 
-BOOLEAN should_print(s, f)
-SYM *s;
-SYM *f;
+BOOLEAN 
+should_print(SYM *s, SYM *f)
 {
     SYM *t;
 
@@ -186,8 +185,8 @@ SYM *f;
  * Test if the name of a symbol is uniquely defined or not.
  */
 
-BOOLEAN isambiguous(s)
-SYM *s;
+BOOLEAN 
+isambiguous(SYM *s)
 {
     SYM *t;
 

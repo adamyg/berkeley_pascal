@@ -31,17 +31,18 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yyid.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
+#include <whoami.h>
 #include <0.h>
 #include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <yy.h>
 
 #ifdef PI
-extern	union semstack *yypv;
+extern union semstack   *yypv;
+
 /*
  * Determine whether the identifier whose name
  * is "cp" can possibly be a kind, which is a
@@ -54,6 +55,7 @@ extern	union semstack *yypv;
  *
  * Note that we don't disallow constants on the lhs of assignment.
  */
+int
 identis(cp, kind)
 	register char *cp;
 	int kind;
@@ -71,7 +73,7 @@ identis(cp, kind)
 	 * Record kind we want for possible later use by yyrecover
 	 */
 	yyidwant = kind;
-	yyidhave = NIL;
+	yyidhave = TNONE;
 	i = ( (int) cp ) & 077;
 	for (p = disptab[i]; p != NIL; p = p->nl_next)
 		if (p->symbol == cp) {
@@ -88,10 +90,12 @@ identis(cp, kind)
 gotit:
 	if (p->class == BADUSE && !Recovery) {
 		yybadref(p, OY.Yyeline);
-		yypv[0].i_entry = NIL;
+		yypv[0].i_entry = TNONE;
 	}
 	return (1);
 }
+
+
 
 /*
  * A bad reference to the identifier cp on line
@@ -123,10 +127,12 @@ yybaduse(cp, line, kindmask)
      *	sizeof ( struct udinfo ) bytes for the 'real' struct udinfo
      */
 struct	udinfo ud = { ~0 , (struct udinfo *) ~0 , 0};
+
 /*
  * Record a reference to an undefined identifier,
  * or one which is improperly used.
  */
+void
 yybadref(p, line)
 	register struct nl *p;
 	int line;
@@ -149,6 +155,7 @@ yybadref(p, line)
  * even possibly a kind kind?  If not, update
  * what we have based on this encounter.
  */
+int
 yyidok(p, kind)
 	register struct nl *p;
 	int kind;
@@ -161,18 +168,18 @@ yyidok(p, kind)
 	}
 	if (yyidok1(p, kind))
 		return (1);
-	if (yyidhave != NIL)
+	if (yyidhave != TNONE)
 		yyidhave = IMPROPER;
 	else
 		yyidhave = p->class;
 	return (0);
 }
 
+int
 yyidok1(p, kind)
 	register struct nl *p;
 	int kind;
 {
-
 	switch (kind) {
 		default:
 		case FUNC:
@@ -186,7 +193,7 @@ yyidok1(p, kind)
 		case FIELD:
 			return (p->class == kind);
 		case VAR:
-			return (p->class == CONST || yyisvar(p, NIL));
+			return (p->class == CONST || yyisvar(p, TNONE));
 		case ARRAY:
 		case RECORD:
 			return (yyisvar(p, kind));
@@ -195,6 +202,7 @@ yyidok1(p, kind)
 	}
 }
 
+int
 yyisvar(p, varclass)
 	register struct nl *p;
 	int varclass;
@@ -211,26 +219,33 @@ yyisvar(p, varclass)
 		 */
 		case FUNC:
 		case FFUNC:
-			return (varclass == NIL || (p->type != NIL && p->type->class == varclass));
+			return (varclass == TNONE || (p->type != NIL && p->type->class == varclass));
 		case PROC:
 		case FPROC:
-			return ( varclass == NIL );
+			return (varclass == TNONE );
 	}
 	return (0);
 }
 #endif
+
 #ifdef PXP
 #ifndef DEBUG
-identis()
+int
+identis(cp, kind)
+	register char *cp;
+	int kind;
 {
-
+        (void) cp;
+        (void) kind;
 	return (1);
 }
 #endif
-#ifdef DEBUG
-extern	char *classes[];
 
-char	kindchars[]	"UCTVAQRDPF";
+
+#ifdef DEBUG
+extern const char *classes[];
+
+static const char kindchars[] = "UCTVAQRDPF";
 /*
  * Fake routine "identis" for pxp when testing error recovery.
  * Looks at letters in variable names to answer questions
@@ -245,8 +260,9 @@ char	kindchars[]	"UCTVAQRDPF";
  *	P	proc_id
  *	F	func_id
  */
+int
 identis(cp, kind)
-	register char *cp;
+	register const char *cp;
 	int kind;
 {
 	register char *dp;

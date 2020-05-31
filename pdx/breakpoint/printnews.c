@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printnews.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -51,8 +51,10 @@ static char sccsid[] = "@(#)printnews.c	8.1 (Berkeley) 6/6/93";
 #include "object.h"
 #include "mappings.h"
 #include "machine.h"
+#include "process/process.h"
 
-printnews()
+void
+printnews(void)
 {
     if (ss_variables) {
 	prvarnews();

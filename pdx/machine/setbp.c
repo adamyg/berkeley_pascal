@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)setbp.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -47,9 +47,14 @@ static char sccsid[] = "@(#)setbp.c	8.1 (Berkeley) 6/6/93";
 #include "pxops.h"
 #include "process/process.rep"
 #include "process/pxinfo.h"
+#include "../px/px.h"
 
 #define BP_OP		O_BPT		/* breakpoint trap */
+#if defined(unix)
 #define BP_ERRNO	SIGILL		/* signal received at a breakpoint */
+#else
+#define BP_ERRNO	PXSIGBPT	/* signal received at a breakpoint */
+#endif
 
 /*
  * Setting a breakpoint at a location consists of saving
@@ -69,13 +74,13 @@ struct savelist {
 
 LOCAL SAVELIST *savelist;
 
+
 /*
  * Set a breakpoint at the given address.  Only save the half-word there
  * if it's not already a breakpoint.
  */
-
-setbp(addr)
-ADDRESS addr;
+void
+setbp(ADDRESS addr)
 {
 	unsigned char w;
 	short save;
@@ -102,14 +107,14 @@ ADDRESS addr;
 	iwrite(&w, addr, sizeof(w));
 }
 
+
 /*
  * Unset a breakpoint; unfortunately we have to search the SAVELIST
  * to find the saved value.  The assumption is that the SAVELIST will
  * usually be quite small.
  */
-
-unsetbp(addr)
-ADDRESS addr;
+void
+unsetbp(ADDRESS addr)
 {
 	register SAVELIST *s, *prev;
 
@@ -137,12 +142,13 @@ ADDRESS addr;
 	panic("unsetbp: couldn't find address %d", addr);
 }
 
+
 /*
  * Predicate to test if the reason the process stopped was because
  * of a breakpoint.
  */
-
-BOOLEAN isbperr()
+BOOLEAN 
+isbperr(void)
 {
 	register PROCESS *p;
 

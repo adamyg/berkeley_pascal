@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)attributes.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,26 +46,26 @@ static char sccsid[] = "@(#)attributes.c	8.1 (Berkeley) 6/6/93";
 #include "classes.h"
 #include "sym.rep"
 
-char *name(s)
-SYM *s;
+const char *
+name(SYM *s)
 {
 	return s->symbol;
 }
 
-int toknum(s)
-SYM *s;
+int 
+toknum(SYM *s)
 {
 	return s->symvalue.token.toknum;
 }
 
-int tokval(s)
-SYM *s;
+int 
+tokval(SYM *s)
 {
 	return s->symvalue.token.tokval;
 }
 
-ADDRESS codeloc(f)
-SYM *f;
+ADDRESS 
+codeloc(SYM *f)
 {
 	if (f == NIL) {
 		panic("codeloc: nil symbol");
@@ -81,8 +81,8 @@ SYM *f;
  * The idea is to remove type names so we can check the class.
  */
 
-SYM *rtype(t)
-register SYM *t;
+SYM *
+rtype(register SYM *t)
 {
 	while (t->class == TYPE) {
 		t = t->type;
@@ -94,8 +94,8 @@ register SYM *t;
  * Return the SYM that contains the given SYM.
  */
 
-SYM *container(s)
-SYM *s;
+SYM *
+container(SYM *s)
 {
 	return s->func;
 }
@@ -105,7 +105,7 @@ SYM *s;
  * the given symbol belongs to.
  */
 
-LOCAL char *clname[] = {
+LOCAL const char *clname[] = {
 	"bad use", "constant", "type", "variable", "array", "fileptr",
 	"record", "field", "procedure", "function", "funcvar",
 	"ref", "pointer", "file", "set", "range", "label", "withptr",
@@ -113,8 +113,8 @@ LOCAL char *clname[] = {
 	"procparam", "funcparam",
 };
 
-char *classname(s)
-SYM *s;
+const char *
+classname(SYM *s)
 {
 	return clname[s->class];
 }
@@ -123,16 +123,17 @@ SYM *s;
  * size finds the size in bytes of the given type
  */
 
-#define MINCHAR -128
-#define MAXCHAR 127
-#define MINSHORT -32768
-#define MAXSHORT 32767
+#define MINCHAR         -128
+#define MAXCHAR         127
+#define MINSHORT        -32768
+#define MAXSHORT        32767
 
-int size(t)
-register SYM *t;
+int 
+size(register SYM *t)
 {
 	long lower, upper;
 
+	if (t == NIL) return (0); /*APY*/
 	t = rtype(t);
 	if (t == t_real) {
 		return sizeof(double);
@@ -190,13 +191,13 @@ register SYM *t;
 		case FPROC:
 		case FFUNC:
 			return sizeof(ADDRESS *);
+        }
 
-		default:
-			if (t->class < BADUSE || t->class > FFUNC) {
-				panic("size: bad class (%d)", t->class);
-			} else {
-				error("improper operation on a %s", classname(t));
-			}
-			/* NOTREACHED */
+	if (t->class < BADUSE || t->class > FFUNC) {
+		panic("size: bad class (%d)", t->class);
+	} else {
+		error("improper operation on a %s", classname(t));
 	}
+        /* NOTREACHED */
+        return (0);
 }

@@ -44,4 +44,5 @@ typedef struct {
 	LINENO lineindex;
 } FILETAB;
 
-FILETAB *filetab;
+extern FILETAB *filetab;
+

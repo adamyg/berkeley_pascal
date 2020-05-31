@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)const.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,63 +47,64 @@ static char sccsid[] = "@(#)const.c	8.1 (Berkeley) 6/6/93";
  * part into the namelist.
  */
 #ifndef PI1
-constbeg( lineofyconst , linenum )
-    int	lineofyconst, linenum;
+void
+constbeg( lineofyconst, cline )
+        int lineofyconst, cline;
 {
-    static bool	const_order = FALSE;
-    static bool	const_seen = FALSE;
+	static bool const_order = FALSE;
+	static bool const_seen = FALSE;
 
+	(void) cline;
 /*
- * this allows for multiple declaration
- * parts, unless the "standard" option
- * has been specified.
- * If a routine segment is being compiled,
+ * this allows for multiple declaration parts, unless the "standard" option
+ * has been specified.  If a routine segment is being compiled,
  * do level one processing.
  */
-
 	if (!progseen)
 		level1();
 	line = lineofyconst;
 	if (parts[ cbn ] & (TPRT|VPRT|RPRT)) {
-	    if ( opt( 's' ) ) {
-		standard();
-		error("Constant declarations should precede type, var and routine declarations");
-	    } else {
-		if ( !const_order ) {
-		    const_order = TRUE;
-		    warning();
-		    error("Constant declarations should precede type, var and routine declarations");
+		if ( opt( 's' ) ) {
+			standard();
+			error("Constant declarations should precede type, var and routine declarations");
+		} else {
+			if ( !const_order ) {
+				const_order = TRUE;
+				warning();
+				error("Constant declarations should precede type, var and routine declarations");
+			}
 		}
-	    }
 	}
 	if (parts[ cbn ] & CPRT) {
-	    if ( opt( 's' ) ) {
-		standard();
-		error("All constants should be declared in one const part");
-	    } else {
-		if ( !const_seen ) {
-		    const_seen = TRUE;
-		    warning();
-		    error("All constants should be declared in one const part");
+		if ( opt( 's' ) ) {
+			standard();
+			error("All constants should be declared in one const part");
+		} else {
+			if ( !const_seen ) {
+				const_seen = TRUE;
+				warning();
+				error("All constants should be declared in one const part");
+			}
 		}
-	    }
 	}
 	parts[ cbn ] |= CPRT;
 }
-#endif PI1
+#endif /*PI1*/
 
-constant(cline, cid, cdecl)
+
+void
+constant(cline, cid, Cdecl)
 	int cline;
 	register char *cid;
-	register struct tnode *cdecl;
+	register struct tnode *Cdecl;
 {
 	register struct nl *np;
 
 #ifdef PI0
-	send(REVCNST, cline, cid, cdecl);
+	send(REVCNST, cline, cid, Cdecl);
 #endif
 	line = cline;
-	gconst(cdecl);
+	gconst(Cdecl);
 	np = enter(defnl(cid, CONST, con.ctype, con.cival));
 #ifndef PI0
 	np->nl_flags |= NMOD;
@@ -110,44 +112,47 @@ constant(cline, cid, cdecl)
 
 #ifdef PC
 	if (cbn == 1) {
-	    stabgconst( cid , line );
+		stabgconst( cid , line );
 	}
-#endif PC
+#endif /*PC*/
 
-#	ifdef PTREE
-	    {
-		pPointer	Const = ConstDecl( cid , cdecl );
-		pPointer	*Consts;
+# ifdef PTREE
+	{
+		pPointer Const = ConstDecl( cid , Cdecl );
+		pPointer *Consts;
 
 		pSeize( PorFHeader[ nesting ] );
 		Consts = &( pDEF( PorFHeader[ nesting ] ).PorFConsts );
 		*Consts = ListAppend( *Consts , Const );
 		pRelease( PorFHeader[ nesting ] );
-	    }
-#	endif
+	}
+#endif
 	if (con.ctype == NIL)
 		return;
 	if ( con.ctype == nl + TSTR )
 		np->ptr[0] = (struct nl *) con.cpval;
 	if (isa(con.ctype, "i"))
-		np->range[0] = con.crval;
+		np->range[0] = (long)con.crval;
 	else if (isa(con.ctype, "d"))
 		np->real = con.crval;
-#       ifdef PC
-	    if (cbn == 1 && con.ctype != NIL) {
-		    stabconst(np);
-	    }
-#       endif
+#ifdef PC
+	if (cbn == 1 && con.ctype != NIL) {
+		stabconst(np);
+	}
+#endif
 }
+
 
 #ifndef PI0
 #ifndef PI1
+void
 constend()
 {
-
 }
 #endif
 #endif
+
+
 
 /*
  * Gconst extracts
@@ -158,6 +163,7 @@ constend()
  * and scalars, the first two
  * being possibly signed.
  */
+void
 gconst(c_node)
 	struct tnode *c_node;
 {
@@ -219,16 +225,16 @@ loop:
 			goto restcon;
 		case T_CINT:
 			con.crval = atof(cn->char_const.cptr);
-			if (con.crval > MAXINT || con.crval < MININT) {
+			if (con.crval > XMAXINT || con.crval < XMININT) {
 				derror("Constant too large for this implementation");
 				con.crval = 0;
 			}
 restcon:
-			ci = con.crval;
+			ci = (long)con.crval;
 #ifndef PI0
 			if (bytes(ci, ci) <= 2)
 				con.ctype = nl+T2INT;
-			else	
+			else    
 #endif
 				con.ctype = nl+T4INT;
 			break;
@@ -255,14 +261,16 @@ restcon:
 		else {
 			if (negd)
 				con.crval = -con.crval;
-			ci = con.crval;
+			ci = (long)con.crval;
 		}
 	}
 }
 
+
 #ifndef PI0
+int
 isconst(cn)
-	register struct tnode *cn;
+        register struct tnode *cn;
 {
 
 	if (cn == TR_NIL)
@@ -271,12 +279,12 @@ isconst(cn)
 		case T_MINUS:
 			cn->tag = T_MINUSC;
 			cn->sign_const.number = 
-					 cn->un_expr.expr;
+						cn->un_expr.expr;
 			return (isconst(cn->sign_const.number));
 		case T_PLUS:
 			cn->tag = T_PLUSC;
 			cn->sign_const.number = 
-					 cn->un_expr.expr;
+						cn->un_expr.expr;
 			return (isconst(cn->sign_const.number));
 		case T_VAR:
 			if (cn->var_node.qual != TR_NIL)
@@ -309,3 +317,4 @@ isconst(cn)
 	return (0);
 }
 #endif
+

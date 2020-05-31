@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)trcond.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,23 +41,22 @@ static char sccsid[] = "@(#)trcond.c	8.1 (Berkeley) 6/6/93";
  */
 
 #include "defs.h"
+#include "tree.h"
 #include "breakpoint.h"
 
 typedef struct tr_cond_list {
-	TRTYPE trtype;
-	NODE *trace_condition;
+	TRTYPE  trtype;
+	NODE    *trace_condition;
 	struct tr_cond_list *next_condition;
 } TR_COND_LIST;
 
-LOCAL TR_COND_LIST *cond_list;
+LOCAL TR_COND_LIST      *cond_list;
 
 /*
  * add a condition to be checked before giving single stepping information
  */
-
-addcond(trtype, p)
-TRTYPE trtype;
-NODE *p;
+void
+addcond(TRTYPE trtype, NODE *p)
 {
 	register TR_COND_LIST *c;
 
@@ -74,10 +73,8 @@ NODE *p;
 /*
  * delete a condition from the list
  */
-
-delcond(trtype, p)
-TRTYPE trtype;
-NODE *p;
+void
+delcond(TRTYPE trtype, NODE *p)
 {
 	register TR_COND_LIST *c, *last;
 
@@ -105,8 +102,8 @@ NODE *p;
  * Determine if any trace condition on the list is true.
  * If the list is empty, return TRUE.
  */
-
-BOOLEAN trcond()
+BOOLEAN 
+trcond(void)
 {
 	register TR_COND_LIST *c;
 	BOOLEAN foundcond;
@@ -129,7 +126,8 @@ BOOLEAN trcond()
  * If the list is empty, return FALSE.
  */
 
-BOOLEAN stopcond()
+BOOLEAN 
+stopcond(void)
 {
 	register TR_COND_LIST *c;
 
@@ -145,8 +143,8 @@ BOOLEAN stopcond()
  * Free all existing breakpoints.
  * Trace conditions have been freed elsewhere.
  */
-
-condfree()
+void
+condfree(void)
 {
 	TR_COND_LIST *c, *next;
 

@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1982, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)readobj.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,23 +47,34 @@ static char sccsid[] = "@(#)readobj.c	8.1 (Berkeley) 6/6/93";
 #include "objfmt.h"
 #include "main.h"
 #include "mappings.h"
+#include "source.h"
 #include "mappings/filetab.h"
 #include "mappings/linetab.h"
 #include "objsym.rep"
 
-#define MAXSYMNO 6000
+#define MAXSYMNO        6000
 
-char *objname = "obj";
+LOCAL void readfiles(register FILE *fp);
+LOCAL void readlines(FILE *fp);
+
+SYM	*program = 0; /* program symbols */
+
+const char *objname = "obj";
+int	objsize = 0;
+struct nlhdr nlhdr = {0};
+
+char *stringtab = 0; /* string table */
+char *dotpfile = 0; /* name of compiled file */
 
 LOCAL SYM *sym[MAXSYMNO];
 
-readobj(file)
-char *file;
+FILE *
+openobj(const char *file)
 {
     register FILE *fp;
     struct pxhdr hdr;
 
-    if ((fp = fopen(file, "r")) == NIL) {
+    if ((fp = fopen(file, "rb")) == NIL) {
 	panic("can't open %s", file);
     }
     get(fp, hdr);
@@ -92,18 +104,26 @@ char *file;
     }
     stringtab = alloc(nlhdr.stringsize, char);
     fread(stringtab, sizeof(char), nlhdr.stringsize, fp);
+    return (fp);
+}
+
+
+void
+readobj(FILE *fp)
+{
     readsyms(fp);
     readfiles(fp);
     readlines(fp);
     fclose(fp);
 }
 
+
 /*
  * Allocate and read in file name information table.
  */
 
-LOCAL readfiles(fp)
-register FILE *fp;
+LOCAL void
+readfiles(FILE *fp)
 {
     register int i;
     register FILETAB *ftp;
@@ -131,8 +151,8 @@ register FILE *fp;
  * Allocate and read in line number information table.
  */
 
-LOCAL readlines(fp)
-FILE *fp;
+LOCAL void
+readlines(FILE *fp)
 {
     register LINENO oline;
     register ADDRESS oaddr;
@@ -169,9 +189,8 @@ FILE *fp;
 /*
  * Read in the symbols.
  */
-
-readsyms(fp)
-FILE *fp;
+void
+readsyms(FILE *fp)
 {
     register int i;
     int symno;
@@ -194,11 +213,11 @@ FILE *fp;
 }
 
 typedef struct patchinfo {
-    SYM **patchsym;
-    struct patchinfo *next_patch;
+    SYM                 **patchsym;
+    struct patchinfo    *next_patch;
 } PATCH;
 
-LOCAL PATCH *phead;
+LOCAL PATCH             *phead;
 
 /*
  * Go through patchlist looking for symbol numbers for which the
@@ -207,7 +226,8 @@ LOCAL PATCH *phead;
  * Afterwards, zap the sym array.
  */
 
-int backpatch()
+int 
+backpatch(void)
 {
     register PATCH *p, *last, *next;
     register SYM *s, **t;
@@ -242,9 +262,8 @@ int backpatch()
  * be added to the patch list.  The argument is double indirect
  * to do call by reference passing.
  */
-
-chkpatch(p)
-SYM **p;
+void
+chkpatch(SYM **p)
 {
     register SYM *s, *t;
     register PATCH *patch;
@@ -264,8 +283,8 @@ SYM **p;
 /*
  * Free all the object information.
  */
-
-objfree()
+void
+objfree(void)
 {
     register int i;
 

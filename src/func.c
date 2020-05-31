@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,8 +31,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)func.c	8.1 (Berkeley) 6/6/93";
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)func.c	5.2 (Berkeley) 4/16/91";
 #endif /* not lint */
 
 #include "whoami.h"
@@ -51,15 +51,15 @@ static char sccsid[] = "@(#)func.c	8.1 (Berkeley) 6/6/93";
  * call to generate calls to user
  * defined functions and procedures.
  */
-struct nl
-*funccod(r)
+struct nl *
+funccod(r)
 	struct tnode *r;
 {
 	struct nl *p;
 	register struct nl *p1;
 	struct nl *tempnlp;
 	register struct tnode *al;
-	register op;
+	register int op;
 	int argc;
 	struct tnode *argv, tr, tr2;
 
@@ -123,7 +123,7 @@ struct nl
 				tr.list_node.list = (&tr2);
 				tr2.tag = T_VAR;
 				tr2.var_node.cptr = input->symbol;
-				tr2.var_node.line_no = NIL;
+				tr2.var_node.line_no = TNONE;
 				tr2.var_node.qual = TR_NIL;
 				argc = 1;
 			} else if (argc != 1) {
@@ -145,7 +145,7 @@ struct nl
 	 * Evaluate the argmument
 	 */
 	if (op == O_EOF || op == O_EOLN)
-		p1 = stklval(argv->list_node.list, NIL );
+		p1 = stklval(argv->list_node.list, TNONE );
 	else
 		p1 = stkrval(argv->list_node.list, NLNIL , (long) RREQ );
 	if (p1 == NLNIL)
@@ -185,7 +185,7 @@ struct nl
 			(void) put(1, op);
 			return (nl+T4INT);
 		case O_ROUND:
-		case O_TRUNC:
+		case O_TRUNCATE:
 			if (isnta(p1, "d"))  {
 				error("%s's argument must be a real, not %s", p->symbol, nameof(p1));
 				return (NLNIL);
@@ -281,4 +281,5 @@ struct nl
 			return (nl+TBOOL);
 	}
 }
-#endif OBJ
+#endif /*OBJ*/
+

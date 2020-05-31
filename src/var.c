@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)var.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,9 +43,10 @@ static char sccsid[] = "@(#)var.c	8.1 (Berkeley) 6/6/93";
 #include "iorec.h"
 #ifdef PC
 #   include	"pc.h"
-#endif PC
+#endif /*PC*/
 #include "tmps.h"
 #include "tree_ty.h"
+
 
 /*
  * Declare variables of a var part.  DPOFF1 is
@@ -54,7 +56,8 @@ static char sccsid[] = "@(#)var.c	8.1 (Berkeley) 6/6/93";
  * size array.
  */
 /*ARGSUSED*/
-varbeg( lineofyvar , r )
+void
+varbeg( lineofyvar, r )
     int	lineofyvar;
 {
     static bool	var_order = FALSE;
@@ -66,7 +69,6 @@ varbeg( lineofyvar , r )
  * If routine segment is being compiled,
  * do level one processing.
  */
-
 #ifndef PI1
 	if (!progseen)
 		level1();
@@ -108,6 +110,7 @@ varbeg( lineofyvar , r )
 #endif
 }
 
+void
 var(vline, vidl, vtype)
 #ifdef PI0
 	int vline;
@@ -146,7 +149,7 @@ var(vline, vidl, vtype)
 		    op->curtmps.om_off =
 			roundup((int)(op->curtmps.om_off-w), (long)align(np));
 		    o2 = op -> curtmps.om_off;
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    if ( cbn == 1 ) {
 				/*
@@ -163,7 +166,7 @@ var(vline, vidl, vtype)
 				(long)align(np));
 			    o2 = op -> curtmps.om_off;
 		    }
-#		endif PC
+#		endif /*PC*/
 #		ifdef PC
 		vp = enter(defnl((char *) vidl->list_node.list, VAR, np, o2));
 #		else
@@ -185,7 +188,7 @@ var(vline, vidl, vtype)
 		    } else {
 			vp -> extra_flags |= NLOCAL;
 		    }
-#		endif PC
+#		endif /*PC*/
 	}
 #	ifdef PTREE
 	    {
@@ -201,9 +204,10 @@ var(vline, vidl, vtype)
 }
 #endif
 
-varend()
-{
 
+void
+varend(void)
+{
 	foredecl();
 #ifndef PI0
 	sizes[cbn].om_max = sizes[cbn].curtmps.om_off;
@@ -212,9 +216,11 @@ varend()
 #endif
 }
 
+
 /*
  * Find the width of a type in bytes.
  */
+int
 width(np)
 	struct nl *np;
 {
@@ -257,8 +263,8 @@ loop:
 			goto loop;
 		case RANGE:
 			if (p->type == nl+TDOUBLE)
-#ifdef DEBUG
-				return (hp21mx ? 4 : 8);
+#if defined(DEBUG) && (hp21mx)
+				return (4);
 #else
 				return (8);
 #endif
@@ -277,6 +283,7 @@ loop:
 	}
 }
 
+
     /*
      *	round up x to a multiple of y
      *	for computing offsets of aligned things.
@@ -285,10 +292,9 @@ loop:
      */
 long
 roundup( x , y )
-    int			x;
-    register long	y;
-    {
-	
+        int		x;
+        register long	y;
+{
 	if ( y == 0 ) {
 	    return x;
 	}
@@ -297,7 +303,7 @@ roundup( x , y )
 	} else {
 		return ( ( ( x - ( y - 1 ) ) / y ) * y );
 	}
-    }
+}
 
     /*
      *	alignment of an object using the c alignment scheme
@@ -378,9 +384,10 @@ alignit:
     /*
      *	output an alignment pseudo-op.
      */
+void
 aligndot(alignment)
     int	alignment;
-#if defined(vax) || defined(tahoe)
+#if defined(vax) || defined(tahoe) || defined(i80x86)
 {
     switch (alignment) {
 	case 1:
@@ -394,7 +401,7 @@ aligndot(alignment)
 	    return;
     }
 }
-#endif vax || tahoe
+#endif /*vax || tahoe || i80x86*/
 #ifdef mc68000
 {
     switch (alignment) {
@@ -405,14 +412,16 @@ aligndot(alignment)
 	    return;
     }
 }
-#endif mc68000
-#endif PC
+#endif /*mc68000*/
+#endif /*PC*/
+
     
 /*
  * Return the width of an element
  * of a n time subscripted np.
  */
-long aryconst(np, n)
+long
+aryconst(np, n)
 	struct nl *np;
 	int n;
 {
@@ -420,7 +429,7 @@ long aryconst(np, n)
 	long s, d;
 
 	if ((p = np) == NIL)
-		return (NIL);
+		return (0);
 	if (p->class != ARRAY)
 		panic("ary");
 	/*
@@ -428,7 +437,7 @@ long aryconst(np, n)
 	 * the type.
 	 */
 	if (p->chain->class == CRANGE)
-		return (NIL);
+		return (0);
 	s = lwidth(p->type);
 	/*
 	 * Arrays of anything but characters are word aligned.
@@ -459,10 +468,11 @@ long aryconst(np, n)
 /*
  * Find the lower bound of a set, and also its size in bits.
  */
+void
 setran(q)
 	struct nl *q;
 {
-	register lb, ub;
+	register int lb, ub;
 	register struct nl *p;
 
 	p = q;
@@ -480,17 +490,15 @@ setran(q)
 /*
  * Return the number of bytes required to hold an arithmetic quantity
  */
+int
 bytes(lb, ub)
 	long lb, ub;
 {
-
-#ifndef DEBUG
-	if (lb < -32768 || ub > 32767)
-		return (4);
-	else if (lb < -128 || ub > 127)
+#if defined(DEBUG) && (hp21mx)
+	if (lb < -128 || ub > 127)
 		return (2);
 #else
-	if (!hp21mx && (lb < -32768 || ub > 32767))
+	if (lb < -32768 || ub > 32767)
 		return (4);
 	if (lb < -128 || ub > 127)
 		return (2);

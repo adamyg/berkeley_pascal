@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)build.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -49,36 +50,27 @@ static char sccsid[] = "@(#)build.c	8.1 (Berkeley) 6/6/93";
 #include "tree.rep"
 
 /*
- * header for using routines with unknown number and types of arguments
- * I didn't like the looks of the standard varargs.h.
- */
-
-typedef char *ARGLIST;
-
-#define nextarg(arglist, type)	((type *) (arglist += sizeof(type)))[-1]
-
-/*
  * build a tree
  */
 
 /*VARARGS1*/
-NODE *build(op, args)
-OP op;
+NODE *
+build(OP op, ...)
 {
 	register NODE *p;
-	register ARGLIST ap;
+	va_list ap;
 
 	p = alloc(1, NODE);
 	p->op = op;
-	ap = (ARGLIST) &args;
+	va_start(ap, op);
 	switch(degree(op)) {
 		case BINARY:
-			p->left = nextarg(ap, NODE *);
-			p->right = nextarg(ap, NODE *);
+			p->left = va_arg(ap, NODE *);
+			p->right = va_arg(ap, NODE *);
 			break;
 
 		case UNARY:
-			p->left = nextarg(ap, NODE *);
+			p->left = va_arg(ap, NODE *);
 			p->right = NIL;
 			break;
 
@@ -86,39 +78,39 @@ OP op;
 	switch(op) {
 		case O_NAME:
 		case O_WHICH:
-			p->nameval = nextarg(ap, SYM *);
+			p->nameval = va_arg(ap, SYM *);
 			break;
 
 		case O_LCON:
-			p->lconval = nextarg(ap, long);
+			p->lconval = va_arg(ap, long);
 			break;
 
 		case O_FCON:
-			p->fconval = nextarg(ap, double);
+			p->fconval = va_arg(ap, double);
 			break;
 
 		case O_SCON:
-			p->sconval = nextarg(ap, char *);
+			p->sconval = va_arg(ap, char *);
 			break;
 
 		case O_CALL:
-			p->left = nextarg(ap, NODE *);
-			p->right = nextarg(ap, NODE *);
+			p->left = va_arg(ap, NODE *);
+			p->right = va_arg(ap, NODE *);
 			break;
 
 		case O_CHFILE:
-			p->sconval = nextarg(ap, char *);
+			p->sconval = va_arg(ap, char *);
 			break;
 
 		case O_EDIT:
-			p->sconval = nextarg(ap, char *);
+			p->sconval = va_arg(ap, char *);
 			if (p->sconval == NIL) {
-				p->sconval = cursource;
+				p->sconval = (char *)cursource;
 			}
 			break;
 
 		case O_SOURCE:
-			p->sconval = nextarg(ap, char *);
+			p->sconval = va_arg(ap, char *);
 			break;
 
 		case O_PRINT:
@@ -126,26 +118,28 @@ OP op;
 		case O_LIST:
 		case O_XI:
 		case O_XD:
-			p->left = nextarg(ap, NODE *);
+			p->left = va_arg(ap, NODE *);
 			break;
 
 		case O_TRACE:
 		case O_TRACEI:
 		case O_STOP:
 		case O_STOPI:
-			p->what = nextarg(ap, NODE *);
-			p->where = nextarg(ap, NODE *);
-			p->cond = nextarg(ap, NODE *);
+			p->what = va_arg(ap, NODE *);
+			p->where = va_arg(ap, NODE *);
+			p->cond = va_arg(ap, NODE *);
 			break;
 
 		case O_DELETE:
-			p->left = build(O_LCON, nextarg(ap, long));
+		case O_STEP:
+		case O_NEXT:
+			p->left = build(O_LCON, va_arg(ap, long));
 			break;
 
 		case O_QLINE: {
 			char *s;
 
-			s = nextarg(ap, char *);
+			s = va_arg(ap, char *);
 			p->left = alloc(1, NODE);
 			p->left->op = O_SCON;
 			if (s != cursource) {
@@ -154,17 +148,17 @@ OP op;
 			} else {
 				p->left->sconval = strdup(s);
 			}
-			p->right = nextarg(ap, NODE *);
+			p->right = va_arg(ap, NODE *);
 			break;
 		}
 
 		case O_ALIAS:
 			p->left = alloc(1, NODE);
 			p->left->op = O_SCON;
-			p->left->sconval = nextarg(ap, char *);
+			p->left->sconval = va_arg(ap, char *);
 			p->right = alloc(1, NODE);
 			p->right->op = O_SCON;
-			p->right->sconval = nextarg(ap, char *);
+			p->right->sconval = va_arg(ap, char *);
 			break;
 			
 		default:
@@ -173,6 +167,7 @@ OP op;
 			}
 			break;
 	}
-	p->nodetype = treetype(p, (ARGLIST) &args);
+	va_start(ap, op);
+	p->nodetype = treetype(p, ap);
 	return(p);
 }

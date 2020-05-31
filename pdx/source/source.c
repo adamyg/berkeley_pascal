@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 4; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)source.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,6 +42,12 @@ static char sccsid[] = "@(#)source.c	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include "source.h"
+
+LOCAL void free_seektab(void);
+
+const char *cursource = 0; /* current source file name */
+LINENO lastlinenum = 0; /* last source line number */
+
 
 /*
  * Seektab is the data structure used for indexing source
@@ -79,14 +86,15 @@ typedef int SEEKADDR;
 
 LOCAL SEEKADDR *seektab[NSLOTS];
 
+LOCAL const char *srcparent;
+LOCAL const char **srcincludes;
 LOCAL FILE *srcfp;
 
 /*
  * check to make sure a source line number is valid
  */
-
-chkline(linenum)
-register LINENO linenum;
+void
+chkline(register LINENO linenum)
 {
     if (linenum < 1) {
 	error("line number must be positive");
@@ -99,9 +107,8 @@ register LINENO linenum;
 /*
  * print out the given lines from the source
  */
-
-printlines(l1, l2)
-LINENO l1, l2;
+void
+printlines(LINENO l1, LINENO l2)
 {
     register int c;
     register LINENO i;
@@ -117,18 +124,43 @@ LINENO l1, l2;
     for (i = l1; i <= l2; i++) {
 	printf("%5d   ", i);
 	while ((c = getc(fp)) != '\n') {
+	    if (c == '\r')
+		continue;			/*consume*/
 	    putchar(c);
 	}
 	putchar('\n');
     }
 }
 
+
+/*
+ * configuration  
+ */
+void                
+skimconfig(const char *parent, const char **includes)
+{
+    if (parent) {
+        if (NULL != (srcparent = strdup(parent))) {
+            char *p1 = strrchr(srcparent, '/'),
+                *p2 = strrchr(srcparent, '\\'); 
+
+            if (p1 || p2) {                     /*remove objname*/
+                (p1 > p2 ? p1 : p2)[1] = 0;
+            } else {
+                free((void *)srcparent);        /*no path, ignore*/
+                srcparent = NULL;
+            }
+        }
+    } 
+    srcincludes = includes;
+}
+
+
 /*
  * read the source file getting seek pointers for each line
  */
-
-skimsource(file)
-char *file;
+void
+skimsource(const char *file)
 {
     register int c;
     register SEEKADDR count;
@@ -136,13 +168,31 @@ char *file;
     register LINENO linenum;
     register SEEKADDR lastaddr;
     register int slot;
+    char t_path[1024] = {0};
 
     if (file == NIL || file == cursource) {
 	return;
     }
-    if ((fp = fopen(file, "r")) == NULL) {
-	panic("can't open \"%s\"", file);
+
+    if ((fp = fopen(file, "rb")) == NULL) {
+
+	if (srcparent) {                        /* relative to object/parent */
+	    (void) snprintf(t_path, sizeof(t_path)-1, "%s%s", srcparent, file);
+	    fp = fopen(t_path, "rb");
+	}
+
+	if (NULL == fp && srcincludes) {        /* relative to includes */
+            for (c = 0; NULL == fp && srcincludes[c]; ++c) {
+	        (void) snprintf(t_path, sizeof(t_path)-1, "%s/%s", srcincludes[c], file);
+	        fp = fopen(t_path, "rb");
+            }
+	}
+
+	if (NULL == fp) {
+	    panic("can't open \"%s\"", file);
+	}
     }
+
     if (cursource != NIL) {
 	free_seektab();
     }
@@ -173,7 +223,8 @@ char *file;
  * should be kept around, but the current concern is space.
  */
 
-LOCAL free_seektab()
+LOCAL void
+free_seektab(void)
 {
     register int slot;
 

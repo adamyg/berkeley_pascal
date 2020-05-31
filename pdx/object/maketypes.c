@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)maketypes.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,11 +46,17 @@ static char sccsid[] = "@(#)maketypes.c	8.1 (Berkeley) 6/6/93";
 #include "sym/classes.h"
 #include "sym/sym.rep"
 
+SYM *t_int = 0;
+SYM *t_real = 0;
+SYM *t_char = 0;
+SYM *t_boolean = 0;
+
 /*
  * point the basic types in the right direction
  */
 
-maketypes()
+void
+maketypes(void)
 {
 	t_int = st_lookup(symtab, "integer")->type;
 	t_real = st_lookup(symtab, "real")->type;
@@ -64,11 +70,8 @@ maketypes()
 /*
  * enter a keyword in the given table
  */
-
-make_keyword(table, name, tnum)
-SYMTAB *table;
-char *name;
-int tnum;
+void
+make_keyword(SYMTAB *table, char *name, int tnum)
 {
 	register SYM *s;
 

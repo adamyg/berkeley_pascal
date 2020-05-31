@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printdata.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -55,9 +56,8 @@ static char sccsid[] = "@(#)printdata.c	8.1 (Berkeley) 6/6/93";
  * print words from lowaddr to highaddr
  */
 
-printdata(lowaddr, highaddr)
-ADDRESS lowaddr;
-ADDRESS highaddr;
+void
+printdata(ADDRESS lowaddr, ADDRESS highaddr)
 {
 	register int count;
 	register ADDRESS addr;

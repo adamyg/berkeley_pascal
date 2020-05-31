@@ -42,4 +42,4 @@ typedef struct {
 	ADDRESS addr;
 } LINETAB;
 
-LINETAB *linetab;
+extern LINETAB *linetab;

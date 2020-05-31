@@ -43,12 +43,24 @@
  * most of the data defined in "object.h".
  */
 
-ADDRESS objaddr();	/* get the object address corresponding to a line */
+                                /* get the object address corresponding to a line */
+extern ADDRESS          objaddr(LINENO line, const char *name);
 
-char *srcfilename();	/* get the nearest source file <= a given address */
-LINENO srcline();	/* get the nearest source line <= a given address */
-LINENO linelookup();	/* look for a line number with exactly given address */
+                                /* get the nearest source file <= a given address */
+extern const char       *srcfilename(ADDRESS addr);
 
-int newfunc();		/* record the appearance of a new function */
-SYM *whatblock();	/* find the function associated with an address */
-int clrfunctab();	/* re-initialize function table */
+                                /* get the nearest source line <= a given address */
+extern LINENO           srcline(ADDRESS addr);
+
+                                /* look for a line number with exactly given address */
+extern LINENO           linelookup(ADDRESS addr);
+
+                                /* record the appearance of a new function */
+extern void             newfunc(SYM *f);
+
+                                /* find the function associated with an address */
+extern SYM              *whatblock(ADDRESS addr);
+
+                                /* re-initialize function table */
+extern void             clrfunctab(void);
+

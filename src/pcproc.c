@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)pcproc.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -90,6 +90,7 @@ int rdxxxx[] = {
  * indicating that they are actually procedures.
  * builtin procedures are handled here.
  */
+void
 pcproc(r)
 	struct tnode *r;	/* T_PCALL */
 {
@@ -625,19 +626,19 @@ pcproc(r)
 			case SKIP:
 				break;
 			case CONWIDTH:
-				sprintf(&format[1], "%%%1D%c", field, fmt);
+				sprintf(&format[1], "%%%1d%c", field, fmt);
 				goto fmtgen;
 			case VARWIDTH:
 				sprintf(&format[1], "%%*%c", fmt);
 				goto fmtgen;
 			case CONWIDTH + CONPREC:
-				sprintf(&format[1], "%%%1D.%1D%c", field, prec, fmt);
+				sprintf(&format[1], "%%%1d.%1d%c", field, prec, fmt);
 				goto fmtgen;
 			case CONWIDTH + VARPREC:
-				sprintf(&format[1], "%%%1D.*%c", field, fmt);
+				sprintf(&format[1], "%%%1d.*%c", field, fmt);
 				goto fmtgen;
 			case VARWIDTH + CONPREC:
-				sprintf(&format[1], "%%*.%1D%c", prec, fmt);
+				sprintf(&format[1], "%%*.%1d%c", prec, fmt);
 				goto fmtgen;
 			case VARWIDTH + VARPREC:
 				sprintf(&format[1], "%%*.*%c", fmt);
@@ -1616,4 +1617,4 @@ packunp:
 		panic("proc case");
 	}
 }
-#endif PC
+#endif /*PC*/

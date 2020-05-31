@@ -1,3 +1,4 @@
+/* -*- mode: c; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1982, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -33,12 +34,17 @@
  *	@(#)process.rep	8.1 (Berkeley) 6/6/93
  */
 
+#include "pxinfo.h"		/* TRAPARGS */
+
 /*
  * This file defines the representation of a process.
  * It is MACHINE DEPENDENT.
  */
 
-#define STOPPED 0177
+#define STARTING 0x3f		/* 63 */
+#define RUNNING 0xff		/* 255 */
+
+#define STOPPED 0177		/* 127 */
 #define FINISHED 0
 
 #ifdef vax
@@ -50,6 +56,13 @@
 #ifdef mc68000
 #define NREG 14			/* maximum number of saved registers */
 #endif
+#ifdef MSDOS
+#define NREG 1			/* maximum number of saved registers */
+#endif
+#ifdef WIN32
+#define NREG 1			/* maximum number of saved registers */
+#endif
+
 #define CSIZE 101		/* size of instruction cache */
 
 /*
@@ -62,12 +75,25 @@ typedef struct {
 	WORD val;
 } CACHEWORD;
 
+
 /*
  * This structure holds the information we need from the user structure.
  */
 
 struct process {
 	int pid;		/* process being traced */
+#define PXEMBEDDED 1
+
+#if defined(WIN32) && (PXEMBEDDED)
+	HANDLE tid;		/* thread identifier */
+	HANDLE tevent;		/* task event */
+	HANDLE sevent;		/* status event */
+	int argc;		/* process argument count */
+	const char **argv;      /* argument vector */
+	TRAPARGS targs;		/* trap arguments */
+#endif
+
+#ifdef unix
 	WORD reg[NREG];		/* process's registers */
 #ifdef tahoe
 	WORD fp, sp, pc;	/* special registers */
@@ -76,23 +102,20 @@ struct process {
 #endif
 	WORD oreg[NREG];	/* registers when process last stopped */
 	WORD oap, ofp, osp, opc;/* special registers when process stopped */
+#endif
+
+#if defined(PXEMBEDDED)
+	ADDRESS	isp, ipc; 	/* interpreter registers */
+#endif
+
 	int status;		/* either STOPPED or FINISHED */
 	int signo;		/* signal that stopped process */
 	int exitval;		/* return value from exit() */
 	long sigset;		/* bit array of traced signals */
+
 	CACHEWORD word[CSIZE];	/* text segment cache */
 };
 
-/*
- * Process manipulation routines local to this module.
- */
-
-int pstart();			/* start up a process */
-int pcont();			/* continue execution */
-int pstep();			/* single step */
-int pio();			/* process memory move */
-int psigtrace();		/* catch/don't catch a signal */
-int unsetsigtraces();		/* don't catch any signals */
 
 /*
  * These definitions are for the arguments to "pio".
@@ -101,9 +124,40 @@ int unsetsigtraces();		/* don't catch any signals */
 typedef enum { PREAD, PWRITE } PIO_OP;
 typedef enum { TEXTSEG, DATASEG } PIO_SEG;
 
-/* macros for things that used to be functions */
+				/* r/w process code space */
+extern void		iread(void *buff, ADDRESS addr, int nbytes);
+extern void		iwrite(void *buff, ADDRESS addr, int nbytes);
 
-#define	iread(buf, addr, nbytes)	dread(buf, addr+ENDOFF, nbytes)
-#define	iwrite(buf, addr, nbytes)	dwrite(buf, addr+ENDOFF, nbytes)
-#define	dread(buf, addr, nbytes)	drdwr(PREAD, buf, addr, nbytes)
-#define	dwrite(buf, addr, nbytes)	drdwr(PWRITE, buf, addr, nbytes)
+				/* r/w process data space */
+extern void		dread(void *buff, ADDRESS addr, int nbytes);
+extern void		dwrite(void *buff, ADDRESS addr, int nbytes);
+
+
+/*
+ * Process manipulation routines local to this module.
+ */
+
+				/* start up a process */
+void			pstart(PROCESS *p, const char *cmd, const char **argv, const char *infile, const char *outfile);
+
+				/* continue execution */
+void			pcont(PROCESS *p);
+void			pcont2(PROCESS *process, ADDRESS *pc);
+
+				/* retrieve signal trap arguments */
+void			ptrapargs(PROCESS *p, TRAPARGS *targs);
+
+				/* single step */
+void			pstep(PROCESS *p);
+
+				/* process memory move */
+void			pio(PROCESS *p, PIO_OP op, PIO_SEG seg,
+				char *buff, ADDRESS addr, int nbytes);
+
+				/* catch/don't catch a signal */
+void			psigtrace(PROCESS *p, int sig, int sw);
+
+				/* don't catch any signals */
+void			unsetsigtraces(PROCESS *p);
+
+void			initcache(PROCESS *process);

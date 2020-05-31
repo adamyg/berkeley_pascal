@@ -31,14 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)hash.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"		/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>    /* must be included for yy.h */
+#include <yy.h>
+
 
 /*
  * The definition for the segmented hash tables.
@@ -48,6 +49,7 @@ struct ht {
 	int	*ht_high;
 	int	ht_used;
 } htab[MAXHASH];
+
 
 /*
  * This is the array of keywords and their
@@ -98,7 +100,7 @@ struct kwtab yykey[] = {
 	0
 };
 
-char *lastkey;
+char    *lastkey = NULL;
 
 /*
  * Inithash initializes the hash table routines
@@ -106,8 +108,10 @@ char *lastkey;
  * an already existing memory slot.
  */
 #ifndef PI0
-inithash()
+void
+inithash(void)
 #else
+void
 inithash(hshtab)
 	int *hshtab;
 #endif
@@ -131,6 +135,7 @@ inithash(hshtab)
 	lastkey = (char *)ip;
 }
 
+
 /*
  * Hash looks up the s(ymbol) argument
  * in the string table, entering it if
@@ -141,12 +146,13 @@ inithash(hshtab)
  * it will save the symbol in the string
  * table using savestr.
  */
-int *hash(s, save)
+int *
+hash(s, save)
 	char *s;
 	int save;
 {
 	register int *h;
-	register i;
+	register int i;
 	register char *cp;
 	int *sym;
 	struct cstruct *temp;
@@ -222,5 +228,4 @@ int *hash(s, save)
 	yerror("Ran out of hash tables");
 	pexit(DIED);
 	return (NIL);
-
 }

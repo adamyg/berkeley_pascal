@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)objaddr.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -50,9 +50,8 @@ static char sccsid[] = "@(#)objaddr.c	8.1 (Berkeley) 6/6/93";
 #include "filetab.h"
 #include "linetab.h"
 
-ADDRESS objaddr(line, name)
-LINENO line;
-char *name;
+ADDRESS 
+objaddr(LINENO line, const char *name)
 {
     register FILETAB *ftp;
     register LINENO i, j;

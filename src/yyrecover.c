@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yyrecover.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
 
 /*
  * Very simplified version of Graham-Rhodes error recovery
@@ -148,9 +148,9 @@ static char sccsid[] = "@(#)yyrecover.c	8.1 (Berkeley) 6/6/93";
 #define	CPRLIMIT	50
 #define	CCHIDCOST	3
 
-char	insmult[8]	= {INFINITY, INFINITY, INFINITY, 15, 8, 6, 3, 1};
-char	repmult[7]	= {INFINITY, INFINITY, INFINITY, 8, 6, 3, 1};
-char	delmult[6]	= {INFINITY, INFINITY, INFINITY, 6, 3, 1};
+char	insmult[8]	= {YINFINITY, YINFINITY, YINFINITY, 15, 8, 6, 3, 1};
+char	repmult[7]	= {YINFINITY, YINFINITY, YINFINITY, 8, 6, 3, 1};
+char	delmult[6]	= {YINFINITY, YINFINITY, YINFINITY, 6, 3, 1};
 
 #define	NOCHAR	-1
 
@@ -160,8 +160,8 @@ char	delmult[6]	= {INFINITY, INFINITY, INFINITY, 6, 3, 1};
 /*
  * Action arrays of the parser needed here
  */
-union semstack *yypv;
-int		yyact[], yypact[];
+extern union  semstack *yypv;
+extern int    yyact[], yypact[];
 
 /*
  * Yytips is the tip of the stack when using
@@ -216,7 +216,7 @@ struct	yytok ACtok;
  * Make a correction to the current stack which has
  * top of stack pointer Ps.
  */
-yyrecover(Ps0, idfail)
+int yyrecover(Ps0, idfail)
 	int *Ps0, idfail;
 {
 	register int c, i;
@@ -395,7 +395,7 @@ yyrecover(Ps0, idfail)
 	copy((char *) (&ACtok), (char *) (&YC[0]), sizeof ACtok);
 	acchar = cchar;
 	aclval = nullsem(acchar);
-	if (aclval != NIL)
+	if (aclval != TNONE)
 		recovered();
 	switch (cact) {
 		/*
@@ -406,7 +406,7 @@ yyrecover(Ps0, idfail)
 			setpfx('E');
 			if (idfail) {
 				copy((char *) (&Y), (char *) (&OY), sizeof Y);
-				if (yyrhave == NIL) {
+				if (yyrhave == TNONE) {
 #ifdef PI
 					if (yybaduse(yypv[0].cptr, yyeline, ISUNDEF) == NIL)
 #endif
@@ -414,7 +414,7 @@ yyrecover(Ps0, idfail)
 				} else {
 					yerror("Improper %s identifier", classes[yyrhave]);
 #ifdef PI
-					(void) yybaduse(yypv[0].cptr, yyeline, NIL);
+					(void) yybaduse(yypv[0].cptr, yyeline, TNONE);
 #endif
 				}
 				/*
@@ -446,7 +446,7 @@ yyrecover(Ps0, idfail)
 			if (acchar == YEOF)
 				yyexeof();
 			if (acchar == YEND)
-				aclval = NIL;
+				aclval = TNONE;
 			yerror("Replaced %s%s with a %s%s",
 			    tokname(&YC[0] , 0 ),
 			    tokname(&YC[0] , 1 ),
@@ -499,7 +499,7 @@ yyrecover(Ps0, idfail)
 #ifdef PI
 			i = 1 << yyrwant;
 #endif
-			if (yyrhave == NIL) {
+			if (yyrhave == TNONE) {
 				yerror("Undefined %s", classes[yyrwant]);
 #ifdef PI
 				i |= ISUNDEF;
@@ -537,25 +537,28 @@ yyrecover(Ps0, idfail)
 	return (cact != CPANIC);
 }
 
+void
 yyexeof()
 {
-
 	yerror("End-of-file expected - QUIT");
 	pexit(ERRS);
 }
 
+void
 yyunexeof()
 {
-
 	yerror("Unexpected end-of-file - QUIT");
 	pexit(ERRS);
 }
+
+
 
 /*
  * Try corrections with the state at Ps0.
  * Flag is 0 if this is the top of stack state,
  * 1 if it is the state below.
  */
+void
 trystate(Ps0, Pv0, flag, insmult, delmult, repmult)
 	int *Ps0, *Pv0, flag;
 	char *insmult, *delmult, *repmult;
@@ -600,7 +603,7 @@ trystate(Ps0, Pv0, flag, insmult, delmult, repmult)
 	 * Look at the inputs to this state
 	 * which will cause parse action shift.
 	 */
-	aclval = NIL;
+	aclval = TNONE;
 	ap = &yyact[yypact[*Ps0 + 1]];
 
 	/*
@@ -690,9 +693,11 @@ trystate(Ps0, Pv0, flag, insmult, delmult, repmult)
 #endif
 	}
 }
+
+
 
-int	*yCpv;
-char	yyredfail;
+int	*yCpv = NULL;
+char	yyredfail = 0;
 
 /*
  * The ntok structure is used to build a
@@ -715,7 +720,7 @@ static	struct yytok ntok;
  * on the number of shifts this allows against the
  * maximum number possible with the available lookahead.
  */
-correct(fchar, origin, c, multvec, Ps0, Pv0)
+int correct(fchar, origin, c, multvec, Ps0, Pv0)
 	register int fchar, c;
 	int origin;
 	char *multvec;
@@ -765,6 +770,7 @@ correct(fchar, origin, c, multvec, Ps0, Pv0)
 	} while (*mv != 1);
 	return (c);
 }
+
 
 extern	int yygo[], yypgo[], yyr1[], yyr2[];
 /*

@@ -37,13 +37,15 @@ static char copyright[] =
 	The Regents of the University of California.  All rights reserved.\n";
 #endif /* not lint */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)pic.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "OPnames.h"
 
-main()  {
+void main() {
 	register int j, k;
 
 	for(j = 0;  j < 32;  j++) {

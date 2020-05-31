@@ -112,17 +112,17 @@
 #define STACKSIZE               100000
 #define setup()                 { \
         stack.cp = STACKSIZE + (char *)calloc((unsigned)STACKSIZE, 1); \
-        if (stack.cp == NULL) { \
+        if (stack.cp == (void *)STACKSIZE /*APY*/) { \
                 ERROR("Panic: memory allocation error creating stack\n"); \
             } \
         }
 
 #if (ALIGNMENT == 4)
-# ifdef DEC11
-#   define push2(x)             (*--stack.lp)  = (x)
-# else
-#   define push2(x)             ((*--stack.lp) = (x) << 16)
-# endif
+#  ifdef DEC11
+#    define push2(x)           	(*--stack.lp)  = (x)
+#  else
+#    define push2(x)           	((*--stack.lp) = (x) << 16)
+#  endif
 #elif (ALIGNMENT == 2)
 #   define push2(x)             (*--stack.sp)  = (x)
 #else
@@ -132,8 +132,8 @@
 #define push4(x)                (*--stack.lp)  = (x)
 #define push8(x)                (*--stack.dbp) = (x)
 #define pushsze8(x)             (*--stack.s8p) = (x)
-#define pushsp(x)               (stack.cp     -= (x))
-#define refsp()                 (stack.cp)
+#define pushsp(x)               (stack.cp -= (x))
+#define refsp()                 (stack.cp) /*=pushsp((long)(0))*/
 
 #if (ALIGNMENT == 4)
 # ifdef DEC11

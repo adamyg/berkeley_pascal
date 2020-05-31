@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -42,23 +43,69 @@
 
 typedef struct process PROCESS;
 
-PROCESS *process;
+extern PROCESS		*process;
 
-int initstart();	/* initial process start up */
-int run();		/* start program running */
-int arginit();		/* initialize program arguments */
-int setargs();		/* special argument handling */
-int newarg();		/* add a new argument to list for program */
-int inarg();		/* set standard input for program */
-int outarg();		/* set standard output for program */
-int cont();		/* continue execution where last left off */
-int step();		/* single step */
-int stepc();		/* single step command */
-int stepto();		/* execute up to a given address */
-int next();		/* single step, skip over calls */
-int endprogram();	/* note the termination of the program */
-int printstatus();	/* print current error */
-int printwhere();	/* print current source line and file */
-BOOLEAN isfinished();	/* TRUE if process has terminated */
-int iread(), dread();	/* read from the process' address space */
-int iwrite(), dwrite();	/* write to the process' address space */
+				/* initial process start up */
+extern void		initstart(void);
+
+				/* start program running */
+extern void		run(void);
+
+				/* restart program */
+extern void		restart(void);	
+
+				/* initialize program arguments */
+extern void		arginit(void);
+
+				/* special argument handling */
+extern void		setargs(const char *m, const char *r);
+
+				/* add a new argument to list for program */
+extern void		newarg(const char *arg);
+
+				/* set standard input for program */
+extern void		inarg(const char *filename);
+
+				/* set standard output for program */
+extern void		outarg(const char *filename);
+
+				/* continue execution where last left off */
+extern void		cont(void);
+extern void		fixintr(void);
+
+				/* single step */
+extern void		step(void);
+
+				/* single step command */
+extern void		stepc(int cnt);
+
+				/* execute up to a given address */
+extern void		stepto(ADDRESS addr);
+
+				/* single step, skip over calls */
+extern void		next(int cnt);
+
+				/* note the termination of the program */
+extern void		endprogram();
+
+				/* print current error */
+extern void		printstatus(void);
+
+				/* print current source line and file */
+extern void		printwhere(LINENO lineno, const char *filename);
+
+				/* TRUE if process has terminated */
+extern BOOLEAN		isfinished(PROCESS *p);
+
+
+/* process.rep */
+/*int iread()	--*/		/* read from the process' address space */
+/*int dread()	--*/
+
+/*int iwrite()	--*/		/* write to the process' address space */		
+/*int dwrite()  --*/
+
+/*resume.c*/
+extern void		resume(void);
+
+

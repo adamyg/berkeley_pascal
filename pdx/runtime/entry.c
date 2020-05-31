@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)entry.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -55,8 +55,8 @@ static char sccsid[] = "@(#)entry.c	8.1 (Berkeley) 6/6/93";
  * associated with the given frame.
  */
 
-ADDRESS entry(frp)
-register FRAME *frp;
+ADDRESS 
+entry(register FRAME *frp)
 {
 	return(frp->blockp - 2 - ENDOFF);
 }
@@ -68,7 +68,8 @@ register FRAME *frp;
  * This routine assumes it is at the very beginning of the block.
  */
 
-ADDRESS caller_addr()
+ADDRESS 
+caller_addr(void)
 {
 	FRAME *frp;
 
@@ -96,7 +97,8 @@ ADDRESS caller_addr()
  * directly from the process' stack.
  */
 
-ADDRESS return_addr()
+ADDRESS 
+return_addr(void)
 {
 	ADDRESS addr;
 	FRAME *frp, frame;
@@ -106,7 +108,11 @@ ADDRESS return_addr()
 	} else {
 		frp = curframe();
 		if (frp == NIL) {
+#if defined(PXEMBEDDED)
+			dread(&frame, (ADDRESS) process->isp, sizeof(FRAME));
+#else
 			dread(&frame, (ADDRESS) process->sp, sizeof(FRAME));
+#endif			
 			addr = frame.save_pc - ENDOFF;
 		} else {
 			addr = frp->save_pc;
@@ -120,8 +126,8 @@ ADDRESS return_addr()
  * given the address of the descriptor.
  */
 
-ADDRESS fparamaddr(a)
-ADDRESS a;
+ADDRESS 
+fparamaddr(ADDRESS a)
 {
 	ADDRESS r;
 

@@ -42,16 +42,16 @@
  * breakpoints, and display information after single stepping.
  */
 
-unsigned short tracing;
-unsigned short var_tracing;
-unsigned short inst_tracing;
+extern unsigned short tracing;
+extern unsigned short var_tracing;
+extern unsigned short inst_tracing;
 
-BOOLEAN isstopped;
+extern BOOLEAN isstopped;
 
-#define ss_lines		(tracing != 0)
-#define ss_variables		(var_tracing != 0)
-#define ss_instructions		(inst_tracing != 0)
-#define single_stepping		(ss_lines || ss_variables || ss_instructions)
+#define ss_lines                (tracing != 0)
+#define ss_variables            (var_tracing != 0)
+#define ss_instructions         (inst_tracing != 0)
+#define single_stepping         (ss_lines || ss_variables || ss_instructions)
 
 /*
  * types of breakpoints
@@ -84,21 +84,69 @@ typedef enum { TRPRINT, TRSTOP } TRTYPE;
 /*
  * routines available from this module
  */
+/*bp.c*/
+                                /* add a variable to the trace list */
+extern void             addbp(ADDRESS addr, BPTYPE type, SYM *block,
+                                NODE *cond, NODE *node, LINENO line);
 
-int addvar();		/* add a variable to the trace list */
-int delvar();		/* delete a variable from the trace list */
-int printvarnews();	/* print out variables that have changed */
-int trfree();		/* free the entire trace list */
-int addcond();		/* add a condition to the list */
-int delcond();		/* delete a condition from the list */
-BOOLEAN trcond();	/* determine if any trace condition is true */
-BOOLEAN stopcond();	/* determine if any stop condition is true */
+                                /* delete a breakpoint, return FALSE if unsuccessful */
+extern void             delbp(unsigned int id);
 
-int addbp();		/* add a breakpoint */
-int delbp();		/* delete a breakpoint, return FALSE if unsuccessful */
-int bpfree();		/* free all breakpoint information */
-int setallbps();	/* set traps for all breakpoints */
-int unsetallbps();	/* remove traps at all breakpoints */
-BOOLEAN bpact();	/* handle a breakpoint */
-int fixbps();		/* destroy temporary breakpoints left after a fault */
-int status();		/* list items being traced */
+                                /* free all breakpoint information */
+extern void             bpfree(void);
+
+
+/*trinfo.c*/
+                                /* add a variable from the trace list */
+extern void             addvar(TRTYPE trtype, NODE *node, NODE *cond);
+
+                                /* delete a variable from the trace list */
+extern void             delvar(TRTYPE trtype, NODE *node, NODE *cond);
+
+                                /* print out variables that have changed */
+extern void             prvarnews(void);
+extern void             printnews(void);
+
+                                /* free the entire trace list */
+extern void             trfree(void);
+
+
+/*trcond.c*/
+                                /* add a condition to the list */
+extern void             addcond(TRTYPE trtype, NODE *p);
+
+                                /* delete a condition from the list */
+extern void             delcond(TRTYPE trtype, NODE *p);
+
+                                /* determine if any trace condition is true */
+extern BOOLEAN          trcond(void);
+
+                                /* free all existing breakpoints */
+extern void             condfree(void);
+
+                                /* determine if any stop condition is true */
+extern BOOLEAN          stopcond(void);
+
+
+/*setbps.c*/
+                                /* set traps for all breakpoints */
+extern void             setallbps(void);
+
+                                /* remove traps at all breakpoints */
+extern void             unsetallbps(void);
+
+
+/*bpact.c*/
+                                /* handle a breakpoint */
+extern BOOLEAN          bpact(void);
+
+
+/*fixbps.c*/
+                                /* destroy temporary breakpoints left after a fault */
+extern void             fixbps(void);
+
+
+/*status.c*/
+                                /* list items being traced */
+extern void             status(void);
+

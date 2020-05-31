@@ -54,31 +54,51 @@
  *	hardware characteristics:
  *	address size (16 or 32 bits) and byte ordering (normal or dec11 family).
  */
-#ifdef vax
-#   undef	ADDR16
-#   define	ADDR32
-#   define	DEC11
-#endif vax
-#ifdef pdp11
-#   define	ADDR16
-#   undef	ADDR32
-#   define	DEC11
-#endif vax
-#ifdef mc68000
-#   undef	ADDR16
-#   define	ADDR32
-#   undef	DEC11
-#endif mc68000
-#ifdef tahoe
-#   undef	ADDR16
-#   define	ADDR32
-#   undef	DEC11
-#endif tahoe
+ 
+#if defined(i80x86)
+#if !defined(ADDR32) /*PDX usage*/
+#undef  ADDR16
+#define ADDR32
+#define DEC11                 /*LITTLEIAN*/
+#else
+#if defined(ADDR16)
+#error ADDR32 and ADD16 ...
+#endif
+#if !defined(DEC11)
+#error DEC11 expected ...
+#endif
+#endif
+#endif /*i80x86*/
+
+#ifdef  vax
+#undef  ADDR16
+#define ADDR32
+#define DEC11                 /*LITTLEIAN*/
+#endif /*vax*/
+
+#ifdef  mc68000
+#undef  ADDR16
+#define ADDR32
+#undef  DEC11                 /*BIGIAN*/
+#endif /*mc68000*/
+
+#ifdef  tahoe
+#undef  ADDR16
+#define ADDR32
+#undef  DEC11                 /*BIGIAN*/
+#endif /*tahoe*/
+
+#ifdef  pdp11
+#define ADDR16
+#undef  ADDR32
+#define DEC11                 /*LITTLEIAN*/
+#endif /*pdp11*/
+ 
 #ifdef z8000
-#   define	ADDR16
-#   undef	ADDR32
-#   undef	DEC11
-#endif z8000
+#define	ADDR16
+#undef	ADDR32
+#undef  DEC11                 /*BIGIAN*/
+#endif /*z8000*/
 
 /*
  *	am i pi or pxp?

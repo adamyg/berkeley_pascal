@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,18 +32,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)subr.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#endif   /* not lint */
 
-#include "whoami.h"
-#include "0.h"
+#include <sys/stat.h>
+
+#include <whoami.h>
+#include <0.h>
 
 #ifndef PI1
 /*
  * Does the string fp end in '.' and the character c ?
  */
-dotted(fp, c)
+int dotted(fp, c)
 	register char *fp;
 	char c;
 {
@@ -52,9 +55,11 @@ dotted(fp, c)
 	return (i > 1 && fp[i - 2] == '.' && fp[i - 1] == c);
 }
 
+
 /*
  * Toggle the option c.
  */
+void
 togopt(c)
 	char c;
 {
@@ -64,29 +69,29 @@ togopt(c)
 	*tp = 1 - *tp;
 }
 
+
 /*
- * Set the time vector "tvec" to the
- * modification time stamp of a file.
+ * Set the time vector "tvec" to the modification time stamp of a file.
  */
+void
 gettime( filename )
-    char *filename;
+	const char *filename;
 {
-#include <sys/stat.h>
 	struct stat stb;
 
 	stat(filename, &stb);
 	tvec = stb.st_mtime;
 }
 
+
 /*
  * Convert a "ctime" into a Pascal styple time line
  */
 char *
 myctime(tv)
-	int *tv;
+	time_t *tv;
 {
 	register char *cp, *dp;
-	extern char *ctime();
 	char *cpp;
 	static char mycbuf[26];
 
@@ -105,10 +110,10 @@ myctime(tv)
 /*
  * Is "fp" in the command line list of names ?
  */
-inpflist(fp)
+int inpflist(fp)
 	char *fp;
 {
-	register i;
+	register int i;
 	register char **pfp;
 
 	pfp = pflist;
@@ -117,47 +122,43 @@ inpflist(fp)
 			return (1);
 	return (0);
 }
-#endif
+#endif /*PI1*/
+
 
 /*
  * Boom!
  */
+void
 Perror(file, error)
-	char *file, *error;
+	const char *file, *error;
 {
-
 	fprintf( stderr , "%s: %s\n" , file , error );
 }
 
-int *
+
+void *
 pcalloc(num, size)
 	int num, size;
 {
-	register int *p1, *p2, nbyte;
+	register int nbyte;
 
 	nbyte = (num*size+( ( sizeof ( int ) ) - 1 ) ) & ~( ( sizeof ( int ) ) - 1 );
-	if ((p1 = (int *) malloc((unsigned) nbyte)) == 0)
-		return (0);
-	p2 =  p1;
-	nbyte /= sizeof ( int );
-	do {
-		*p2++ = 0;
-	} while (--nbyte);
-	return (p1);
+	return (void *) calloc((unsigned) nbyte, 1);
 }
+
 
 /*
  * Compare strings:  s1>s2: >0  s1==s2: 0  s1<s2: <0
  */
-pstrcmp(s1, s2)
-	register char *s1, *s2;
+int pstrcmp(s1, s2)
+	register const char *s1, *s2;
 {
-
 	while (*s1 == *s2++)
 		if (*s1++=='\0')
 			return (0);
 	return (*s1 - *--s2);
 }
+
 
 /*
  * Copy string s2 to s1.
@@ -166,7 +167,8 @@ pstrcmp(s1, s2)
  */
 char *
 pstrcpy(s1, s2)
-	register char *s1, *s2;
+	register char *s1;
+	register const char *s2;
 {
 	register char *os1;
 
@@ -175,6 +177,7 @@ pstrcpy(s1, s2)
 		continue;
 	return (os1);
 }
+
 
 /*
  * Strlen is currently a freebie of perror
@@ -189,36 +192,39 @@ strlen(cp)
 		i++;
 	return (i);
 }
- */
+*/
+
+
+void
 copy(to, from, bytes)
 	register char *to, *from;
 	register int bytes;
 {
-
 	if (bytes != 0)
 		do
 			*to++ = *from++;
 		while (--bytes);
 }
 
+
 /*
  * Is ch one of the characters in the string cp ?
  */
-any(cp, ch)
+int any(cp, ch)
 	register char *cp;
 	char ch;
 {
-
 	while (*cp)
 		if (*cp++ == ch)
 			return (1);
 	return (0);
 }
 
+
+void
 opush(c)
 	register CHAR c;
 {
-
 	c -= 'A';
 	optstk[c] <<= 1;
 	optstk[c] |= opts[c];
@@ -228,10 +234,11 @@ opush(c)
 #endif
 }
 
+
+void
 opop(c)
 	register CHAR c;
 {
-
 	c -= 'A';
 	opts[c] = optstk[c] & 1;
 	optstk[c] >>= 1;

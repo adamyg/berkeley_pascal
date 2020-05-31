@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)call.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,19 +43,16 @@ static char sccsid[] = "@(#)call.c	8.1 (Berkeley) 6/6/93";
 #include "objfmt.h"
 #include "align.h"
 #ifdef PC
-#   include "pc.h"
-#   include <pcc.h>
-#endif PC
+#include "pc.h"
+#include <pcc.h>
+#endif /*PC*/
 #include "tmps.h"
 #include "tree_ty.h"
 
 /*
- * Call generates code for calls to
- * user defined procedures and functions
- * and is called by proc and funccod.
- * P is the result of the lookup
- * of the procedure/function symbol,
- * and porf is PROC or FUNC.
+ * Call generates code for calls to user defined procedures and functions
+ * and is called by proc and funccod.  P is the result of the lookup
+ * of the procedure/function symbol, and porf is PROC or FUNC.
  * Psbn is the block number of p.
  *
  *	the idea here is that regular scalar functions are just called,
@@ -69,7 +67,7 @@ static char sccsid[] = "@(#)call.c	8.1 (Berkeley) 6/6/93";
  *	formal calls save the address of the descriptor in a local
  *	temporary, so it can be addressed for the call which restores
  *	the display (FRTN).
- *	calls to formal parameters pass the formal as a hidden argument 
+ *	calls to formal parameters pass the formal as a hidden argument
  *	to a special entry point for the formal call.
  *	[this is somewhat dependent on the way arguments are addressed.]
  *	so PROCs and scalar FUNCs look like
@@ -86,16 +84,19 @@ static char sccsid[] = "@(#)call.c	8.1 (Berkeley) 6/6/93";
 struct nl *
 call(p, argv_node, porf, psbn)
 	struct nl *p;
-	struct tnode	*argv_node;	/* list node */
+	struct tnode *argv_node;	/* list node */
 	int porf, psbn;
 {
 	register struct nl *p1, *q, *p2;
 	register struct nl *ptype, *ctype;
 	struct tnode *rnode;
-	int i, j, d;
+	int i, d;
+#ifdef PC
+	int j;
+#endif
 	bool chk = TRUE;
  	struct nl	*savedispnp;	/* temporary to hold saved display */
-#	ifdef PC
+#ifdef PC
 	    int		p_type_class = classify( p -> type );
 	    long	p_type_p2type = p2type( p -> type );
 	    bool	noarguments;
@@ -108,7 +109,7 @@ call(p, argv_node, porf, psbn)
 	    long	p_type_align;
 	    char	extname[ BUFSIZ ];
 	    struct nl	*tempdescrp;
-#	endif PC
+#endif /*PC*/
 
          if (p->class == FFUNC || p->class == FPROC) {
  	    /*
@@ -116,10 +117,10 @@ call(p, argv_node, porf, psbn)
  	     */
 	    savedispnp = tmpalloc( (long) sizeof display , NLNIL , NOREG );
  	}
-#	ifdef OBJ
+#ifdef OBJ
 	    if (p->class == FFUNC || p->class == FPROC) {
  		(void) put(2, O_LV | cbn << 8 + INDX ,
- 			(int) savedispnp -> value[ NL_OFFS ] );
+ 			(int) savedispnp -> value[ NL_OFFS ]);
 		(void) put(2, PTR_RV | psbn << 8+INDX, (int)p->value[NL_OFFS]);
 	    }
 	    if (porf == FUNC) {
@@ -130,8 +131,8 @@ call(p, argv_node, porf, psbn)
 		    (void) put(2, O_PUSH,
 			-roundup(lwidth(p->type), (long) A_STACK));
 	    }
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		/*
 		 *	if this is a formal call,
 		 *	stash the address of the descriptor
@@ -200,9 +201,9 @@ call(p, argv_node, porf, psbn)
 				tempdescrp -> extra_flags , PCCTM_PTR | PCCT_STRTY );
 			    /*	the entry address within the descriptor */
 			if ( FENTRYOFFSET != 0 ) {
-			    putleaf( PCC_ICON , FENTRYOFFSET , 0 , PCCT_INT , 
+			    putleaf( PCC_ICON , FENTRYOFFSET , 0 , PCCT_INT ,
 						(char *) 0 );
-			    putop( PCC_PLUS , 
+			    putop( PCC_PLUS ,
 				PCCM_ADDTYPE(
 				    PCCM_ADDTYPE( PCCM_ADDTYPE( p2type( p ) , PCCTM_FTN ) ,
 					    PCCTM_PTR ) ,
@@ -226,7 +227,7 @@ call(p, argv_node, porf, psbn)
 			panic("call class");
 	    }
 	    noarguments = TRUE;
-#	endif PC
+#endif /*PC*/
 	/*
 	 * Loop and process each of
 	 * arguments to the proc/func.
@@ -318,9 +319,9 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 					    break;
 					}
 					/* Put lower and upper bound & width */
-#					ifdef OBJ
+#ifdef OBJ
 					if (q->type->class == CRANGE) {
-					    putcbnds(q->type);
+					    putcbnds(q->type, 0 /*FIXME/APY, confirm 2nd arg was omitted*/);
 					} else {
 					    put(2, width(p1->type) <= 2 ? O_CON2
 						: O_CON4, q->range[0]);
@@ -329,8 +330,8 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 					    put(2, width(p1->type) <= 2 ? O_CON2
 						: O_CON4, aryconst(ctype,i));
 					}
-#					endif OBJ
-#					ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 					if (q->type->class == CRANGE) {
 					    for (j = 1; j <= 3; j++) {
 						p2 = p->nptr[j];
@@ -347,7 +348,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 					    putleaf(PCC_ICON,aryconst(ctype,i),0,PCCT_INT,0);
 					    putop( PCC_CM , PCCT_INT );
 					}
-#					endif PC
+#endif /*PC*/
 					p1 = p1->chain->chain;
 				    }
 				}
@@ -358,11 +359,11 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 			/*
 			 * Value parameter
 			 */
-#			ifdef OBJ
+#ifdef OBJ
 			    q = rvalue(argv_node->list_node.list,
 					p1->type , RREQ );
-#			endif OBJ
-#			ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 				/*
 				 * structure arguments require lvalues,
 				 * scalars use rvalue.
@@ -395,7 +396,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 						p1 -> type , RREQ );
 				    break;
 			    }
-#			endif PC
+#endif /*PC*/
 			if (q == NIL) {
 				chk = FALSE;
 				break;
@@ -406,13 +407,13 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 				chk = FALSE;
 				break;
 			}
-#			ifdef OBJ
+#ifdef OBJ
 			    if (isa(p1->type, "bcsi"))
 				    rangechk(p1->type, q);
 			    if (q->class != STR)
 				    convert(q, p1->type);
-#			endif OBJ
-#			ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 			    switch( classify( p1 -> type ) ) {
 				case TFILE:
 				case TARY:
@@ -424,7 +425,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 					    , (int) lwidth( p1 -> type )
 					    , align( p1 -> type ) );
 			    }
-#			endif PC
+#endif /*PC*/
 			break;
 		case FFUNC:
 			/*
@@ -450,7 +451,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 		default:
 			panic("call");
 	    }
-#	    ifdef PC
+#ifdef PC
 		    /*
 		     *	if this is the nth (>1) argument,
 		     *	hang it on the left linear list of arguments
@@ -460,7 +461,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 		} else {
 			putop( PCC_CM , PCCT_INT );
 		}
-#	    endif PC
+#endif /*PC*/
 	    argv_node = argv_node->list_node.next;
 	}
 	if (argv_node != TR_NIL) {
@@ -470,7 +471,7 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 	}
 	if (chk == FALSE)
 		return NLNIL;
-#	ifdef OBJ
+#ifdef OBJ
 	    if ( p -> class == FFUNC || p -> class == FPROC ) {
 		(void) put(2, PTR_RV | psbn << 8+INDX, (int)p->value[NL_OFFS]);
  		(void) put(2, O_LV | cbn << 8 + INDX ,
@@ -480,8 +481,8 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 	    } else {
 		(void) put(2, O_CALL | psbn << 8, (long)p->value[NL_ENTLOC]);
 	    }
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		/*
 		 *	for formal calls: add the hidden argument
 		 *	which is the formal struct describing the
@@ -564,14 +565,15 @@ conf_err:			    if (p1->chain->type->class == CRANGE) {
 	    if ( porf == PROC ) {
 		putdot( filename , line );
 	    }
-#	endif PC
+#endif /*PC*/
 	return (p->type);
 }
 
+
+void
 rvlist(al)
 	register struct tnode *al;
 {
-
 	for (; al != TR_NIL; al = al->list_node.next)
 		(void) rvalue( al->list_node.list, NLNIL , RREQ );
 }
@@ -641,7 +643,8 @@ fcompat( formal , actual )
     return compat;
 }
 
-char *
+
+const char *
 parnam(nltype)
     int nltype;
 {
@@ -681,6 +684,8 @@ struct nl *plist(p)
     }
 }
 
+
+int
 linenum(p)
     struct nl *p;
 {

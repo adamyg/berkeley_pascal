@@ -31,16 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)sconv.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#endif          /* not lint */
 
     /*
      *	functions to help pi put out
      *	polish postfix binary portable c compiler intermediate code
      *	thereby becoming the portable pascal compiler
      */
-
 #include	"whoami.h"
 #ifdef PC
 #include	"0.h"
@@ -53,6 +52,7 @@ static char sccsid[] = "@(#)sconv.c	8.1 (Berkeley) 6/6/93";
      *	this routine takes struct nl *'s for the types,
      *	and returns both the struct nl * and the p2type for the result.
      */
+void
 tuac(thistype, thattype, resulttypep, resultp2typep)
     struct nl	*thistype;
     struct nl	*thattype;
@@ -124,8 +124,9 @@ sconv(fromp2type, top2type)
 		return;
     }
 }
-#endif vax || tahoe
-#ifdef mc68000
+#endif  /*vax || tahoe*/
+
+#ifdef  mc68000
     /*
      *	i don't know how much to trust the mc68000 compiler,
      *	so this routine is full.
@@ -188,5 +189,5 @@ sconv(fromp2type, top2type)
 		return;
     }
 }
-#endif mc68000
-#endif PC
+#endif  /*mc68000*/
+#endif  /*PC*/

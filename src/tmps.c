@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)tmps.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -40,7 +40,7 @@ static char sccsid[] = "@(#)tmps.c	8.1 (Berkeley) 6/6/93";
 #include "objfmt.h"
 #ifdef PC
 #   include "pc.h"
-#endif PC
+#endif /*PC*/
 #include "align.h"
 #include "tmps.h"
 
@@ -54,12 +54,24 @@ static char sccsid[] = "@(#)tmps.c	8.1 (Berkeley) 6/6/93";
      *	register temporaries
      *	- are allocated from highreg towards lowreg.
      *	- are of size regsize.
-     *	- register numbers from the various register types are mapped to 
+     *	- register numbers from the various register types are mapped to
      *	  integer register numbers using the offsets.  (cf. pcc/mac2defs)
      *
      *	stack temporaries
      *	- are allocated on a downward growing stack.
      */
+#ifdef i80x86
+    /*
+     *	first pass register declaration constants
+     */
+struct	regtype {
+    long	lowreg;
+    long	highreg;
+    long	regsize;
+} regtypes[NUMREGTYPES] = {
+	{ 6, 11, 4 },		/* r6..r11 */
+};
+#endif /*i80x86*/
 
 #ifdef vax
     /*
@@ -72,7 +84,7 @@ struct	regtype {
 } regtypes[NUMREGTYPES] = {
 	{ 6, 11, 4 },		/* r6..r11 */
 };
-#endif vax
+#endif /*vax*/
 
 #ifdef tahoe
     /*
@@ -85,7 +97,7 @@ struct	regtype {
 } regtypes[NUMREGTYPES] = {
 	{ 6, 12, 4 },		/* r6..r12 */
 };
-#endif tahoe
+#endif /*tahoe*/
 
 #ifdef mc68000
     /*
@@ -99,16 +111,17 @@ struct	regtype {
 	{ 2, 7, 4 },		/* d2..d7 */
 	{ 2, 5, 4 },		/* a2..a5 */
 };
-#endif mc68000
-#endif PC
+#endif /*mc68000*/
+#endif /*PC*/
 
+void
 tmpinit(cbn)
 	int	cbn;
 {
 	struct om	*sizesp = &sizes[cbn];
 #	ifdef PC
 	int	i;
-#	endif PC
+#	endif /*PC*/
 
 	sizesp->om_max = -DPOFF1;
 	sizesp->curtmps.om_off = -DPOFF1;
@@ -117,7 +130,7 @@ tmpinit(cbn)
 			sizesp->low_water[i] = regtypes[i].highreg + 1;
 			sizesp->curtmps.next_avail[i] = regtypes[i].highreg;
 		}
-#	endif PC
+#	endif /*PC*/
 }
 
 /*
@@ -136,7 +149,7 @@ tmpalloc(size, type, mode)
 	long			alignment;
 
 #	ifdef PC
-#	    if defined(vax) || defined(tahoe)
+#	    if defined(vax) || defined(tahoe) || defined(i80x86)
 		if (  mode == REGOK
 		   && size == regtypes[REG_GENERAL].regsize
 		   && op->curtmps.next_avail[REG_GENERAL]
@@ -150,7 +163,7 @@ tmpalloc(size, type, mode)
 			putlbracket(ftnno, op);
 			return nlp;
 		}
-#	    endif vax || tahoe
+#	    endif /*vax || tahoe || i80x86*/
 #	    ifdef mc68000
 		if (  mode == REGOK
 		   && type != nl + TPTR
@@ -180,8 +193,8 @@ tmpalloc(size, type, mode)
 			putlbracket(ftnno, op);
 			return nlp;
 		}
-#	    endif mc68000
-#	endif PC
+#	    endif /*mc68000*/
+#	endif /*PC*/
 	if (type == NIL) {
 	    alignment = A_STACK;
 	} else if (type == nl+TPTR) {
@@ -199,14 +212,16 @@ tmpalloc(size, type, mode)
 #	ifdef PC
 	    nlp -> extra_flags = NLOCAL;
 	    putlbracket(ftnno, op);
-#	endif PC
+#	endif /*PC*/
 	return nlp;
 }
+
 
 /*
  * deallocate runtime temporary variables
  */
 /*ARGSUSED*/
+void
 tmpfree(restore)
     register struct tmps	*restore;
 {
@@ -214,14 +229,14 @@ tmpfree(restore)
     register struct om		*op = &sizes[ cbn ];
     bool			change = FALSE;
 
-#	if defined(vax) || defined(tahoe)
+#	if defined(vax) || defined(tahoe) || defined(i80x86)
 	    if (restore->next_avail[REG_GENERAL]
 		> op->curtmps.next_avail[REG_GENERAL]) {
 		    op->curtmps.next_avail[REG_GENERAL]
 			= restore->next_avail[REG_GENERAL];
 		    change = TRUE;
 	    }
-#	endif vax || tahoe
+#	endif /*vax || tahoe || i80x86*/
 #	ifdef mc68000
 	    if (restore->next_avail[REG_DATA]
 		> op->curtmps.next_avail[REG_DATA]) {
@@ -235,15 +250,15 @@ tmpfree(restore)
 			= restore->next_avail[REG_ADDR];
 		    change = TRUE;
 	    }
-#	endif mc68000
-    if (restore->om_off > op->curtmps.om_off) {
-	    op->curtmps.om_off = restore->om_off;
-	    change = TRUE;
-    }
+#	endif /*mc68000*/
+        if (restore->om_off > op->curtmps.om_off) {
+	        op->curtmps.om_off = restore->om_off;
+	        change = TRUE;
+        }
 	if (change) {
-	    putlbracket(ftnno, op);
+	        putlbracket(ftnno, op);
 	}
-#endif PC
+#endif /*PC*/
 }
 
 #ifdef PC
@@ -267,5 +282,5 @@ savmask()
 	}
 	return mask;
 }
-#endif vax || tahoe
-#endif PC
+#endif /*vax || tahoe*/
+#endif /*PC*/

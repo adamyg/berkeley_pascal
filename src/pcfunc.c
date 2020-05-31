@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)pcfunc.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -110,7 +110,7 @@ pcfunccod( r )
 		error("%s is a nonstandard function", p->symbol);
 	}
 	if ( op == O_ARGC ) {
-	    putleaf( PCC_NAME , 0 , 0 , PCCT_INT , "__argc" );
+	    putleaf( PCC_NAME , 0 , 0 , PCCT_INT , "__pcargc" );
 	    return nl + T4INT;
 	}
 	switch (op) {
@@ -250,7 +250,7 @@ mathfunc:
 		    putop( PCC_CALL , PCCT_INT );
 		    return nl + T4INT;
 	    case O_ROUND:
-	    case O_TRUNC:
+	    case O_TRUNCATE:
 		    if ( isnta( p1 , "d" ) ) {
 			    error("%s's argument must be a real, not %s", p->symbol, nameof(p1));
 			    return (NLNIL);
@@ -415,4 +415,4 @@ mathfunc:
 			return nl + TBOOL;
 	}
 }
-#endif PC
+#endif /*PC*/

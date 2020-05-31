@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,31 +32,46 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yymain.c	8.2 (Berkeley) 5/24/94";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
+#if defined(unix)
 #include <a.out.h>
-#include "objfmt.h"
+#else
+#include <a_out.h>
+#endif
+#include <objfmt.h>
 #include <signal.h>
-#include "config.h"
+#include <config.h>
+
+
+#ifdef PXP
+static void		copyfile();
+#endif
+#ifdef PI
+#ifdef OBJ
+static void		magic();
+static void		magic2();
+#endif
+#endif
+
 
 /*
- * Yymain initializes each of the utility
- * clusters and then starts the processing
- * by calling yyparse.
+ * Yymain initializes each of the utility clusters and then starts the 
+ * processing by calling yyparse.
  */
+void
 yymain()
 {
-
 #ifdef OBJ
-/*
- * initialize symbol table temp files
- */
+	/*
+	 * initialize symbol table temp files
+	 */
 	startnlfile();
 #endif
 	/*
@@ -74,10 +90,11 @@ yymain()
 #endif
 
 #ifdef PI
-#   ifdef OBJ
+#ifdef OBJ
 	magic();
-#   endif OBJ
 #endif
+#endif
+
 	line = 1;
 	errpfx = 'E';
 	/*
@@ -95,19 +112,23 @@ yymain()
 	 * Process the input
 	 */
 	yyparse();
-#ifdef PI
-#   ifdef OBJ
 
+
+#ifdef PI
+#ifdef OBJ
 	/*
 	 * save outermost block of namelist
 	 */
-	savenl(NLNIL);
-
-	magic2();
-#   endif OBJ
-#   ifdef DEBUG
-	dumpnl(NLNIL);
-#   endif
+	if ( CGENNING ) {
+		savenl(NLNIL, 0);
+		magic2();
+	} else {
+		fprintf(stderr, "File not written because of errors\n");
+	}
+#endif
+#ifdef DEBUG
+	dumpnl(NLNIL, NULL);
+#endif
 #endif
 
 #ifdef PXP
@@ -116,102 +137,134 @@ yymain()
 		extern int outcol;
 
 		if (outcol)
-			pchr('\n');
+			pputchar('\n');
 		flush();
 		if (eflg) {
-			writef(2, "File not rewritten because of errors\n");
+			fprintf(stderr, "File not rewritten because of errors\n");
 			pexit(ERRS);
 		}
+#ifdef SIGHUP
 		(void) signal(SIGHUP, SIG_IGN);
+#endif
+#ifdef SIGINT
 		(void) signal(SIGINT, SIG_IGN);
+#endif
 		copyfile();
 	}
-#endif
+#endif /*PXP*/
 	pexit(eflg ? ERRS : AOK);
 }
 
+
 #ifdef PXP
+static void
 copyfile()
 {
-	extern int fout[];
 	register int c;
 
-	(void) close(1);
-	if (creat(firstname, 0644) != 1) {
+	if (freopen(stdoutn, "r", stdin) == NULL) {
+		perror(stdoutn);
+		pexit(ERRS);
+	}
+	if (freopen(firstname, "w", stdout) == NULL) {
 		perror(firstname);
 		pexit(ERRS);
 	}
-	if (lseek(fout[0], (off_t)0, 0) == -1)
-		perror("copyfile: lseek"), panic("copyfile");
-	while ((c = read(fout[0], &fout[3], 512)) > 0) {
-		if (write(1, &fout[3], c) != c) {
-			perror(firstname);
-			pexit(ERRS);
-		}
-	}
+	while ((c = getchar()) > 0)
+		pputchar((char)c);
+	if (ferror(stdout))
+		perror("stdout");
 }
-#endif
+#endif /*PXP*/
 
 
 #ifdef PI
 #ifdef OBJ
+static struct exec magichdr = {0};
 
-static
-struct exec magichdr;
-
+static void
 magic()
 {
+#if !defined(unix)
+	register int i;
 
-	short		buf[HEADER_BYTES / sizeof ( short )];
-	unsigned	*ubuf = (unsigned *) buf;
-	register int	hf, i;
+	magichdr.a_magic   = 0x01020304; /*FIXME*/
+	magichdr.a_text    = 512;
+	magichdr.a_data    = 512;
+	for (i = 0; i < HEADER_BYTES / sizeof(short); i++)
+		word(0xffff);
+#else
+	short           buf[HEADER_BYTES/sizeof(short)];
+	unsigned        *ubuf = (unsigned *) buf;
+	register int    hf, i;
 
-	hf = open(px_header,0);
-	if (hf >= 0 && read(hf, (char *) buf, HEADER_BYTES) > sizeof(struct exec)) {
-		magichdr.a_magic = ubuf[0];
-		magichdr.a_text = ubuf[1];
-		magichdr.a_data = ubuf[2];
-		magichdr.a_bss = ubuf[3];
-		magichdr.a_syms = ubuf[4];
-		magichdr.a_entry = ubuf[5];
-		magichdr.a_trsize = ubuf[6];
-		magichdr.a_drsize = ubuf[7];
-		for (i = 0; i < HEADER_BYTES / sizeof ( short ); i++)
-			word(buf[i]);
+	hf = open(px_header, O_BINARY);
+	if (hf >= 0) {
+	    if (read(hf, (char *) buf, HEADER_BYTES) > sizeof(struct exec)) {
+			magichdr.a_magic  = ubuf[0];
+			magichdr.a_text   = ubuf[1];
+			magichdr.a_data   = ubuf[2];
+			magichdr.a_bss    = ubuf[3];
+			magichdr.a_syms   = ubuf[4];
+			magichdr.a_entry  = ubuf[5];
+			magichdr.a_trsize = ubuf[6];
+			magichdr.a_drsize = ubuf[7];
+			for (i = 0; i < HEADER_BYTES / sizeof(short); i++)
+				word(buf[i]);
+		}
+		(void) close(hf);
 	}
-	(void) close(hf);
+#endif
 }
-#endif OBJ
+#endif /*OBJ*/
+
 
 #ifdef OBJ
+static void
 magic2()
 {
-	struct pxhdr pxhd;
+	struct pxhdr pxhd = {0};
+	time_t now;
 
-	if  (magichdr.a_magic != 0407)
-		panic ( "magic2" );
+#if !defined(unix)
+	if (magichdr.a_magic != 0x01020304)
+		panic( "magic2" );
+#else
+	if (magichdr.a_magic != 0407)
+		panic( "magic2" );
+#endif
 	pflush();
-	magichdr.a_data = ( unsigned ) lc - magichdr.a_text;
-	magichdr.a_data -= sizeof (struct exec);
-	pxhd.objsize = ( ( unsigned ) lc) - HEADER_BYTES;
+	magichdr.a_data = (unsigned) lc - magichdr.a_text;
+	magichdr.a_data -= sizeof(struct exec);
+	pxhd.objsize    = ((unsigned) lc) - HEADER_BYTES;
 	pxhd.symtabsize = nlhdrsize();
 	magichdr.a_data += pxhd.symtabsize;
-	(void) time((long *) (&pxhd.maketime));
-	pxhd.magicnum = MAGICNUM;
-	if (lseek(ofil, (off_t)0, 0) == -1)
-		perror("magic2: lseek1"), panic("magic2");
+
+//	(void) time((time_t *) (&pxhd.maketime));
+	now = time(NULL);
+	if (now > 0x7ffffffff) { /*FIXME*/
+		fprintf(stderr, "Timestamp overflow; rework required\n");
+		pexit(ERRS);
+	}
+	pxhd.maketime   = (long) now;
+
+	pxhd.magicnum   = MAGICNUM;
+	(void) lseek(ofil, 0l, 0);
+#ifdef DEBUG
+	if (opt('x'))
+		dumphex(tell(ofil), &magichdr, sizeof(struct exec));
+#endif
 	write(ofil, (char *) (&magichdr), sizeof(struct exec));
-	if (lseek(ofil, (off_t)(HEADER_BYTES - sizeof(pxhd)), 0) == -1)
-		perror("magic2: lseek2"), panic("magic2");
+	if (lseek(ofil, (off_t)(HEADER_BYTES - sizeof(pxhd)), 0) == -1) {
+		fprintf(stderr, "magic2: lseek\n");
+		pexit(ERRS);
+	}
+#ifdef DEBUG
+	if (opt('x'))
+		dumphex(tell(ofil), &pxhd, sizeof (pxhd));
+#endif
 	write(ofil, (char *) (&pxhd), sizeof (pxhd));
 }
-#endif OBJ
-#endif
+#endif /*OBJ*/
+#endif /*PI*/
 
-#ifdef PXP
-writef(i, cp)
-{
-
-	write(i, cp, strlen(cp));
-}
-#endif

@@ -44,58 +44,68 @@
  * numbers are thereby changed if necessary.
  *
  * for the compiler,
- *	low_water is the lowest number register allocated of its type
- *	next_avail is the next available register of its type
+ *     low_water is the lowest number register allocated of its type
+ *     next_avail is the next available register of its type
  */
 
 #ifdef PC
+#ifdef i80x86
+    /*
+     * the number of register types.
+     * the details of how many of each kind of register there is
+     * (and what they are for) is known in tmps.c
+     */
+#define       NUMREGTYPES   1
+#define       REG_GENERAL   0
+#endif /*i80x86*/
+
 #ifdef vax
     /*
-     *	the number of register types.
-     *	the details of how many of each kind of register there is
-     *	(and what they are for) is known in tmps.c
+     * the number of register types.
+     * the details of how many of each kind of register there is
+     * (and what they are for) is known in tmps.c
      */
-#define	NUMREGTYPES	1
-#define	REG_GENERAL	0
-#endif vax
+#define       NUMREGTYPES   1
+#define       REG_GENERAL   0
+#endif /*vax*/
 
 #ifdef tahoe
     /*
-     *	the number of register types.
-     *	the details of how many of each kind of register there is
-     *	(and what they are for) is known in tmps.c
+     * the number of register types.
+     * the details of how many of each kind of register there is
+     * (and what they are for) is known in tmps.c
      */
-#define	NUMREGTYPES	1
-#define	REG_GENERAL	0
-#endif tahoe
+#define       NUMREGTYPES   1
+#define       REG_GENERAL   0
+#endif /*tahoe*/
 
 #ifdef mc68000
     /*
-     *	the number of register types.
-     *	the details of how many of each kind of register there is
-     *	(and what they are for) is known in tmps.c
+     * the number of register types.
+     * the details of how many of each kind of register there is
+     * (and what they are for) is known in tmps.c
      */
-#define	NUMREGTYPES	2
-#define	REG_DATA	0
-#define	REG_ADDR	1
-#endif mc68000
-#endif PC
+#define       NUMREGTYPES   2
+#define       REG_DATA      0
+#define       REG_ADDR      1
+#endif /*mc68000*/
+#endif /*PC*/
 
-struct om {
-	long	om_max;
+extern struct om {
+       long   om_max;
 #ifdef PC
-	long	low_water[NUMREGTYPES];
-#endif PC
-	struct tmps {
-	    long	om_off;
+       long   low_water[NUMREGTYPES];
+#endif /*PC*/
+       struct tmps {
+           long      om_off;
 #ifdef PC
-	    long	next_avail[NUMREGTYPES];
-#endif PC
-	}	curtmps;
+           long      next_avail[NUMREGTYPES];
+#endif /*PC*/
+       }      curtmps;
 } sizes[DSPLYSZ];
 
     /*
-     *	an enumeration for whether a temporary can be a register.  cf. tmps.c
+     * an enumeration for whether a temporary can be a register.  cf. tmps.c
      */
 #define NOREG 0
 #define REGOK 1

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)opinfo.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)opinfo.c	8.1 (Berkeley) 6/6/93";
 #include "defs.h"
 #include "opinfo.h"
 
-OPINFO opinfo[] ={
+const OPINFO opinfo[] ={
 /* O_NOP */		0,		0,
 /* O_NAME */		LEAF,		0,
 /* O_QNAME */		LEAF,		"$",
@@ -88,13 +88,14 @@ OPINFO opinfo[] ={
 /* O_STEP */		0,		NIL,
 /* O_WHATIS */		0,		NIL,
 /* O_WHERE */		0,		NIL,
-/* O_XI */			0,		NIL,
-/* O_XD */			0,		NIL,
+/* O_XI */		0,		NIL,
+/* O_XD */		0,		NIL,
 /* O_CALL */		0,		NIL,
 /* O_EDIT */		0,		NIL,
 /* O_DUMP */		0,		NIL,
 /* O_HELP */		0,		NIL,
 /* O_REMAKE */		0,		NIL,
+/* O_RESTART */		0,		NIL,
 /* O_RUN */		0,		NIL,
 /* O_SOURCE */		0,		NIL,
 /* O_STATUS */		0,		NIL,
@@ -108,3 +109,4 @@ OPINFO opinfo[] ={
 /* O_ALIAS */		LEAF,		NIL,
 /* O_GRIPE */		0,		NIL,
 };
+

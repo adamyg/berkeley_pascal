@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -41,12 +42,19 @@
  * error recovery, since non-fatal errors longjmp into the main routine.
  */
 
-BOOLEAN opt[26];	/* true if command line option given */
+extern BOOLEAN          opt[26];   /* true if command line option given */
 
-#define option(c)	opt[(c)-'a']
-#define isterm(file)	(option('i') || isatty(fileno(file)))
+#define option(c)       opt[(c)-'a']
+#define isterm(file)    (option('i') || isatty(fileno(file)))
 
-int main();		/* debugger main routine */
-int init();		/* read in source and object data */
-int erecover();		/* does non-local goto for error recovery */
-int quit();		/* clean-up before exiting */
+extern void             main(int, char **);
+
+                                /* read in source and object data */
+extern void             init(void);
+
+                                /* does non-local goto for error recovery */
+extern void             erecover(void);
+
+                                /* clean-up before exiting */
+extern void             quit(int);
+

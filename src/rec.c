@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)rec.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)rec.c	8.1 (Berkeley) 6/6/93";
      *	set this to TRUE with adb to turn on record alignment/offset debugging.
      */
 bool	debug_records = FALSE;
-#define	DEBUG_RECORDS(x)	if (debug_records) { x ; } else
+#define	DEBUG_RECORDS(x)	if (opt('R') || debug_records) { x ; } else
 
 /*
  * Build a record namelist entry.
@@ -88,7 +88,7 @@ bool	debug_records = FALSE;
 /*
  * P0 points to the outermost RECORD for name searches.
  */
-struct	nl *P0;
+struct	nl *P0 = NULL;
 
 struct nl *
 tyrec(r, off)
@@ -146,6 +146,7 @@ tyrec1(r, first)
  * the fieldlist is a tconc structure, and is manipulated 
  * just like newlist(), addlist(), fixlist() in the parser.
  */
+void
 fields(p, r)
 	struct nl *p;
 	struct tnode *r;	/* T_LISTPP */
@@ -188,6 +189,7 @@ fields(p, r)
 /*
  * Define the variants for RECORD p.
  */
+void
 variants(p, r)
 	struct nl *p;
 	register struct tnode *r;	/* T_TYVARPT */
@@ -306,11 +308,11 @@ defvnt(p, t, vr, ct)
 #ifndef PI1
 	if (ct != NIL)
 		uniqv(p);
-#endif not PI1
+#endif /*!PI1*/
 	av->chain = p->ptr[NL_VARNT];
 	p->ptr[NL_VARNT] = av;
 	av->ptr[NL_VTOREC] = vr;
-	av->range[0] = con.crval;
+	av->range[0] = (long)con.crval;
 	return (av);
 }
 
@@ -319,6 +321,7 @@ defvnt(p, t, vr, ct)
  * Check that the constant label value
  * is unique among the labels in this variant.
  */
+void
 uniqv(p)
 	struct nl *p;
 {
@@ -342,7 +345,6 @@ reclook(p, s)
 	register struct nl *p;
 	char *s;
 {
-
 	if (p == NIL || s == NIL)
 		return (NIL);
 	for (p = p->chain; p != NIL; p = p->chain)
@@ -368,6 +370,7 @@ reclook(p, s)
      *	this is supposed to match the offsets used by the c compiler
      *	so people can share records between modules in both languages.
      */
+void
 rec_offsets(recp, offset)
     struct nl	*recp;		/* pointer to the namelist record */
     long	offset;		/* starting offset for this record/field */

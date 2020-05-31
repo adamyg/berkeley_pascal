@@ -34,7 +34,7 @@
  */
 
 #ifndef PC
-char	*otext[] = {
+const char *otext[] = {
 	0,
 	" NODUMP",
 	" BEG",
@@ -290,6 +290,6 @@ char	*otext[] = {
 	" SQR4",
 	" SQR8",
 	" ROUND",
-	" TRUNC"
+	" TRUNCATE"
 };
 #endif

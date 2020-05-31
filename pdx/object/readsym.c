@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)readsym.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,21 +46,27 @@ static char sccsid[] = "@(#)readsym.c	8.1 (Berkeley) 6/6/93";
 #include "object.h"
 #include "objfmt.h"
 #include "process/process.h"
+#include "runtime.h"
+#include "mappings.h"
 #include "sym/classes.h"
 #include "objsym.rep"
 #include "sym/sym.rep"
+#include "process/pxinfo.h"
 
-LOCAL SYM *findblock();
-LOCAL SYM *enterblock();
-LOCAL SYM *findfunc();
+LOCAL void getsym(FILE *fp, SYM *t);
+LOCAL SYM *findblock(SYM *t);
+LOCAL SYM *enterblock(SYM *t);
+LOCAL void fixparams(SYM *f);
+LOCAL SYM *findfunc(SYM *fv);
+
 
 /*
  * Read the information on a symbol from the object file, return a
  * SYM with the info.
  */
 
-SYM *readsym(fp)
-FILE *fp;
+SYM *
+readsym(FILE *fp)
 {
     register SYM *s, *t;
     SYM cursym;
@@ -117,9 +123,8 @@ FILE *fp;
  * Read the SYM information in the object file.
  */
 
-LOCAL getsym(fp, t)
-FILE *fp;
-SYM *t;
+LOCAL void
+getsym(FILE *fp, SYM *t)
 {
     OBJSYM osym;
     register OBJSYM *o;
@@ -148,8 +153,8 @@ SYM *t;
  * copy the information, and return a pointer to it.
  */
 
-LOCAL SYM *findblock(t)
-SYM *t;
+LOCAL SYM *
+findblock(SYM *t)
 {
     SYM *s;
 
@@ -174,8 +179,8 @@ SYM *t;
  * Found a "fake" block symbol, enter it.
  */
 
-LOCAL SYM *enterblock(t)
-SYM *t;
+LOCAL SYM *
+enterblock(SYM *t)
 {
     SYM *s;
 
@@ -196,8 +201,8 @@ SYM *t;
  * The assumption here is that parameters appear before the function.
  */
 
-LOCAL fixparams(f)
-SYM *f;
+LOCAL void
+fixparams(SYM *f)
 {
     register SYM *s;
 
@@ -218,8 +223,8 @@ SYM *f;
     strcmp(f->symbol, fv->symbol) != 0 \
     )
 
-LOCAL SYM *findfunc(fv)
-SYM *fv;
+LOCAL SYM *
+findfunc(SYM *fv)
 {
     register SYM *t;
 

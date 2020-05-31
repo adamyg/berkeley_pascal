@@ -33,8 +33,12 @@
  *	@(#)yy.h	8.1 (Berkeley) 6/6/93
  */
 
+#if defined(unix)
 #include "y.tab.h"
-#undef CBSIZE	/* from paramsys/param.h */
+#else
+#include "ytab.h"
+#endif
+#undef CBSIZE   /* from paramsys/param.h */
 /*
  * INPUT/OUTPUT 
  */
@@ -46,7 +50,7 @@
  * files. For this reason, the pointer ibp always
  * references the i/o buffer of the current input file.
  */
-FILE		*ibuf, *ibp;
+extern FILE            *ibuf, *ibp;
 
 /*
  * Line and token buffers.  Charbuf is the character buffer for
@@ -57,21 +61,21 @@ FILE		*ibuf, *ibp;
  */
 #ifdef ADDR16
 #define CBSIZE 161
-#endif ADDR16
+#endif /*ADDR16*/
 #ifdef ADDR32
 #define CBSIZE 1024
-#endif ADDR32
+#endif /*ADDR32*/
 
-char	charbuf[CBSIZE], *bufp, token[CBSIZE];
+extern  char            charbuf[CBSIZE], *bufp, token[CBSIZE];
 
-#define digit(c)	(c >= '0' && c <= '9')
-#define alph(c)		((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+#define digit(c)        (c >= '0' && c <= '9')
+#define alph(c)         ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 
 /*
  * Flag to prevent reprinting current line after
  * an error.
  */
-char	yyprtd;
+extern char    yyprtd;
 
 /*
  * The following variables are maintained by
@@ -80,7 +84,7 @@ char	yyprtd;
  *
  * The variable yychar is the current scanner character.
  * Currently, the scanner must be called as
- *	yychar = yylex()
+ *      yychar = yylex()
  * even though it should set yychar itself.
  * Yychar has value YEOF at end of file, and negative value if
  * there is no yychar, e.g. after a shift in the parser.
@@ -102,116 +106,118 @@ char	yyprtd;
  * and yyseekp.  The global variable yylinpt is the seek pointer
  * of the current input line.
  */
-int	yycol;
-int	yyline;
-int	yyseqid;
-int	yysavc;
-int	yylinpt;
+extern int yycol;
+extern int yyline;
+extern int yyseqid;
+extern int yysavc;
+extern int yylinpt;
 
 /* *** NOTE ***
  * It would be much better to not have the Yyeline and Yyefile
  * in the scanner structure and to have a mechanism for mapping
  * seqid's to these globally.
  */
-struct yytok {
-	int	Yychar;
-	int	Yylval;
-	int	Yyecol;
-	int	Yyeline;
-	int	Yyseekp;
-	char	*Yyefile;
-	int	Yyeseqid;
+extern struct yytok {
+        int     Yychar;
+        int     Yylval;
+        int     Yyecol;
+        int     Yyeline;
+        int     Yyseekp;
+        char    *Yyefile;
+        int     Yyeseqid;
 } Y, OY;
 
-#define	yychar	Y.Yychar
-#define	yylval	Y.Yylval
-#define	yyecol	Y.Yyecol
-#define	yyeline	Y.Yyeline
-#define	yyseekp	Y.Yyseekp
-#define	yyefile	Y.Yyefile
-#define	yyeseqid Y.Yyeseqid
+#define yychar  Y.Yychar
+#define yylval  Y.Yylval
+#define yyecol  Y.Yyecol
+#define yyeline Y.Yyeline
+#define yyseekp Y.Yyseekp
+#define yyefile Y.Yyefile
+#define yyeseqid Y.Yyeseqid
 
 /* Semantic Stack so that y.tab.c will lint */
 
-union semstack
+extern union semstack
 {
-    int		  i_entry;
-    struct nl	 *nl_entry;
+    int           i_entry;
+    struct nl    *nl_entry;
     struct tnode *tr_entry;
-    char	 *cptr;
+    char         *cptr;
 } yyval;
+
 
 /*
  * Yyval is the semantic value returned by a reduction.
  * It is what "$$" is expanded to by yacc.
  */
 
-int	*Ps;
+extern int *Ps;
 
 /*
  * N is the length of a reduction.
  * Used externally by "lineof" to get the left and
  * right margins for a reduction.
  */
-int	N;
+extern int N;
+
 /*
  * Definitions for looking up keywords.
  * The keyword array is called yykey, and
  * lastkey points at the end of it.
  */
-char	*lastkey;
+extern  char    *lastkey;
 
-struct kwtab {
-	char	*kw_str;
-	int	kw_val;
+extern  struct kwtab {
+        char    *kw_str;
+        int     kw_val;
 } yykey[];
 
 /*
  * ERROR RECOVERY EXTERNALS
  */
 
-#define	CLIMIT	40	/* see yyrecover.c */
-char	*tokname();
-char	*charname();
+#define CLIMIT  40      /* see yyrecover.c */
+extern char *tokname();
+extern char *charname();
 
-char	*classes[];
+extern const char *classes[];
 
 /*
  * Tokens which yacc doesn't define
  */
-#define	YEOF	0
-#define	ERROR	256
+#define YEOF    0
+#define ERROR   256
 
 /*
  * Limit on the number of syntax errors
  */
-#define	MAXSYNERR	100
+#define MAXSYNERR   100
 
 /*
  * Big costs
  */
-#define	HUGE		50
-#define	INFINITY	100
+#define YHUGE   50
+#define YINFINITY  100
 
 /*
  * Kinds of panics
  */
-#define	PDECL	0
-#define	PSTAT	1
-#define	PEXPR	2
-#define	PPROG	3
+#define PDECL   0
+#define PSTAT   1
+#define PEXPR   2
+#define PPROG   3
 
-#define	yyresume()	yyResume = 1;
+#define yyresume()      yyResume = 1;
 
-char	yyResume;
+extern char yyResume;
 
-char	dquote;
+extern char dquote;
 
 #ifndef PC
 #ifndef OBJ
-char	errout;
-#endif OBJ
-#endif PC
+extern char errout;
+#endif
+#endif 
 
 /*
  * Yyidwant and yyidhave are the namelist classes
@@ -221,7 +227,7 @@ char	errout;
  * they must be saved by yyrecover, which uses them in printing
  * error messages.
  */
-int	yyidhave, yyidwant;
+extern int yyidhave, yyidwant;
 
 /*
  * The variables yy*shifts are used to prevent looping and the printing
@@ -239,48 +245,48 @@ int	yyidhave, yyidwant;
  * The recovery cannot loop because it guarantees the progress of the
  * parse, i.e.:
  *
- *	1) Any insertion guarantees to shift over 2 symbols, a replacement
- *	   over one symbol.
+ *      1) Any insertion guarantees to shift over 2 symbols, a replacement
+ *         over one symbol.
  *
- *	2) Unique symbol insertions are limited to one for each true
- *	   symbol of input, or "safe" insertion of the keywords "end"
- *	   and "until" at zero cost (safe since these are know to match
- *	   stack that cannot have been generated - e.g. "begin" or "repeat")
+ *      2) Unique symbol insertions are limited to one for each true
+ *         symbol of input, or "safe" insertion of the keywords "end"
+ *         and "until" at zero cost (safe since these are know to match
+ *         stack that cannot have been generated - e.g. "begin" or "repeat")
  *
- *	3) We never panic more than once from a given state without
- *	   shifting over input, i.e. we force the parse stack to shrink
- *	   after each unsuccessful panic.
+ *      3) We never panic more than once from a given state without
+ *         shifting over input, i.e. we force the parse stack to shrink
+ *         after each unsuccessful panic.
  */
-int	yyshifts, yyOshifts;
-unsigned yytshifts;
+extern int yyshifts, yyOshifts;
+extern unsigned yytshifts;
 
 #ifdef PXP
 
 /*
  * Identifier class definitions
  */
-#define	UNDEF	0
-#define	CONST	1
-#define	TYPE	2
-#define	VAR	3
-#define	ARRAY	4
-#define	PTRFILE	5
-#define	RECORD	6
-#define	FIELD	7
-#define	PROC	8
-#define	FUNC	9
-#define	FVAR	10
-#define	REF	11
-#define	PTR	12
-#define	FILET	13
-#define	SET	14
-#define	RANGE	15
-#define	LABEL	16
-#define	WITHPTR 17
-#define	SCAL	18
-#define	STR	19
-#define	PROG	20
-#define	IMPROPER 21
+#define UNDEF   0
+#define CONST   1
+#define TYPE    2
+#define VAR     3
+#define ARRAY   4
+#define PTRFILE 5
+#define RECORD  6
+#define FIELD   7
+#define PROC    8
+#define FUNC    9
+#define FVAR    10
+#define REF     11
+#define PTR     12
+#define FILET   13
+#define SET     14
+#define RANGE   15
+#define LABEL   16
+#define WITHPTR 17
+#define SCAL    18
+#define STR     19
+#define PROG    20
+#define IMPROPER 21
 
 /*
  * COMMENT FORMATTING DEFINITIONS
@@ -290,49 +296,49 @@ unsigned yytshifts;
  * Count of tokens on this input line
  * Note that this can be off if input is not syntactically correct.
  */
-int	yytokcnt;
-int	yywhcnt;
+extern int yytokcnt;
+extern int yywhcnt;
 
 /*
  * Types of comments
  */
-#define	CLMARG	0
-#define	CALIGN	1
-#define	CTRAIL	2
-#define	CRMARG	3
-#define	CSRMARG	4
-#define	CNL	5
-#define	CNLBL	6
-#define	CFORM	7
-#define	CINCLUD	8
+#define CLMARG  0
+#define CALIGN  1
+#define CTRAIL  2
+#define CRMARG  3
+#define CSRMARG 4
+#define CNL     5
+#define CNLBL   6
+#define CFORM   7
+#define CINCLUD 8
 
 /*
  * Comment structure
  * Cmhp is the head of the current list of comments
  */
-struct comment {
-	struct	comment *cmnext;
-	int	cmdelim;
-	struct	commline *cml;
-	int	cmjust;
-	int	cmseqid;
+extern struct comment {
+        struct  comment *cmnext;
+        int     cmdelim;
+        struct  commline *cml;
+        int     cmjust;
+        int     cmseqid;
 } *cmhp;
 
 /*
  * Structure for holding a comment line
  */
-struct commline {
-	char	*cmtext;
-	int	cmcol;	/* Only used for first line of comment currently */
-	struct	commline *cml;
+extern struct commline {
+        char    *cmtext;
+        int     cmcol;  /* Only used for first line of comment currently */
+        struct  commline *cml;
 };
 
-struct W {
-	int	Wseqid;
-	int	Wcol;
+extern struct W {
+        int     Wseqid;
+        int     Wcol;
 } yyw[MAXDEPTH + 1], *yypw;
 
-#define	commform()	quickcomm(CFORM)
-#define	commnl()	quickcomm(CNL)
-#define	commnlbl()	quickcomm(CNLBL)
+#define commform()      quickcomm(CFORM)
+#define commnl()        quickcomm(CNL)
+#define commnlbl()      quickcomm(CNLBL)
 #endif

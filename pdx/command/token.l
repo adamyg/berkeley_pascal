@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 %{
 /*-
  * Copyright (c) 1982, 1993
@@ -42,17 +43,27 @@ static char sccsid[] = "@(#)token.l	8.1 (Berkeley) 6/6/93";
 
 #include "defs.h"
 #include "command.h"
+#ifdef unix
 #include "y.tab.h"
+#else
+#include "ytab.h"
+#endif
 #include "main.h"
 #include "symtab.h"
 #include "sym.h"
 #include "process/process.h"
 #include "process/pxinfo.h"
 
-char *initfile = ".pdxinit";
+char		*initfile = ".pdxinit";
+BOOLEAN 	nlflag = 0;
 
 /* override Lex default input macro. */
-LOCAL int pdxinput();
+LOCAL int	pdxinput();
+
+LOCAL int	findcmd(char *s);
+LOCAL int	ident(char *s);
+LOCAL int	octal(char *s);
+LOCAL int	hex(char *s);
 
 #undef  YY_INPUT
 #define YY_INPUT(buf,result,max_size)	\
@@ -106,15 +117,15 @@ at		{ return(AT); }
 
 %%
 
-LOCAL SYMTAB *dbtab, *specialtab;
+LOCAL SYMTAB 	*dbtab, *specialtab;
+
 
 /*
  * Look for the given string in the debugger keyword table.
  * If it's there, return the associated token, otherwise report an error.
  */
-
-LOCAL int findcmd(s)
-char *s;
+LOCAL int 
+findcmd(char *s)
 {
 	register SYM *p;
 
@@ -139,14 +150,14 @@ char *s;
 	return(toknum(p));
 }
 
+
 /*
  * Look for a symbol, first in the special table (if, in, etc.)
  * then in the symbol table.  If it's there, return the SYM pointer,
  * otherwise it's an error.
  */
-
-LOCAL int ident(s)
-char *s;
+LOCAL int 
+ident(char *s)
 {
 	register SYM *p;
 
@@ -167,12 +178,12 @@ char *s;
 	return(NAME);
 }
 
+
 /*
  * Convert a string to octal.  No check that digits are less than 8.
  */
-
-LOCAL int octal(s)
-char *s;
+LOCAL int 
+octal(char *s)
 {
 	register char *p;
 	register int n;
@@ -184,12 +195,12 @@ char *s;
 	return(n);
 }
 
+
 /*
  * Convert a string to hex.
  */
-
-LOCAL int hex(s)
-char *s;
+LOCAL int 
+hex(char *s)
 {
 	register char *p;
 	register int n;
@@ -216,7 +227,8 @@ char *s;
 #define db_keyword(nm, n)	make_keyword(dbtab, nm, n)
 #define sp_keyword(nm, n)	make_keyword(specialtab, nm, n)
 
-lexinit()
+void
+lexinit(void)
 {
 	dbtab = st_creat(150);
 	db_keyword("alias", ALIAS);
@@ -232,6 +244,7 @@ lexinit()
 	db_keyword("list", LIST);
 	db_keyword("next", NEXT);
 	db_keyword("pi", REMAKE);
+	db_keyword("restart", RESTART);
 	db_keyword("print", PRINT);
 	db_keyword("quit", QUIT);
 	db_keyword("run", RUN);
@@ -261,9 +274,8 @@ lexinit()
 /*
  * Send an alias directive over to the symbol table manager.
  */
-
-alias(new, old)
-char *new, *old;
+void
+alias(char *new, char *old)
 {
 	if (old == NIL) {
 		print_alias(dbtab, new);
@@ -277,21 +289,24 @@ char *new, *old;
  * where the input comes from.
  */
 
-#define MAXINPUT 10
+#define MAXINPUT 	10
 
-LOCAL FILE *infp[MAXINPUT];
-LOCAL FILE **curfp = &infp[0];
+void                    setinput(char *filename);
 
-LOCAL BOOLEAN isnewfile;
-LOCAL BOOLEAN firsttime;
+LOCAL FILE		*infp[MAXINPUT];
+LOCAL FILE		**curfp = &infp[0];
+
+LOCAL BOOLEAN		isnewfile;
+LOCAL BOOLEAN		firsttime;
+
 
 /*
  * Initially, we set the input to the initfile if it exists.
  * If it does exist, we play a game or two to avoid generating
  * multiple prompts.
  */
-
-initinput()
+void
+initinput(void)
 {
 	FILE *fp;
 
@@ -307,13 +322,13 @@ initinput()
 	nlflag = TRUE;
 }
 
+
 /*
  * Set the input to the named file.  It is expected that the file exists
  * and is readable.
  */
-
-setinput(filename)
-char *filename;
+void
+setinput(char *filename)
 {
 	register FILE *fp;
 
@@ -328,12 +343,16 @@ char *filename;
 	isnewfile = TRUE;
 }
 
-BOOLEAN isstdin()
+
+BOOLEAN 
+isstdin(void)
 {
 	return((BOOLEAN) (yyin == stdin));
 }
 
-LOCAL int pdxinput()
+
+LOCAL int 
+pdxinput(void)
 {
 	register int c;
 
@@ -359,14 +378,15 @@ LOCAL int pdxinput()
 	return(c);
 }
 
+
 /*
  * prompt for a command
  */
-
-prompt()
+void
+prompt(void)
 {
 	nlflag = FALSE;
-	if (yyin == stdin) {
+	if (yyin == stdin || yyin == (FILE *)0 /*APY*/) {
 		printf("> ");
 		fflush(stdout);
 	}

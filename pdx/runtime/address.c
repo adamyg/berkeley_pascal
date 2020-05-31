@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)address.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -56,9 +56,8 @@ static char sccsid[] = "@(#)address.c	8.1 (Berkeley) 6/6/93";
  * activation in which the symbol we're interested in is defined.
  */
 
-ADDRESS address(s, frame)
-register SYM *s;
-FRAME *frame;
+ADDRESS 
+address(register SYM *s, FRAME *frame)
 {
     SYM *f;
     FRAME *frp;
@@ -112,8 +111,8 @@ FRAME *frame;
  * Should only be called once per symbol.
  */
 
-findbeginning(f)
-SYM *f;
+void 
+findbeginning(SYM *f)
 {
     f->symvalue.funcv.codeloc = nextaddr(f->symvalue.funcv.codeloc, FALSE);
 }
@@ -122,8 +121,8 @@ SYM *f;
  * Find the object code associated with the first line of a block.
  */
 
-ADDRESS firstline(f)
-SYM *f;
+ADDRESS 
+firstline(SYM *f)
 {
     ADDRESS addr;
 
@@ -141,7 +140,8 @@ SYM *f;
  * Catcher drops strike three ...
  */
 
-runtofirst()
+void
+runtofirst(void)
 {
     stepto(firstline(curfunc));
 }
@@ -151,7 +151,8 @@ runtofirst()
  * This is assumed to be at the physical end.
  */
 
-ADDRESS lastaddr()
+ADDRESS 
+lastaddr(void)
 {
     if (objsize == 0) {
 	panic("lastaddr: objsize = 0!");

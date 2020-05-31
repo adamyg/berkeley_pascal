@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)type.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,6 +45,7 @@ static char sccsid[] = "@(#)type.c	8.1 (Berkeley) 6/6/93";
  * Type declaration part
  */
 /*ARGSUSED*/
+void
 typebeg( lineofytype , r )
     int	lineofytype;
 {
@@ -101,6 +102,7 @@ typebeg( lineofytype , r )
 #endif
 }
 
+void
 type(tline, tid, tdecl)
 	int tline;
 	char *tid;
@@ -125,7 +127,7 @@ type(tline, tid, tdecl)
 	} else {
 	    stabltype(tid, np);
 	}
-#endif PC
+#endif /*PC*/
 
 #	ifdef PTREE
 	    {
@@ -140,14 +142,15 @@ type(tline, tid, tdecl)
 #	endif
 }
 
+void
 typeend()
 {
-
 #ifdef PI0
 	send(REVTEND);
 #endif
 	foredecl();
 }
+
 
 /*
  * Return a type pointer (into the namelist)
@@ -259,8 +262,8 @@ gtype(r)
 #ifndef PC
 	w = lwidth(np);
 	if (w >= TOOMUCH) {
-		error("Storage requirement of %s exceeds the implementation limit of %D by %D bytes",
-			nameof(np), (char *) (long)(TOOMUCH-1), (char *) (long)(w-TOOMUCH+1));
+		error("Storage requirement of %s exceeds the implementation limit of %ld by %ld bytes",
+			nameof(np), (long)(TOOMUCH-1), (long)(w-TOOMUCH+1));
 		np = NLNIL;
 	}
 #endif
@@ -305,7 +308,7 @@ struct nl *
 tycrang(r)
 	register struct tnode *r;
 {
-	register struct nl *p, *op, *tp;
+	register struct nl *p, /**op,*/ *tp;
 
 	tp = gtype(r->crang_ty.type);
 	if ( tp == NLNIL )
@@ -359,12 +362,12 @@ tyrang(r)
 		return (NLNIL);
 	}
 	lp = defnl((char *) 0, RANGE, hp->type, 0);
-	lp->range[0] = con.crval;
-	lp->range[1] = high;
+	lp->range[0] = (long)con.crval;
+	lp->range[1] = (long)high;
 	return (lp);
 }
 
-norange(p)
+int norange(p)
 	register struct nl *p;
 {
 	if (isa(p, "d")) {
@@ -454,6 +457,7 @@ tyary(r)
  * allow self-referential and mutually
  * recursive pointer constructs.
  */
+void
 foredecl()
 {
 	register struct nl *p;
@@ -462,7 +466,7 @@ foredecl()
 		if (p->class == PTR && p -> ptr[0] != 0)
 		{
 			p->type = gtype((struct tnode *) p -> ptr[0]);
-#			ifdef PTREE
+#ifdef PTREE
 			{
 			    if ( pUSE( p -> inTree ).PtrTType == pNIL ) {
 				pPointer	PtrTo = tCopy( p -> ptr[0] );
@@ -470,10 +474,10 @@ foredecl()
 				pDEF( p -> inTree ).PtrTType = PtrTo;
 			    }
 			}
-#			endif
-#			ifdef PC
-			    fixfwdtype(p);
-#			endif
+#endif
+#ifdef PC
+			fixfwdtype(p);
+#endif
 			p -> ptr[0] = 0;
 		}
 	}

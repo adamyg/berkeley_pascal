@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -56,7 +57,7 @@ typedef char STACK;
 
 #ifdef tahoe
 #define push(type, value)	((*(type *)sp) = value, sp += (sizeof(type) + WMASK) & ~WMASK, value)
-#define	pop(type)		(sp -= (sizeof(type) + WMASK) & ~WMASK, (*((type *) sp)))
+#define pop(type)		(sp -= (sizeof(type) + WMASK) & ~WMASK, (*((type *) sp)))
 #else
 #define push(type, value)	((type *) (sp += sizeof(type)))[-1] = (value)
 #define pop(type)		(*((type *) (sp -= sizeof(type))))
@@ -64,15 +65,73 @@ typedef char STACK;
 #define alignstack()		sp = (char *) (( ((int) sp) + WMASK)&~WMASK)
 #define downalignstack()	sp = (char *) (( ((int) sp))&~WMASK)
 
-STACK stack[];
-STACK *sp;
+extern STACK		stack[];
+extern STACK		*sp;
 
-NODE *build();		/* create a node in the parse tree */
-int prtree();		/* print a tree in source form */
-int eval();		/* evaluate a tree, leaving value on stack */
-long popsmall();	/* pop a small item from the stack given its type */
-int tfree();		/* release storage for a tree */
-BOOLEAN tr_equal();	/* test if two trees are structurally equivalent */
-BOOLEAN cond();		/* evaluate a node for a conditional */
-ADDRESS lval();		/* return the object address of a node */
-BOOLEAN isredirected();	/* TRUE if output is being redirected */
+/*build.c*/
+				/* create a node in the parse tree */
+extern NODE		*build(OP op, ...);
+
+
+/*prtree.c*/
+				/* print a tree in source form */
+extern void		prtree(NODE *p);
+
+				/* backtrace error */
+extern void		trerror(const char *s, NODE *tree, ...);
+
+
+/*tree.c*/
+				/* evaluate a tree, leaving value on stack */
+extern void		eval(NODE *p);
+
+				/* Push bytes onto the expression stack */
+extern BOOLEAN		rpush(ADDRESS addr, int len);
+
+				/* pop a small item from the stack given its type */
+extern long		popsmall(SYM *t);
+
+				/* evaluate a node for a conditional */
+extern BOOLEAN		cond(NODE *p);
+
+				/* return the object address of a node */
+extern ADDRESS		lval(NODE *p);
+
+
+/*tfree.c*/
+				/* release storage for a tree */
+extern void		tfree(NODE *p);
+
+
+/*tr_equal.c*/
+				/* test if two trees are structurally equivalent */
+extern BOOLEAN		tr_equal(NODE *t1, NODE *t2);
+
+
+/*misc.c*/
+				/* TRUE if output is being redirected */
+extern BOOLEAN		isredirected(void);
+
+				/* Invoke an editor */
+extern void		edit(const char *filename);
+
+				/* Send mail to pdx support */
+extern void		gripe(void);
+
+				/* Give the user some help */
+extern void		help(void);
+
+				/* Divert output */
+extern void		setout(const char *filename);
+extern void		unsetout(void);
+
+
+/*tracesto.c*/
+extern void		trace(int cmd, NODE *exp, NODE *where, NODE *cond);
+extern void		stop(int cmd, NODE *exp, NODE *where, NODE *cond);
+
+
+/*assign.c*/
+extern void		assign(NODE *var, NODE *exp);
+
+/*end*/

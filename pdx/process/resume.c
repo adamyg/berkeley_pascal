@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)resume.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -50,74 +50,71 @@ static char sccsid[] = "@(#)resume.c	8.1 (Berkeley) 6/6/93";
 #include "machine/pxerrors.h"
 #include "pxinfo.h"
 
+LOCAL void choose(void);
+
+
 /*
  * Resume execution, set (get) pcode location counter before (after) resuming.
  */
-
-resume()
+void
+resume(void)
 {
     register PROCESS *p;
 
     p = process;
+#if defined(PXEMBEDDED)
+    pcont2(p, &pc);
+#else
     do {
 	if (option('e')) {
 	    printf("execution resumes at pc 0x%x, lc %d\n", process->pc, pc);
 	    fflush(stdout);
 	}
 	pcont(p);
-	dread(&pc, PCADDR, sizeof(pc));		/* Get pcode pc */
+	dread(&pc, PCADDR, sizeof(pc));	/* Get pcode pc */
 	if (option('e')) {
-	    printf("execution stops at pc 0x%x, lc %d on sig %d\n",
-		process->pc, pc, p->signo);
+	    printf("execution stops at pc 0x%x, lc %d on sig %d\n", process->pc, pc, p->signo);
 	    fflush(stdout);
 	}
     } while (p->signo == SIGCONT);
+#endif
     if (option('r') && p->signo != 0) {
-	choose();
+        choose();
     }
-
-    /*
-     * If px implements a breakpoint by executing a halt instruction
-     * the real pc must be incremented to skip over it.
-     *
-     * Currently, px sends itself a signal so no incrementing is needed.
-     *
-	if (isbperr()) {
-	    p->pc++;
-	}
-     */
 }
 
+
 /*
- * Under the -r option, we offer the opportunity to just get
- * the px traceback and not actually enter the debugger.
+ *  Under the -r option, we offer the opportunity to just get
+ *  the px traceback and not actually enter the debugger.
  *
- * If the standard input is not a tty but standard error is,
- * change standard input to be /dev/tty.
+ *  If the standard input is not a tty but standard error is,
+ *  change standard input to be /dev/tty.
  */
 
-LOCAL choose()
+LOCAL void
+choose(void)
 {
     register int c;
 
     if (!isterm(stdin)) {
-	if (!isterm(stderr) || freopen("/dev/tty", "r", stdin) == NIL) {
-	    unsetsigtraces(process);
-	    pcont(process);
-	    quit(process->exitval);
-	    /* NOTREACHED */
-	}
+        if (!isterm(stderr) || freopen("/dev/tty", "r", stdin) == NIL) {
+            unsetsigtraces(process);
+            pcont(process);
+            quit(process->exitval);
+            /* NOTREACHED */
+        }
     }
     fprintf(stderr, "\nProgram error");
     fprintf(stderr, "\nDo you wish to enter the debugger? ");
     c = getchar();
     if (c == 'n') {
-	unsetsigtraces(process);
-	pcont(process);
-	quit(process->exitval);
+        unsetsigtraces(process);
+        pcont(process);
+        quit(process->exitval);
     }
     while (c != '\n' && c != EOF) {
-	c = getchar();
+        c = getchar();
     }
     fprintf(stderr, "\nEntering debugger ...");
     init();

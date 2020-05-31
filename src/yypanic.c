@@ -31,14 +31,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)yypanic.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
-#include "tree_ty.h"	/* must be included for yy.h */
-#include "yy.h"
+#include <whoami.h>
+#include <0.h>
+#include <tree_ty.h>	/* must be included for yy.h */
+#include <yy.h>
 
 struct yytok oldpos;
 /*
@@ -58,6 +58,7 @@ struct yytok oldpos;
  * Otherwise we print it.
  * We then skip input up to the next solid symbol.
  */
+void
 yyPerror(cp, kind)
 	char *cp;
 	register int kind;

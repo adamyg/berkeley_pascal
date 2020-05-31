@@ -1,3 +1,4 @@
+/* -*- mode: c; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)step.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -54,36 +55,46 @@ static char sccsid[] = "@(#)step.c	8.1 (Berkeley) 6/6/93";
 #include "source.h"
 #include "mappings.h"
 #include "process.rep"
+#include "main.h"
+
+LOCAL void dostep(BOOLEAN isnext);
 
 /*
  * Stepc is what is called when the step command is given.
  * It has to play with the "isstopped" information.
  */
-
-stepc()
+void
+stepc(int cnt)
 {
-    if (!isstopped) {
-	error("can't continue execution");
+    while (cnt-- > 0) {
+	if (!isstopped) {
+	    error("can't continue execution");
+	}
+	isstopped = FALSE;
+	dostep(FALSE);
+	isstopped = TRUE;
     }
-    isstopped = FALSE;
-    dostep(FALSE);
-    isstopped = TRUE;
 }
 
-next()
+void
+next(int cnt)
 {
-    if (!isstopped) {
-	error("can't continue execution");
+    while (cnt-- > 0) {
+	if (!isstopped) {
+	    error("can't continue execution");
+	}
+	isstopped = FALSE;
+	dostep(TRUE);
+	isstopped = TRUE;
     }
-    isstopped = FALSE;
-    dostep(TRUE);
-    isstopped = TRUE;
 }
 
-step()
+void
+step(void)
 {
     dostep(FALSE);
 }
+
 
 /*
  * Resume execution up to the given address.  It is assumed that
@@ -91,8 +102,8 @@ step()
  * we're stepping to.  This saves us from setting all the breakpoints.
  */
 
-stepto(addr)
-ADDRESS addr;
+void
+stepto(ADDRESS addr)
 {
     setbp(addr);
     resume();
@@ -102,17 +113,20 @@ ADDRESS addr;
     }
 }
 
-LOCAL dostep(isnext)
-BOOLEAN isnext;
+LOCAL void
+dostep(BOOLEAN isnext)
 {
+    int disasm = (option('x') ? 1 : 0);
     register ADDRESS addr;
     register LINENO line;
 
     addr = pc;
     do {
-	addr = nextaddr(addr, isnext);
+        addr = nextaddrx(addr, isnext, disasm); 
+        if (disasm) ++disasm;
 	line = linelookup(addr);
     } while (line == 0 && !ss_instructions);
     stepto(addr);
     curline = line;
 }
+

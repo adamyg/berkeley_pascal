@@ -43,6 +43,10 @@
  * Structure of an activation record's block mark.  See the
  * PX implementation notes for more details.
  */
+struct framestack {
+        ADDRESS locvars;        /* pointer to local variables */
+        ADDRESS stp;            /* pointer to local stack frame */
+};
 
 struct frame {
 	ADDRESS stackref;	/* for px self-checking */
@@ -55,11 +59,30 @@ struct frame {
 	int save_lino;		/* saved source line number (never used) */
 };
 
-FRAME *curframe();		/* get the currently active frame */
-FRAME *nextframe();		/* go up the stack */
-FRAME *findframe();		/* find the frame for a given function */
-ADDRESS entry();		/* get the entry address for a frame */
-ADDRESS *dispval();		/* display associated with a given block */
-ADDRESS *curdp();		/* return current display pointer */
-ADDRESS *contents();		/* return the contents of display pointer */
-ADDRESS stkaddr();		/* stack address associated with a frame */
+                                /* get the currently active frame */
+extern FRAME            *curframe(void);
+
+                                /* go up the stack */
+extern FRAME            *nextframe(FRAME *frp);
+
+                                /* find the frame for a given function */
+extern FRAME            *findframe(SYM *f);
+
+                                /* get the entry address for a frame */
+extern ADDRESS          entry(FRAME *frp);
+
+                                /* display associated with a given block */
+extern ADDRESS          *dispval(int b);
+
+                                /* return current display pointer */
+extern ADDRESS          *curdp(void);
+
+                                /* return the contents of display pointer */
+extern ADDRESS          *contents(ADDRESS *dp);
+
+                                /* stack address associated with a frame */
+extern ADDRESS          stkaddr(FRAME *frp, int b);
+
+
+
+

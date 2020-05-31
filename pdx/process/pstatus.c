@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)pstatus.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,14 +46,17 @@ static char sccsid[] = "@(#)pstatus.c	8.1 (Berkeley) 6/6/93";
 #include "breakpoint.h"
 #include "source.h"
 #include "object.h"
+#include "main.h"
+#include "mappings.h"
+#include "source.h"
 #include "process.rep"
 
 /*
  * Print the status of the process.
  * This routine does not return.
  */
-
-printstatus()
+void
+printstatus(void)
 {
     if (process->signo == SIGINT) {
 	isstopped = TRUE;
@@ -87,10 +90,8 @@ printstatus()
  * Print out the "line N [in file F]" information that accompanies
  * messages in various places.
  */
-
-printwhere(lineno, filename)
-LINENO lineno;
-char *filename;
+void
+printwhere(LINENO lineno, const char *filename)
 {
     if (lineno > 0) {
 	printf("line %d", lineno);
@@ -105,9 +106,8 @@ char *filename;
 /*
  * Return TRUE if the process is finished.
  */
-
-BOOLEAN isfinished(p)
-PROCESS *p;
+BOOLEAN 
+isfinished(PROCESS *p)
 {
     return(p->status == FINISHED);
 }

@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 4; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,7 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)nextaddr.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -58,18 +59,57 @@ static char sccsid[] = "@(#)nextaddr.c	8.1 (Berkeley) 6/6/93";
 #include "process/pxinfo.h"
 #include "process/process.rep"
 
+#include <assert.h>
+
 #ifdef tahoe
 #define EVEN 3
 #else
 #define EVEN 1
 #endif
 
-LOCAL ADDRESS docase(), dofor();
+#if defined(WIN32)
+#define DISASSEMBLE
+#endif
 
-ADDRESS nextaddr(beginaddr, isnext)
-ADDRESS beginaddr;
-BOOLEAN isnext;
+#if defined(PXEMBEDDED)
+#define PROCESS_SP(__p) (__p->isp)
+#else
+#define PROCESS_SP(__p) (__p->sp)
+#endif
+
+#define DISWIDTH    41      /* right column */
+#define DISASMTAB   16      /* data tab column */
+typedef struct {
+    char rbuffer[1024];     /* right/hex column buffer */
+    int  rlength;
+    int  cursor;            /* line cursor */
+    int  words;             /* number of elements/words */
+} disasmline_t;
+
+LOCAL ADDRESS docase(int ncases, int size, ADDRESS addr);
+LOCAL ADDRESS dofor(int size, ADDRESS addr, short subop, int incr);
+
+LOCAL void asm_col0(disasmline_t *line, ADDRESS addr, const char *fmt, ...);
+LOCAL void asm_col1(disasmline_t *line, ADDRESS addr, const char *fmt, ...);
+LOCAL void asm_colx(disasmline_t *line, BOOLEAN isnext, ADDRESS addr, const char *fmt, va_list ap);
+LOCAL void asm_colf(disasmline_t *line, const char *fmt, ...);
+LOCAL void asm_string(disasmline_t *line, const char *cbuffer, int slen);
+LOCAL void asm_word(disasmline_t *line, short word);
+LOCAL void asm_addr(disasmline_t *line, ADDRESS addr);
+LOCAL void asm_flush(disasmline_t *line);
+
+
+ADDRESS
+nextaddr(ADDRESS beginaddr, BOOLEAN isnext)
 {
+    return nextaddrx(beginaddr, isnext, 0);
+}
+
+
+ADDRESS
+nextaddrx(ADDRESS beginaddr, BOOLEAN isnext, int disasm)
+{
+    disasmline_t line = {0};
     register PXOP op;
     ADDRESS addr;
     short offset;
@@ -77,7 +117,8 @@ BOOLEAN isnext;
     SYM *s;
     union {
 	short word;
-	char byte[2];
+	short words[2];
+	char  byte[2];
     } o;
 
 #ifdef tahoe
@@ -87,6 +128,15 @@ BOOLEAN isnext;
     iread(&o.word, addr, sizeof(o.word));
     op = (PXOP) o.byte[0];
     nextbyte = o.byte[1];
+
+#if defined(DISASSEMBLE)
+    if (disasm) {
+	if (1 == disasm) fputc('\n', stdout);
+	asm_col0(&line, addr, "%s", optab[op].opname);
+	asm_word(&line, o.word);
+    }
+#endif
+ 
     addr += sizeof(short);
     switch(op) {
 
@@ -101,18 +151,27 @@ BOOLEAN isnext;
 	    if (isnext) {
 		addr += sizeof(int);
 #ifdef tahoe
-	        addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
+		addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 	    } else {
 #ifdef tahoe
 		addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 		iread(&eaddr, addr, sizeof(eaddr));
+#if defined(DISASSEMBLE)
+		if (disasm) {
+		    asm_colf(&line, ":%ld", (long) addr);
+		    asm_addr(&line, addr);
+		}
+#endif
 		addr = eaddr + sizeof(short);
 #ifdef tahoe
 		addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 		iread(&addr, addr, sizeof(addr));
+#if defined(DISASSEMBLE)
+		if (disasm) asm_addr(&line, addr);
+#endif
 		stepto(addr);
 		if (linelookup(addr) == 0) {
 		    bpact();
@@ -131,14 +190,14 @@ BOOLEAN isnext;
 
 	case O_FCALL: {
 	    ADDRESS eaddr;
-	    ADDRESS *fparam;
+	    ADDRESS fparam;
 
 	    if (!isnext) {
 		stepto(addr - sizeof(short));
 #ifdef tahoe
 		doret(process);
 #endif
-		dread(&fparam, process->sp + sizeof(ADDRESS), sizeof(fparam));
+		dread(&fparam, PROCESS_SP(process) + sizeof(ADDRESS), sizeof(fparam));
 		dread(&eaddr, fparam, sizeof(eaddr));
 		addr = eaddr - ENDOFF;
 		stepto(addr);
@@ -184,10 +243,22 @@ BOOLEAN isnext;
 	    addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 	    iread(&addr, addr, sizeof(addr));
+#if defined(DISASSEMBLE)
+	    if (disasm) {
+		asm_colf(&line, ":%ld", (long) addr);
+		asm_addr(&line, addr);
+	    }
+#endif
 	    break;
 
 	case O_TRA:
 	    iread(&offset, addr, sizeof(offset));
+#if defined(DISASSEMBLE)
+	    if (disasm) {
+		asm_colf(&line, ":%d", offset);
+		asm_word(&line, offset);
+	    }
+#endif
 	    addr += offset;
 	    break;
 
@@ -196,9 +267,15 @@ BOOLEAN isnext;
 
 	    if (nextbyte == 0) {
 #ifdef tahoe
-	        addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
+		addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 		iread(&consize, addr, sizeof(consize));
+#if defined(DISASSEMBLE)
+		if (disasm) {
+		    asm_colf(&line, ":%d", consize);
+		    asm_word(&line, consize);
+		}
+#endif
 		addr += sizeof(consize);
 	    } else {
 		consize = nextbyte;
@@ -247,9 +324,14 @@ BOOLEAN isnext;
 	    stepto(addr - sizeof(short));
 #ifdef tahoe
 	    doret(process);
-	    dread(&offset, process->sp+sizeof(int)-sizeof(offset), sizeof(offset));
+	    dread(&offset, PROCESS_SP(process)+sizeof(int)-sizeof(offset), sizeof(offset));
 #else
-	    dread(&offset, process->sp, sizeof(offset));
+	    dread(&offset, PROCESS_SP(process), sizeof(offset));
+#endif
+#if defined(DISASSEMBLE)
+	    if (disasm) {
+		asm_colf(&line, " %d", offset);
+	    }
 #endif
 	    if (offset == 0) {
 		iread(&offset, addr, sizeof(offset));
@@ -263,16 +345,31 @@ BOOLEAN isnext;
 	    int i;
 
 	    for (i = 0; optab[op].argtype[i] != 0; i++) {
+		ARGTYPE argtype = optab[op].argtype[i];
 		switch(optab[op].argtype[i]) {
 		    case ADDR4:
 		    case LWORD:
+#if defined(DISASSEMBLE)
+			if (disasm) {
+			    ADDRESS t_addr = 0;
+			    iread(&t_addr, addr, sizeof(t_addr));
+			    asm_col0(&line, addr, "%s", (argtype == ADDR4 ? "addr4" : "lword"));
+			    asm_colf(&line, "%ld", (long)addr);
+			    asm_addr(&line, t_addr);
+			}
+#endif
 			addr += 4;
 #ifdef tahoe
-		        addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
+			addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 #endif
 			break;
 
 		    case SUBOP:
+#if defined(DISASSEMBLE)
+			if (disasm) {
+                            asm_colf(&line, ":%d", nextbyte);
+			}
+#endif
 			break;
 
 		    case ADDR2:
@@ -281,46 +378,69 @@ BOOLEAN isnext;
 		    case DISP:
 		    case VLEN:
 			if (i != 0 || nextbyte == 0) {
+#if defined(DISASSEMBLE)
+			    if (disasm) {
+				iread(&o.word, addr, sizeof(o.word));
+				asm_colf(&line, (i ? " %d" : ":%d"), o.word);
+				asm_word(&line, o.word);
+			    }
+#endif
 			    addr += sizeof(short);
+			} else {
+#if defined(DISASSEMBLE)
+			    if (disasm) {
+				asm_colf(&line, ":%d", nextbyte);
+			    }
+#endif
 			}
 			break;
 
 		    case STRING: {
+#if defined(DISASSEMBLE)
+                        char cbuffer[256]; int slen = 0;
+#endif
 			char c;
 
+                        assert(nextbyte <= 255);
 			while (nextbyte > 0) {
 			    iread(&c, addr, 1);
 			    if (c == '\0') {
 				break;
 			    }
+#if defined(DISASSEMBLE)
+			    if (disasm) cbuffer[slen++] = c;
+#endif
 			    nextbyte--;
 			    addr++;
 			}
+#if defined(DISASSEMBLE)
+                        if (disasm) asm_string(&line, cbuffer, slen);
+#endif
 			addr++;
-		        addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
+			addr = (ADDRESS)(((int)addr + EVEN) & ~EVEN);
 			break;
 		    }
 
 		    default:
-			panic("bad argtype");
+			panic("bad argtype (%u)", argtype);
 			/*NOTREACHED*/
 		}
 	    }
 	    break;
 	}
     }
+    if (disasm) asm_flush(&line);
     return addr;
 }
+
 
 /*
  * Find the next address that will be executed after the
  * case statement at the given address.
  */
 
-LOCAL ADDRESS docase(ncases, size, addr)
-int ncases;
-int size;
-ADDRESS addr;
+LOCAL ADDRESS 
+docase(int ncases, int size, ADDRESS addr)
 {
     register ADDRESS i;
     ADDRESS firstval, lastval, jmptable;
@@ -345,13 +465,13 @@ ADDRESS addr;
     lastval = firstval + ncases*size;
 #ifdef tahoe
     if (size <= 4) {
-	dread(&swtval, process->sp, 4);
+	dread(&swtval, PROCESS_SP(process), 4);
 #else
     if (size <= 2) {
-	dread(&swtval, process->sp, 2);
+	dread(&swtval, PROCESS_SP(process), 2);
 #endif
     } else {
-	dread(&swtval, process->sp, size);
+	dread(&swtval, PROCESS_SP(process), size);
     }
     for (i = firstval; i < lastval; i += size) {
 	caseval = 0;
@@ -372,11 +492,8 @@ ADDRESS addr;
     return((lastval+1)&~1);
 }
 
-LOCAL ADDRESS dofor(size, addr, subop, incr)
-int size;
-ADDRESS addr;
-short subop;
-int incr;
+LOCAL ADDRESS 
+dofor(int size, ADDRESS addr, short subop, int incr)
 {
     register PROCESS *p;
     long i, limit;
@@ -389,16 +506,16 @@ int incr;
 #endif
     i = limit = 0;
     if (subop == 0) {
-	dread(&subop, addr, sizeof (short));
+	iread(&subop, addr, sizeof (short)); /*APY, was dread()*/
 	addr += sizeof (short);
     }
-    dread(&valaddr, p->sp, sizeof(valaddr));
+    dread(&valaddr, PROCESS_SP(p), sizeof(valaddr));
 #ifdef tahoe
     dread((char *)&i + sizeof i - size, valaddr, size);
 #else
     dread(&i, valaddr, size);
 #endif
-    dread(&limit, p->sp + sizeof(valaddr), sizeof limit);
+    dread(&limit, PROCESS_SP(p) + sizeof(valaddr), sizeof limit);
     i += incr;
 
 /*
@@ -418,11 +535,132 @@ int incr;
  * end of a procedure.
  */
 
-BOOLEAN isendofproc(addr)
-ADDRESS addr;
+BOOLEAN 
+isendofproc(ADDRESS addr)
 {
     PXOP op;
 
     iread(&op, addr, sizeof(op));
     return (op == O_END);
+}
+
+
+/*
+ * Simple disassembler formatters
+ */
+
+LOCAL void
+asm_col0(disasmline_t *line, ADDRESS addr, const char *fmt, ...)
+{
+    int len1, len2 = 0;
+
+    asm_flush(line);
+    len1 = fprintf(stdout, "%04x ", addr);
+    if (fmt && *fmt) {
+	va_list ap;
+	va_start(ap, fmt);
+	len2 = vfprintf(stdout, fmt, ap);
+	va_end(ap);
+    }
+    line->cursor = (len1 + len2);
+    line->words = 1;
+}
+
+
+LOCAL void
+asm_colf(disasmline_t *line, const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    if (line->words++ >= 1) {
+	if (*fmt != ':' && line->cursor < DISASMTAB) {
+	    line->cursor += fprintf(stdout, "%*s", DISASMTAB - line->cursor, "");
+	}
+    }
+    line->cursor += vfprintf(stdout, fmt, ap);
+    va_end(ap);
+}
+
+
+LOCAL void
+asm_string(disasmline_t *line, const char *s, int slen)
+{
+    unsigned b;
+
+#define STRWIDTH    (DISWIDTH - 4)
+    while (slen > 0) {
+	asm_flush(line);
+
+	if (slen < STRWIDTH) {
+	    asm_colf(line, "  \"%.*s\"%*s", slen, s, STRWIDTH - slen, "");
+        } else {
+	    asm_colf(line, "  \"%*s\"", STRWIDTH, s);
+	}
+
+	for (b = 0; b < STRWIDTH && slen; b += 2) {
+#if defined(DEC11)
+	    short word= (*s++);
+	    if (--slen) { /* strings are word padded */
+		word |= (*s++ << 8), --slen;
+            }
+#else
+	    short word= (*s++ << 8);
+	    if (--slen) { /* strings are word padded */
+		word |= *s++, --slen;
+            }
+#endif
+	    asm_word(line, word);
+	}
+    }
+}
+
+
+LOCAL void
+asm_word(disasmline_t *line, short word)
+{
+    const int rlength = line->rlength;
+    if (rlength < sizeof(line->rbuffer)) {
+	int space = sizeof(line->rbuffer) - rlength,
+	  len = snprintf(line->rbuffer + rlength, space, "%04hx ", word);
+
+	line->rlength += ((len < 0 || len >= space) ? space : len);
+    }
+}
+
+
+LOCAL void
+asm_addr(disasmline_t *line, ADDRESS addr)
+{
+#if defined(ADDR32)
+    assert(sizeof(ADDRESS) == 4);
+#if defined(DEC11)
+    asm_word(line, addr & 0xffff);
+    asm_word(line, (addr >> 16) & 0xffff);
+#else
+    asm_word(line, (addr >> 16) & 0xffff);
+    asm_word(line, addr & 0xffff);
+#endif
+
+#else
+    assert(sizeof(ADDRESS) == 2);
+    asm_word(line, addr);
+#endif
+}
+
+
+LOCAL void
+asm_flush(disasmline_t *line)
+{
+    const int rlength = line->rlength;
+    if (rlength) {
+	if (line->cursor < DISWIDTH) {
+	    fprintf(stdout, "%*s", line->cursor - DISWIDTH, "");
+	}
+	fprintf(stdout, " %.*s\n", rlength, line->rbuffer);
+
+    } else if (line->cursor) {
+	fputc('\n', stdout);
+    }
+    line->cursor = line->rlength = line->words = 0;
 }

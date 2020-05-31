@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -33,57 +34,149 @@
  *	@(#)sym.h	8.1 (Berkeley) 6/6/93
  */
 
+typedef char		*ARGLIST;
+
 /*
  * This header file declares the variables and routines that
  * are defined within the "sym" subdirectory and that can be
  * accessed from outside.
  */
 
-SYM *program;
+extern SYM		*program;		/* program symbols */
 
 /*
  * attributes
  */
+/*attributes.c*/
+				/* symbol string name */
+extern const char	*name(SYM *s);
 
-char *name();			/* symbol string name */
-char *classname();		/* class name of a symbol */
-int toknum();			/* token number of reserved word */
-int tokval();			/* associated token value */
-int size();			/* size in bytes of a type */
-SYM *rtype();			/* the reduced type, i.e. no type names */
-SYM *container();		/* symbol (block) that contains given symbol */
-ADDRESS codeloc();		/* address of the beginning of a function */
+				/* class name of a symbol */
+extern const char	*classname(SYM *s);
+
+				/* token number of reserved word */
+extern int		toknum(SYM *s);
+
+				/* associated token value */
+extern int		tokval(SYM *s);
+
+				/* size in bytes of a type */
+extern int		size(SYM *t);
+
+				/* the reduced type, i.e. no type names */
+extern SYM		*rtype(SYM *t);
+
+				/* symbol (block) that contains given symbol */
+extern SYM		*container(SYM *s);
+
+				/* address of the beginning of a function */
+extern ADDRESS		codeloc(SYM *f);
+
 
 /*
  * predicates
  */
 
-BOOLEAN isblock();		/* test if a symbol is a block name */
-BOOLEAN isbuiltin();		/* test if a symbol is a builtin type */
-BOOLEAN isparam();		/* test if a symbol is a parameter */
-BOOLEAN isvarparam();		/* test if a symbol is a var parameter */
-BOOLEAN isvariable();		/* test if a symbol is a variable */
-BOOLEAN isambiguous();		/* test if a symbol name is not unique */
-BOOLEAN compatible();		/* test to see if two types are compatible */
-BOOLEAN should_print();		/* test if a symbol should be printed */
+/*predicates.c*/
+				/* test if a symbol is a block name */
+extern BOOLEAN		isblock(SYM *s);
 
-SYM *readsym();			/* read in a symbol from object file */
-SYM *which();			/* find the appropriate symbol of given name */
-SYM *findsym();			/* find a symbol for a given block */
-SYM *findclass();		/* find symbol with given class */
-NODE *dot();			/* construct a tree for the dot operator */
-NODE *subscript();		/* construct a tree for subscripting */
-SYM *treetype();		/* return the type of a tree, checking also */
-long evalindex();		/* evaluate a subscript index */
-int unmkstring();		/* free a constant string type */
-int chkboolean();		/* check if a tree is boolean-valued */
-int printdecl();		/* print out a symbol's declaration */
-int printparams();		/* print out values of a fn's parameters */
-int printentry();		/* note entrance of a block */
-int printexit();		/* note exiting from a block */
-int printcall();		/* note call of a function */
-int printval();			/* print an eval result */
-int printv();			/* print the name and value of a variable */
-int printwhich();		/* print the full "path" of an identifier */
-int maketypes();		/* initialize basic types */
-int make_keyword();		/* create a keyword in a given symbol table */
+				/* test if a symbol is a builtin type */
+extern BOOLEAN		isbuiltin(SYM *s);
+
+				/* test if a symbol is a parameter */
+extern BOOLEAN		isparam(SYM *s);
+
+				/* test if a symbol is a var parameter */
+extern BOOLEAN		isvarparam(SYM *s);
+
+				/* test if a symbol is a variable */
+extern BOOLEAN		isvariable(SYM *s);
+
+				/* test if a symbol name is not unique */
+extern BOOLEAN		isambiguous(SYM *s);
+
+				/* test to see if two types are compatible */
+extern BOOLEAN		compatible(SYM *t1, SYM *t2);
+
+				/* test if a symbol should be printed */
+extern BOOLEAN		should_print(SYM *s, SYM *f);
+
+
+/*which.c*/
+				/* read in a symbol from object file */
+extern SYM		*readsym(FILE *fp);
+
+				/* find the appropriate symbol of given name */
+extern SYM		*which(SYM *s);
+
+				/* find a symbol for a given block */
+extern SYM		*findsym(SYM *s, SYM *f);
+
+				/* find symbol with given class */
+extern SYM		*findclass(SYM *s, char cl);
+
+
+/*tree.c*/
+				/* construct a tree for the dot operator */
+extern NODE		*dot(NODE *record, SYM *field);
+
+				/* construct a tree for subscripting */
+extern NODE		*subscript(NODE *a, NODE *slist);
+
+				/* return the type of a tree, checking also */
+extern SYM		*treetype(NODE *p, va_list);
+
+				/* evaluate a subscript index */
+extern long		evalindex(SYM *arraytype, NODE *subs);
+
+				/* free a constant string type */
+extern void		unmkstring(SYM *s);
+
+				/* check if a tree is boolean-valued */
+extern void		chkboolean(NODE *p);
+
+
+/*printdec.c*/
+				/* print out a symbol's declaration */
+extern void		printdecl(SYM *s);
+extern void		listparams(SYM *s);
+
+
+/*print.c*/
+				/* print out values of a fn's parameters */
+extern void		printparams(SYM *f, FRAME *frame);
+
+				/* note entrance of a block */
+extern void		printentry(SYM *s);
+
+				/* note exiting from a block */
+extern void		printexit(SYM *s);
+
+				/* note call of a function */
+extern void		printcall(SYM *s, SYM *t);
+
+				/* note return of a function */
+extern void		printrtn(SYM *s);
+
+				/* print the name and value of a variable */
+extern void		printv(SYM *s, FRAME *frame);
+
+				/* print the full "path" of an identifier */
+extern void		printwhich(SYM *s);
+
+
+/*printval.c*/
+				/* print an eval result */
+extern void		printval(SYM *s);
+extern void		printordinal(long v, SYM *t);
+
+
+/*maketypes.c*/
+				/* initialize basic types */
+extern void		maketypes(void);
+
+				/* create a keyword in a given symbol table */
+extern void		make_keyword(SYMTAB *table, char *name, int tnum);
+
+

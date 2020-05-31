@@ -1,6 +1,7 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
- * Copyright (c) 1980, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 1980 The Regents of the University of California.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,9 +32,9 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)fhdr.c	8.1 (Berkeley) 6/6/93";
-#endif /* not lint */
+#if !defined(lint) && defined(sccs)
+static char sccsid[] = "@(#)fhdr.c	5.4 (Berkeley) 4/16/91";
+#endif  /* not lint */
 
 #include "whoami.h"
 #include "0.h"
@@ -48,27 +49,23 @@ static char sccsid[] = "@(#)fhdr.c	8.1 (Berkeley) 6/6/93";
  * functions and procedures, so that they can be output
  * when their bodies are encountered
  */
-int	bodycnts[ DSPLYSZ ];
+int	bodycnts[ DSPLYSZ ] = {0};
 
 #ifdef PC
-#   include "pc.h"
-#endif PC
+#include "pc.h"
+#endif /*PC*/
 
 #ifdef OBJ
-int	cntpatch;
-int	nfppatch;
-#endif OBJ
+int	cntpatch=0;
+int	nfppatch=0;
+#endif /*OBJ*/
+
 
 /*
- * Funchdr inserts
- * declaration of a the
- * prog/proc/func into the
- * namelist. It also handles
- * the arguments and puts out
- * a transfer which defines
- * the entry point of a procedure.
+ * Funchdr inserts declaration of a the  prog/proc/func into the
+ * namelist. It also handles the arguments and puts out a transfer
+ * which defines the entry point of a procedure.
  */
-
 struct nl *
 funchdr(r)
 	struct tnode *r;
@@ -107,23 +104,23 @@ funchdr(r)
 			 * declaration.
 			 */
 			if (p->class == FUNC && r->p_dec.type)
-				error("Function type should be given only in forward declaration");
+			    error("Function type should be given only in forward declaration");
 			/*
 			 * get another counter for the actual
 			 */
 			if ( monflg ) {
-			    bodycnts[ cbn ] = getcnt();
+  			    bodycnts[ cbn ] = getcnt();
 			}
 #			ifdef PC
 			    enclosing[ cbn ] = p -> symbol;
-#			endif PC
+#			endif /*PC*/
 #			ifdef PTREE
 				/*
 				 *	mark this proc/func as forward
 				 *	in the pTree.
 				 */
 			    pDEF( p -> inTree ).PorFForward = TRUE;
-#			endif PTREE
+#			endif /*PTREE*/
 			return (p);
 		}
 	}
@@ -131,7 +128,6 @@ funchdr(r)
 	/* if a routine segment is being compiled,
 	 * do level one processing.
 	 */
-
 	 if ((r->tag != T_PROG) && (!progseen))
 		level1();
 
@@ -155,7 +151,7 @@ funchdr(r)
 #		    ifdef PC
 			enclosing[ cbn ] = r->p_dec.id_ptr;
 			p -> extra_flags |= NGLOBAL;
-#		    endif PC
+#		    endif /*PC*/
 		    break;
 	    case T_FDEC:
 		    {
@@ -170,7 +166,7 @@ funchdr(r)
 		    } else
 			    temp = gtype(il);
 		    }
-		    p = enter(defnl(r->p_dec.id_ptr, FUNC, temp, NIL));
+		    p = enter(defnl(r->p_dec.id_ptr, FUNC, temp, TNONE));
 		    p->nl_flags |= NMOD;
 		    /*
 		     * An arbitrary restriction
@@ -181,6 +177,7 @@ funchdr(r)
 			    case TREC:
 			    case TSET:
 			    case TSTR:
+//			    case TSTR2:
 				    warning();
 				    if (opt('s')) {
 					    standard();
@@ -190,7 +187,7 @@ funchdr(r)
 #		    ifdef PC
 			enclosing[ cbn ] = r->p_dec.id_ptr;
 			p -> extra_flags |= NGLOBAL;
-#		    endif PC
+#		    endif /*PC*/
 		    break;
 	    default:
 		    panic("funchdr");
@@ -216,7 +213,7 @@ funchdr(r)
 		if (p->class == FUNC) {
 #			ifdef OBJ
 			    cp = defnl(r->p_dec.id_ptr, FVAR, p->type, 0);
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 				/*
 				 * fvars used to be allocated and deallocated
@@ -229,11 +226,15 @@ funchdr(r)
 				 */
 
 			    cp = defnl(r->p_dec.id_ptr, FVAR, p->type,
-				(int)-roundup(roundup(
-			            (int)(DPOFF1+lwidth(p->type)),
-				    (long)align(p->type))), (long) A_STACK);
+			    
+//				(int)-roundup(roundup(             XXX - arguments incorrect
+//			            (int)(DPOFF1+lwidth(p->type)),
+//				    (long)align(p->type))), (long) A_STACK);
+
+			    (int)-roundup(roundup((int)(DPOFF1+lwidth(p->type)), (long)align(p->type)), (long) A_STACK));
+
 			    cp -> extra_flags |= NLOCAL;
-#			endif PC
+#			endif /*PC*/
 			cp->chain = p;
 			p->ptr[NL_FVAR] = cp;
 		}
@@ -264,7 +265,7 @@ funchdr(r)
 			    cntpatch = put(2, O_CASE4, (long)0);
 			    nfppatch = put(2, O_CASE4, (long)0);
 		    }
-#		endif OBJ
+#		endif /*OBJ*/
 		cp = p;
 		for (rl = r->p_dec.param_list; rl; rl = rl->list_node.next) {
 			if (rl->list_node.list == TR_NIL)
@@ -286,7 +287,7 @@ funchdr(r)
 	}
 #	ifdef OBJ
 	    (void) put(2, O_TRA4, (long)p->value[NL_ENTLOC]);
-#	endif OBJ
+#	endif /*OBJ*/
 #	ifdef PTREE
 	    {
 		pPointer	PF = tCopy( r );
@@ -302,7 +303,7 @@ funchdr(r)
 		}
 		pRelease( PorFHeader[ nesting ] );
 	    }
-#	endif PTREE
+#	endif /*PTREE*/
 	return (p);
 }
 
@@ -323,6 +324,7 @@ funchdr(r)
 	 *		[2]	pointer to type (error if not typeid, or proc)
 	 *		[3]	pointer to formalist for this routine.
 	 */
+void
 fparams(p, formal)
 	register struct nl *p;
 	struct tnode *formal;		/* T_PFUNC or T_PPROC */
@@ -333,6 +335,8 @@ fparams(p, formal)
 	p -> chain = NIL;
 }
 
+
+int
 params(p, formalist)
 	register struct nl *p;
 	struct tnode *formalist;	/* T_LISTPP */
@@ -352,7 +356,7 @@ params(p, formalist)
 
 #	ifdef OBJ
 	    o = 0;
-#	endif OBJ
+#	endif /*OBJ*/
 #	ifdef PC
 		/*
 		 * parameters used to be allocated backwards,
@@ -360,7 +364,7 @@ params(p, formalist)
 		 * also, they are aligned.
 		 */
 	    o = DPOFF2;
-#	endif PC
+#	endif /*PC*/
 	for (formalp = formalist; formalp != TR_NIL;
 			formalp = formalp->list_node.next) {
 		formal = formalp->list_node.list;
@@ -405,8 +409,8 @@ params(p, formalist)
 #					else
 					    dp = defnl((char *) idlist->list_node.list,
 						    VAR,p, (w < 2) ? o + 1 : o);
-#					endif DEC11
-#				    endif OBJ
+#					endif /*DEC11*/
+#				    endif /*OBJ*/
 #				    ifdef PC
 					o = roundup(o, (long) A_STACK);
 					w = lwidth(p);
@@ -414,24 +418,24 @@ params(p, formalist)
 					    if (w <= sizeof(int)) {
 						o += sizeof(int) - w;
 					    }
-#					endif not DEC11
+#					endif /*DEC11*/
 					dp = defnl((char *) idlist->list_node.list,VAR,
 							p, o);
 					o += w;
-#				    endif PC
+#				    endif /*PC*/
 				    dp->nl_flags |= NMOD;
 				    break;
 			    case T_PVAR:
 #				    ifdef OBJ
 					dp = defnl((char *) idlist->list_node.list, REF,
 						    p, o -= sizeof ( int * ) );
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					dp = defnl( (char *) idlist->list_node.list, REF,
 						    p , 
 					    o = roundup( o , (long)A_STACK ) );
 					o += sizeof(char *);
-#				    endif PC
+#				    endif /*PC*/
 				    break;
 			    case T_PFUNC:
 				    if (idlist->list_node.next != TR_NIL) {
@@ -441,13 +445,13 @@ params(p, formalist)
 #				    ifdef OBJ
 					dp = defnl((char *) idlist->list_node.list,FFUNC,
 						p, o -= sizeof ( int * ) );
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					dp = defnl( (char *) idlist->list_node.list , 
 						FFUNC , p ,
 						o = roundup( o , (long)A_STACK ) );
 					o += sizeof(char *);
-#				    endif PC
+#				    endif /*PC*/
 				    dp -> nl_flags |= NMOD;
 				    fparams(dp, formal);
 				    break;
@@ -459,13 +463,13 @@ params(p, formalist)
 #				    ifdef OBJ
 					dp = defnl((char *) idlist->list_node.list,
 					    FPROC, p, o -= sizeof ( int * ) );
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					dp = defnl( (char *) idlist->list_node.list ,
 						FPROC , p,
 						o = roundup( o , (long)A_STACK ) );
 					o += sizeof(char *);
-#				    endif PC
+#				    endif /*PC*/
 				    dp -> nl_flags |= NMOD;
 				    fparams(dp, formal);
 				    break;
@@ -473,7 +477,7 @@ params(p, formalist)
 			if (dp != NLNIL) {
 #				ifdef PC
 				    dp -> extra_flags |= NPARAM;
-#				endif PC
+#				endif /*PC*/
 				chainp->chain = dp;
 				chainp = dp;
 			}
@@ -484,11 +488,11 @@ params(p, formalist)
 #			ifndef DEC11
 			    w = (w > -2)? w + 1 : w;
 #			endif
-#		    endif OBJ
+#		    endif /*OBJ*/
 #		    ifdef PC
 			w = lwidth(p->chain);
 			o = roundup(o, (long)A_STACK);
-#		    endif PC
+#		    endif /*PC*/
 		    /*
 		     * Allocate space for upper and
 		     * lower bounds and width.
@@ -500,15 +504,13 @@ params(p, formalist)
 			    p = p->chain;
 #			    ifdef OBJ
 				o += w;
-#			    endif OBJ
-			    chainp->chain = defnl(t->crang_ty.lwb_var,
-								VAR, p, o);
+#			    endif /*OBJ*/
+			    chainp->chain = defnl((char *)t->crang_ty.lwb_var, VAR, p, o);
 			    chainp = chainp->chain;
 			    chainp->nl_flags |= (NMOD | NUSED);
 			    p->nptr[0] = chainp;
 			    o += w;
-			    chainp->chain = defnl(t->crang_ty.upb_var,
-								VAR, p, o);
+			    chainp->chain = defnl((char *)t->crang_ty.upb_var, VAR, p, o);
 			    chainp = chainp->chain;
 			    chainp->nl_flags |= (NMOD | NUSED);
 			    p->nptr[1] = chainp;
@@ -519,7 +521,7 @@ params(p, formalist)
 			    p->nptr[2] = chainp;
 #			    ifdef PC
 				o += w;
-#			    endif PC
+#			    endif /*PC*/
 			}
 		    }
 		}
@@ -534,8 +536,8 @@ params(p, formalist)
 	    for (dp = p->chain; dp != NLNIL; dp = dp->chain)
 		    dp->value[NL_OFFS] += -o + DPOFF2;
 	    return (-o + DPOFF2);
-#	endif OBJ
+#	endif /*OBJ*/
 #	ifdef PC
 	    return roundup( o , (long)A_STACK );
-#	endif PC
+#	endif /*PC*/
 }

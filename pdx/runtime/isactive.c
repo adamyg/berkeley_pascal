@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)isactive.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -46,8 +46,8 @@ static char sccsid[] = "@(#)isactive.c	8.1 (Berkeley) 6/6/93";
 #include "machine.h"
 #include "process/process.h"
 
-BOOLEAN isactive(f)
-SYM *f;
+BOOLEAN 
+isactive(SYM *f)
 {
 	if (isfinished(process)) {
 		return(FALSE);

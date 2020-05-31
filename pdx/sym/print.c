@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)print.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -48,12 +48,14 @@ static char sccsid[] = "@(#)print.c	8.1 (Berkeley) 6/6/93";
 #include "sym.rep"
 #include "process/process.rep"
 
+LOCAL void printouter(SYM *s);
+
+
 /*
  * Note the entry of the given block, unless it's the main program.
  */
-
-printentry(s)
-SYM *s;
+void
+printentry(SYM *s)
 {
 	if (s != program) {
 		printf("\nentering %s %s\n", classname(s), s->symbol);
@@ -63,9 +65,8 @@ SYM *s;
 /*
  * Note the exit of the given block
  */
-
-printexit(s)
-SYM *s;
+void
+printexit(SYM *s)
 {
 	if (s != program) {
 		printf("leaving %s %s\n\n", classname(s), s->symbol);
@@ -75,9 +76,8 @@ SYM *s;
 /*
  * Note the call of s from t.
  */
-
-printcall(s, t)
-SYM *s, *t;
+void
+printcall(SYM *s, SYM *t)
 {
 	printf("calling %s", s->symbol);
 	printparams(s, NIL);
@@ -89,16 +89,19 @@ SYM *s, *t;
  * it is returning.  This is somewhat painful, since the function
  * has actually just returned.
  */
-
-printrtn(s)
-SYM *s;
+void
+printrtn(SYM *s)
 {
 	register int len;
 
 	printf("returning ");
 	if (s->class == FUNC) {
 		len = size(s->type);
+#if defined(PXEMBEDDED)
+		dread(sp, process->isp, len);
+#else
 		dread(sp, process->sp, len);
+#endif
 		sp += len;
 #ifdef tahoe
 		alignstack();
@@ -113,10 +116,8 @@ SYM *s;
  * Print the values of the parameters of the given procedure or function.
  * The frame distinguishes recursive instances of a procedure.
  */
-
-printparams(f, frame)
-SYM *f;
-FRAME *frame;
+void
+printparams(SYM *f, FRAME *frame)
 {
 	SYM *param;
 
@@ -136,10 +137,8 @@ FRAME *frame;
 /*
  * Print the name and value of a variable.
  */
-
-printv(s, frame)
-SYM *s;
-FRAME *frame;
+void
+printv(SYM *s, FRAME *frame)
 {
 	ADDRESS addr;
 	int len;
@@ -166,16 +165,15 @@ FRAME *frame;
 /*
  * Print the fully specified variable that is described by the given identifer.
  */
-
-printwhich(s)
-SYM *s;
+void
+printwhich(SYM *s)
 {
 	printouter(s->func);
 	printf("%s", s->symbol);
 }
 
-LOCAL printouter(s)
-SYM *s;
+LOCAL void
+printouter(SYM *s)
 {
 	if (s->func != NIL) {
 		printouter(s->func);

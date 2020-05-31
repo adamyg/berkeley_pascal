@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -41,15 +42,32 @@
  * and unsetting breakpoints.
  */
 
-ADDRESS pc;			/* current program counter */
-LINENO curline;			/* line number associated with pc */
-SYM *curfunc;			/* pointer to active function symbol */
+extern ADDRESS	pc;			/* current program counter */
+extern LINENO	curline;		/* line number associated with pc */
+extern SYM	*curfunc;		/* pointer to active function symbol */
 
-int setbp();			/* set a breakpoint */
-int unsetbp();			/* unset a breakpoint */
-BOOLEAN isbperr();		/* test if a breakpoint has occurred */
-int printerror();		/* print out an execution error message */
-ADDRESS nextaddr();		/* address of next line to be executed */
-BOOLEAN isendofproc();		/* test if address is at end of procedure */
-int printinst(), printninst();	/* print the instruction at a given address */
-int printdata(), printndata();	/* print the contents of a given data address */
+				/* set a breakpoint */
+extern void		setbp(ADDRESS addr);
+
+				/* unset a breakpoint */
+extern void		unsetbp(ADDRESS addr);
+
+				/* test if a breakpoint has occurred */
+extern BOOLEAN		isbperr(void);
+
+				/* print out an execution error message */
+extern void		printerror(void);
+
+				/* address of next line to be executed */
+extern ADDRESS		nextaddrx(ADDRESS beginaddr, BOOLEAN isnext, int disasm);
+extern ADDRESS		nextaddr(ADDRESS beginaddr, BOOLEAN isnext);
+
+				/* test if address is at end of procedure */
+extern BOOLEAN		isendofproc(ADDRESS addr);
+
+				/* print the instruction at a given address */
+extern void		printinst(ADDRESS lowaddr, ADDRESS highaddr);
+
+				/* print the contents of a given data address */
+extern void		printdata(ADDRESS lowaddr, ADDRESS highaddr);
+

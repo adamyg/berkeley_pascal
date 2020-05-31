@@ -1,3 +1,4 @@
+/* -*- mode: c; tabs: 8; hard-tabs: yes; -*- */
 /*-
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,19 +32,21 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)error.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "0.h"
+#include <whoami.h>
+#include <0.h>
 #ifndef PI1
-#include "tree_ty.h"		/* must be included for yy.h */
-#include "yy.h"
+#include <tree_ty.h>            /* must be included for yy.h */
+#include <yy.h>
 #endif
 
-char	errpfx	= 'E';
-extern	int yyline;
+extern char	errpfx  = 'E';
+extern int	yyline;
+
+
 /*
  * Panic is called when impossible
  * (supposedly, anyways) situations
@@ -52,26 +55,30 @@ extern	int yyline;
  * as they do not go to the message
  * file.
  */
+void
 panic(s)
-	char *s;
+	const char *s;
 {
-
 #ifdef DEBUG
 #ifdef PI1
 	printf("Snark (%s) line=%d\n", s, line);
 	abort();
 #else
 	printf("Snark (%s) line=%d, yyline=%d\n", s, line, yyline);
-	abort () ;	/* die horribly */
+	abort();				/* die horribly */
 #endif
 #endif
-#ifdef PI1
-	Perror( "Snark in pi1", s);
+
+#ifdef PXP
+	Perror("Snark in pxp", s);
+#elif defined(PI1)
+	Perror("Snark in pi1", s);
 #else
-	Perror( "Snark in pi", s);
+	Perror("Snark in pi", s);
 #endif
 	pexit(DIED);
 }
+
 
 /*
  * Error is called for
@@ -79,92 +86,126 @@ panic(s)
  * prints the error and
  * a line number.
  */
-
-/*VARARGS1*/
-
-error(a1, a2, a3, a4, a5)
-	register char *a1;
+void
+verror(const char *s, va_list ap)
 {
-	char errbuf[256]; 		/* was extern. why? ...pbk */
-	register int i;
+#ifdef EXSTRINGS
+	char errbuf[256];			/* was extern. why? ...pbk */
+#endif
 
 	if (errpfx == 'w' && opt('w') != 0) {
 		errpfx = 'E';
 		return;
 	}
-	Enocascade = FALSE;
-	geterr((int) a1, errbuf);
-	a1 = errbuf;
+
+#ifdef EXSTRINGS
+	geterr(s, errbuf);
+	s = errbuf;
+#endif
+
 	if (line < 0)
 		line = -line;
-#ifndef PI1
+
+#ifdef PI
+	Enocascade = FALSE;
 	if (opt('l'))
 		yyoutline();
+#else
+	yySsync();
 #endif
 	yysetfile(filename);
+
+#ifdef PI
 	if (errpfx == ' ') {
+		register int i;
+
 		printf("  ");
 		for (i = line; i >= 10; i /= 10)
-			pchr( ' ' );
+			pchr(' ');
 		printf("... ");
 	} else if (Enoline)
 		printf("  %c - ", errpfx);
 	else
 		printf("%c %d - ", errpfx, line);
-	printf(a1, a2, a3, a4, a5);
+	vprintf(s, ap);
+#else
+	fprintf(stderr, "%c %d - ", errpfx, line);
+	vfprintf(stderr, s, ap);
+#endif
+
 	if (errpfx == 'E')
-#ifndef PI0
+#ifdef PI
 		eflg = TRUE, codeoff();
 #else
 		eflg = TRUE;
 #endif
+
 	errpfx = 'E';
+#ifdef PI
 	if (Eholdnl)
 		Eholdnl = FALSE;
 	else
 		pchr( '\n' );
+#else
+	putc('\n', stderr);              
+#endif
 }
 
-/*VARARGS1*/
 
-cerror(a1, a2, a3, a4, a5)
-    char *a1;
+void
+error(const char *s, ...)
 {
+	va_list ap;
 
+	va_start(ap, s);
+	verror(s, ap);
+}
+
+
+void
+cerror(const char *s, ...)
+{
+	va_list ap;
+
+	va_start(ap, s);
+#ifdef PI
 	if (Enocascade)
 		return;
+#endif
 	setpfx(' ');
-	error(a1, a2, a3, a4, a5);
+	verror(s, ap);
 }
 
+
+
 #ifdef PI1
-
-/*VARARGS*/
-
-derror(a1, a2, a3, a4, a5)
-    char *a1, *a2, *a3, *a4, *a5;
+void
+derror(const char *s, ...)
 {
+	va_list ap;
 
+	va_start(ap, s);
 	if (!holdderr)
-		error(a1, a2, a3, a4, a5);
+		verror(s, ap);
 	errpfx = 'E';
 }
 
-char	*lastname, printed, hadsome;
+char    *lastname, printed, hadsome;
 
     /*
-     *	this yysetfile for PI1 only.
-     *	the real yysetfile is in yyput.c
+     *  this yysetfile for PI1 only.
+     *  the real yysetfile is in yyput.c
      */
+void
 yysetfile(name)
 	char *name;
 {
-
 	if (lastname == name)
 		return;
 	printed |= 1;
 	gettime( name );
-	printf("%s  %s:\n" , myctime( &tvec ) , name );
+	printf("%s  %s:\n", myctime(&tvec), name);
 	lastname = name;
 }
-#endif
+#endif  /*PI1*/
+

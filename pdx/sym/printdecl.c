@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)printdecl.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -47,8 +47,11 @@ static char sccsid[] = "@(#)printdecl.c	8.1 (Berkeley) 6/6/93";
 #include "classes.h"
 #include "sym.rep"
 
-printdecl(s)
-SYM *s;
+LOCAL void printtype(SYM *s, SYM *t);
+
+
+void
+printdecl(SYM *s)
 {
     register SYM *t;
     BOOLEAN semicolon;
@@ -148,9 +151,8 @@ SYM *s;
  * searching for type names without getting "type blah = blah".
  */
 
-LOCAL printtype(s, t)
-SYM *s;
-SYM *t;
+LOCAL void
+printtype(SYM *s, SYM *t)
 {
     register SYM *tmp;
     long r0, r1;
@@ -248,8 +250,8 @@ SYM *t;
  * No attempt is made to combine like types.
  */
 
-listparams(s)
-SYM *s;
+void
+listparams(SYM *s)
 {
     SYM *t;
 

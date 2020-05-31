@@ -112,7 +112,7 @@ skipprof:
 
 void
 px_backtrace(type)
-	char *type;
+	const char *type;
 {
 	register struct dispsave *mydp;
 	register struct blockmark *ap;

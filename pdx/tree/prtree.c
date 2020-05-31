@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(SCCSID)
 static char sccsid[] = "@(#)prtree.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -45,8 +45,8 @@ static char sccsid[] = "@(#)prtree.c	8.1 (Berkeley) 6/6/93";
 #include "sym/btypes.h"
 #include "tree.rep"
 
-prtree(p)
-NODE *p;
+void
+prtree(NODE *p)
 {
 	OP op;
 
@@ -157,12 +157,13 @@ NODE *p;
  */
 
 /* VARARGS2 */
-trerror(s, tree, a, b, c, d, e, f, g, h, i, j)
-char *s;
-NODE *tree;
+void
+trerror(const char *s, NODE *tree, ...)
 {
-	register char *p;
-
+	register const char *p;
+	va_list ap;
+        
+	va_start(ap, tree);
 	fflush(stdout);
 	for (p = s; *p != '\0'; p++) {
 		if (p[0] == '%' && p[1] == 't') {
@@ -170,7 +171,7 @@ NODE *tree;
 			prtree(tree);
 			fflush(stdout);
 			fputc('"', stderr);
-			error(&p[2], a, b, c, d, e, f, g, h, i, j);
+			errorv(&p[2], ap);
 			/* NOTREACHED */
 		}
 		fputc(*p, stderr);

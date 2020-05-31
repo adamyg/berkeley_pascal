@@ -57,13 +57,21 @@
      *	at function entry, fp is set to point to the last field of the struct,
      *	thus the offsets of the fields are as indicated below.
      */
+#ifdef i80x86
+struct rtlocals {
+    jmp_buf		gotoenv;
+    struct iorec	*curfile;
+    struct dispsave	dsave;
+} rtlocs;
+#endif /*i80x86*/
+
 #ifdef vax
 struct rtlocals {
     jmp_buf		gotoenv;
     struct iorec	*curfile;
     struct dispsave	dsave;
 } rtlocs;
-#endif vax
+#endif /*vax*/
 
 #ifdef tahoe
 struct rtlocals {
@@ -72,7 +80,7 @@ struct rtlocals {
     struct dispsave	dsave;
     long		savedregs[9];
 } rtlocs;
-#endif tahoe
+#endif /*tahoe*/
 
 #ifdef mc68000
 struct rtlocals {
@@ -80,7 +88,7 @@ struct rtlocals {
     struct iorec	*curfile;
     struct dispsave	dsave;
 } rtlocs;
-#endif mc68000
+#endif /*mc68000*/
 
 #define	GOTOENVOFFSET	( -sizeof rtlocs )
 #define	CURFILEOFFSET	( GOTOENVOFFSET + sizeof rtlocs.gotoenv )
@@ -91,6 +99,17 @@ struct rtlocals {
      *	routine entry code and the routine exit code.
      *	mostly it's for labels shared between the two.
      */
+#ifdef i80x86
+struct entry_exit_cookie {
+    struct nl	*nlp;
+    char	extname[BUFSIZ];
+    int		toplabel;
+    int		savlabel;
+};
+#define	FRAME_SIZE_LABEL	"LF"
+#define	SAVE_MASK_LABEL		"L"
+#endif /*i80x86*/
+
 #ifdef vax
 struct entry_exit_cookie {
     struct nl	*nlp;
@@ -100,7 +119,7 @@ struct entry_exit_cookie {
 };
 #define	FRAME_SIZE_LABEL	"LF"
 #define	SAVE_MASK_LABEL		"L"
-#endif vax
+#endif /*vax*/
 
 #ifdef tahoe
 struct entry_exit_cookie {
@@ -111,7 +130,7 @@ struct entry_exit_cookie {
 };
 #define	FRAME_SIZE_LABEL	"LF"
 #define	SAVE_MASK_LABEL		"L"
-#endif tahoe
+#endif /*tahoe*/
 
 #ifdef mc68000
 struct entry_exit_cookie {
@@ -122,7 +141,7 @@ struct entry_exit_cookie {
 #define	FRAME_SIZE_LABEL	"LF"
 #define	PAGE_BREAK_LABEL	"LP"
 #define	SAVE_MASK_LABEL		"LS"
-#endif mc68000
+#endif /*mc68000*/
 
     /*
      *	formats for various names
@@ -159,6 +178,16 @@ struct entry_exit_cookie {
      */
 char	*enclosing[ DSPLYSZ ];
 
+#ifdef i80x86
+#   define	P2FP		13
+#   define	P2FPNAME	"fp"
+#   define	P2AP		12
+#   define	P2APNAME	"ap"
+#   define	RSAVEMASK	( 0 )
+#   define	RUNCHECK	( ( 1 << 15 ) | ( 1 << 14 ) )
+#   define	BITSPERBYTE	8
+#endif /*i80x86*/
+
 #ifdef vax
     /*
      *	the runtime framepointer and argumentpointer registers
@@ -182,7 +211,7 @@ char	*enclosing[ DSPLYSZ ];
      *	and of course ...
      */
 #   define	BITSPERBYTE	8
-#endif vax
+#endif /*vax*/
 
 #ifdef tahoe
     /*
@@ -207,7 +236,7 @@ char	*enclosing[ DSPLYSZ ];
      *	and of course ...
      */
 #   define	BITSPERBYTE	8
-#endif tahoe
+#endif /*tahoe*/
 
 #ifdef mc68000
     /*
@@ -226,4 +255,4 @@ char	*enclosing[ DSPLYSZ ];
      *	and still ...
      */
 #   define	BITSPERBYTE	8
-#endif mc68000
+#endif /*mc68000*/

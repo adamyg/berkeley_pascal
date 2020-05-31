@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)rval.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -41,18 +41,19 @@ static char sccsid[] = "@(#)rval.c	8.1 (Berkeley) 6/6/93";
 #include "opcode.h"
 #include "objfmt.h"
 #ifdef PC
-#   include	"pc.h"
+#   include "pc.h"
 #   include <pcc.h>
-#endif PC
-#include "tmps.h"
+#   include "tmps.h" 
+#endif /*PC*/
 #include "tree_ty.h"
 
-extern	char *opnames[];
+extern char *opnames[];
 
     /* line number of the last record comparison warning */
-short reccompline = 0;
+short reccompline       = 0;
+
     /* line number of the last non-standard set comparison */
-short nssetline = 0;
+short nssetline         = 0;
 
 #ifdef PC
     char	*relts[] =  {
@@ -72,7 +73,8 @@ short nssetline = 0;
 			    };
     long	mathop[] =  {	PCC_MUL , PCC_PLUS , PCC_MINUS };
     char	*setop[] =  {	"_MULT" , "_ADDT" , "_SUBT" };
-#endif PC
+#endif /*PC*/
+
 /*
  * Rvalue - an expression.
  *
@@ -83,7 +85,7 @@ short nssetline = 0;
  */
 /*ARGSUSED*/
 struct nl *
-rvalue(r, contype , required )
+rvalue(r, contype, required)
 	struct tnode *r;
 	struct nl *contype;
 	int	required;
@@ -104,12 +106,15 @@ rvalue(r, contype , required )
 	}f;
 	extern int	flagwas;
 	struct csetstr	csetd;
-#	ifdef PC
+#ifdef PC
 	    struct nl	*rettype;
 	    long	ctype;
 	    struct nl	*tempnlp;
-#	endif PC
+#endif /*PC*/
 
+#ifndef PC
+        (void) required;
+#endif
 	if (r == TR_NIL)
 		return (NLNIL);
 	if (nowexp(r))
@@ -130,24 +135,24 @@ rvalue(r, contype , required )
 	 * The constant nil
 	 */
 	case T_NIL:
-#		ifdef OBJ
+#ifdef OBJ
 		    (void) put(2, O_CON2, 0);
-#		endif OBJ
-#		ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		    putleaf( PCC_ICON , 0 , 0 , PCCTM_PTR|PCCT_UNDEF , (char *) 0 );
-#		endif PC
+#endif /*PC*/
 		return (nl+TNIL);
 
 	/*
 	 * Function call with arguments.
 	 */
 	case T_FCALL:
-#	    ifdef OBJ
+#ifdef OBJ
 		return (funccod(r));
-#	    endif OBJ
-#	    ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 		return (pcfunccod( r ));
-#	    endif PC
+#endif /*PC*/
 
 	case T_VAR:
 		p = lookup(r->var_node.cptr);
@@ -189,8 +194,8 @@ rvalue(r, contype , required )
 					(void) put(3, O_RV | bn << 8+INDX,
 						(int)p->value[0], w);
 				}
-#			   endif OBJ
-#			   ifdef PC
+#			    endif /*OBJ*/
+#			    ifdef PC
 				if ( required == RREQ ) {
 				    putRV( p -> symbol , bn , p -> value[0] ,
 					    p -> extra_flags , p2type( q ) );
@@ -198,7 +203,7 @@ rvalue(r, contype , required )
 				    putLV( p -> symbol , bn , p -> value[0] ,
 					    p -> extra_flags , p2type( q ) );
 				}
-#			   endif PC
+#			   endif /*PC*/
 			   return (q);
 
 		    case WITHPTR:
@@ -230,12 +235,12 @@ ind:
 				    default:
 					    (void) put(2, O_IND, w);
 				}
-#			    endif OBJ
+#                           endif /*OBJ*/
 #			    ifdef PC
 				if ( required == RREQ ) {
 				    putop( PCCOM_UNARY PCC_MUL , p2type( q ) );
 				}
-#			    endif PC
+#		            endif /*PC*/
 			    return (q);
 
 		    case CONST:
@@ -267,10 +272,10 @@ cstrng:
 #				    ifdef OBJ
 					(void) put(2, O_CONG, w);
 					putstr(cp1, w - c);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putCONG( cp1 , w , required );
-#				    endif PC
+#				    endif /*PC*/
 				    /*
 				     * Define the string temporarily
 				     * so later people can know its
@@ -284,11 +289,11 @@ cstrng:
 			    if (q == nl+T1CHAR) {
 #				    ifdef OBJ
 					(void) put(2, O_CONC, (int)p->value[0]);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putleaf( PCC_ICON , p -> value[0] , 0
 						, PCCT_CHAR , (char *) 0 );
-#				    endif PC
+#				    endif /*PC*/
 				    return (q);
 			    }
 			    /*
@@ -299,51 +304,52 @@ cstrng:
 #ifndef DEBUG
 #				    ifdef OBJ
 					(void) put(2, O_CON8, p->real);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putCON8( p -> real );
-#				    endif PC
+#				    endif /*PC*/
 #else
-				    if (hp21mx) {
-					    f.pdouble = p->real;
-					    conv((int *) (&f.pdouble));
-					    l = f.plong[1];
-					    (void) put(2, O_CON4, l);
-				    } else
-#					    ifdef OBJ
-						(void) put(2, O_CON8, p->real);
-#					    endif OBJ
-#					    ifdef PC
-						putCON8( p -> real );
-#					    endif PC
-#endif
+#	if defined(hp21mx) && (hp21mx)
+					f.pdouble = p->real;
+					conv((int *) (&f.pdouble));
+					l = f.plong[1];
+					(void) put(2, O_CON4, l);
+#	else
+#				    ifdef OBJ
+					(void) put(2, O_CON8, p->real);
+#				    endif /*OBJ*/
+#				    ifdef PC
+					putCON8( p -> real );
+#				    endif /*PC*/
+#	endif /*hp21mx*/
+#endif /*DEBUG*/
 				    break;
 			    case 4:
 #				    ifdef OBJ
 					(void) put(2, O_CON4, p->range[0]);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putleaf( PCC_ICON , (int) p->range[0] , 0
 						, PCCT_INT , (char *) 0 );
-#				    endif PC
+#				    endif /*PC*/
 				    break;
 			    case 2:
 #				    ifdef OBJ
 					(void) put(2, O_CON2, (short)p->range[0]);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putleaf( PCC_ICON , (short) p -> range[0]
 						, 0 , PCCT_SHORT , (char *) 0 );
-#				    endif PC
+#				    endif /*PC*/
 				    break;
 			    case 1:
 #				    ifdef OBJ
 					(void) put(2, O_CON1, p->value[0]);
-#				    endif OBJ
+#				    endif /*OBJ*/
 #				    ifdef PC
 					putleaf( PCC_ICON , p -> value[0] , 0
 						, PCCT_CHAR , (char *) 0 );
-#				    endif PC
+#				    endif /*PC*/
 				    break;
 			    default:
 				    panic("rval");
@@ -361,10 +367,10 @@ cstrng:
 			    }
 #			    ifdef OBJ
 				return (funccod(r));
-#			    endif OBJ
+#			    endif /*OBJ*/
 #			    ifdef PC
 				return (pcfunccod( r ));
-#			    endif PC
+#			    endif /*PC*/
 
 		    case TYPE:
 			    error("Type names (e.g. %s) allowed only in declarations", p->symbol);
@@ -388,16 +394,17 @@ cstrng:
 			}
 			postcset( r , &csetd );
 		    } else {
-			(void) put( 2, O_PUSH, -lwidth(csetd.csettype));
+			short width = (short)lwidth(csetd.csettype);
+			(void) put( 2, O_PUSH, -width );
 			postcset( r , &csetd );
 			setran( ( csetd.csettype ) -> type );
 			(void) put( 2, O_CON24, set.uprbp);
 			(void) put( 2, O_CON24, set.lwrb);
 			(void) put( 2, O_CTTOT,
-				(int)(4 + csetd.singcnt + 2 * csetd.paircnt));
+			    	(int)(4 + csetd.singcnt + 2 * csetd.paircnt));
 		    }
 		    return csetd.csettype;
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    if ( precset( r , contype , &csetd ) ) {
 			if ( csetd.csettype == NIL ) {
@@ -424,7 +431,7 @@ cstrng:
 			putop( PCC_CALL , PCCT_INT );
 		    }
 		    return csetd.csettype;
-#		endif PC
+#		endif /*PC*/
 
 	/*
 	 * Unary plus and minus
@@ -442,7 +449,7 @@ cstrng:
 #		    ifdef OBJ
 			(void) put(1, O_NEG2 + (width(q) >> 2));
 			return (isa(q, "d") ? q : nl+T4INT);
-#		    endif OBJ
+#		    endif /*OBJ*/
 #		    ifdef PC
 			if (isa(q, "i")) {
 			    sconv(p2type(q), PCCT_INT);
@@ -451,7 +458,7 @@ cstrng:
 			}
 			putop( PCCOM_UNARY PCC_MINUS, PCCT_DOUBLE);
 			return nl+TDOUBLE;
-#		    endif PC
+#		    endif /*PC*/
 		}
 		return (q);
 
@@ -465,12 +472,12 @@ cstrng:
 		}
 #		ifdef OBJ
 		    (void) put(1, O_NOT);
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    sconv(p2type(q), PCCT_INT);
 		    putop( PCC_NOT , PCCT_INT);
 		    sconv(PCCT_INT, p2type(q));
-#		endif PC
+#		endif /*PC*/
 		return (nl+T1BOOL);
 
 	case T_AND:
@@ -478,11 +485,11 @@ cstrng:
 		p = rvalue(r->expr_node.lhs, NLNIL , RREQ );
 #		ifdef PC
 		    sconv(p2type(p),PCCT_INT);
-#		endif PC
+#		endif /*PC*/
 		p1 = rvalue(r->expr_node.rhs, NLNIL , RREQ );
 #		ifdef PC
 		    sconv(p2type(p1),PCCT_INT);
-#		endif PC
+#		endif /*PC*/
 		if (p == NLNIL || p1 == NLNIL)
 			return (NLNIL);
 		if (isnta(p, "b")) {
@@ -495,7 +502,7 @@ cstrng:
 		}
 #		ifdef OBJ
 		    (void) put(1, r->tag == T_AND ? O_AND : O_OR);
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 			/*
 			 * note the use of & and | rather than && and ||
@@ -503,14 +510,14 @@ cstrng:
 			 */
 		    putop( r->tag == T_AND ? PCC_AND : PCC_OR , PCCT_INT );
 		    sconv(PCCT_INT, p2type(p));
-#		endif PC
+#		endif /*PC*/
 		return (nl+T1BOOL);
 
 	case T_DIVD:
 #		ifdef OBJ
 		    p = rvalue(r->expr_node.lhs, NLNIL , RREQ );
 		    p1 = rvalue(r->expr_node.rhs, NLNIL , RREQ );
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 			/*
 			 *	force these to be doubles for the divide
@@ -519,7 +526,7 @@ cstrng:
 		    sconv(p2type(p), PCCT_DOUBLE);
 		    p1 = rvalue( r->expr_node.rhs , NLNIL , RREQ );
 		    sconv(p2type(p1), PCCT_DOUBLE);
-#		endif PC
+#		endif /*PC*/
 		if (p == NLNIL || p1 == NLNIL)
 			return (NLNIL);
 		if (isnta(p, "id")) {
@@ -531,12 +538,12 @@ cstrng:
 			return (NLNIL);
 		}
 #		ifdef OBJ
-		    return gen(NIL, r->tag, width(p), width(p1));
-#		endif OBJ
+		    return gen(TNONE, r->tag, width(p), width(p1));
+#		endif /*OBJ*/
 #		ifdef PC
 		    putop( PCC_DIV , PCCT_DOUBLE );
 		    return nl + TDOUBLE;
-#		endif PC
+#		endif /*PC*/
 
 	case T_MULT:
 	case T_ADD:
@@ -577,7 +584,7 @@ cstrng:
 		    if ( p == NLNIL || p1 == NLNIL )
 			    return NLNIL;
 		    if (isa(p, "id") && isa(p1, "id"))
-			return (gen(NIL, r->tag, width(p), width(p1)));
+			return (gen(TNONE, r->tag, width(p), width(p1)));
 		    if (isa(p, "t") && isa(p1, "t")) {
 			    if (p != p1) {
 				    error("Set types of operands of %s must be identical", opname);
@@ -586,7 +593,7 @@ cstrng:
 			    (void) gen(TSET, r->tag, width(p), 0);
 			    return (p);
 		    }
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 			/*
 			 * the second pass can't do
@@ -659,7 +666,7 @@ cstrng:
 		    if ( p == NLNIL || p1 == NLNIL ) {
 			return NLNIL;
 		    }
-#		endif PC
+#		endif /*PC*/
 		if (isnta(p, "idt")) {
 			error("Left operand of %s must be integer, real or set, not %s", opname, nameof(p));
 			return (NLNIL);
@@ -682,12 +689,12 @@ cstrng:
 			(void) rvalue(r->expr_node.lhs, NLNIL, RREQ);
 			sconv(p2type(p), PCCT_INT);
 		    }
-#		endif tahoe
-#		endif PC
+#		endif /*tahoe*/
+#		endif /*PC*/
 		p1 = rvalue(r->expr_node.rhs, NLNIL , RREQ );
 #		ifdef PC
 		    sconv(p2type(p1), PCCT_INT);
-#		endif PC
+#		endif /*PC*/
 		if (p == NLNIL || p1 == NLNIL)
 			return (NLNIL);
 		if (isnta(p, "i")) {
@@ -699,13 +706,13 @@ cstrng:
 			return (NLNIL);
 		}
 #		ifdef OBJ
-		    return (gen(NIL, r->tag, width(p), width(p1)));
-#		endif OBJ
+		    return (gen(TNONE, r->tag, width(p), width(p1)));
+#		endif /*OBJ*/
 #		ifdef PC
 #		ifndef tahoe
 		    putop( r->tag == T_DIV ? PCC_DIV : PCC_MOD , PCCT_INT );
 		    return ( nl + T4INT );
-#		else tahoe
+#		else
 		    putop( PCC_DIV , PCCT_INT );
 		    if (r->tag == T_MOD) {
 		    /*
@@ -720,7 +727,7 @@ cstrng:
 		     * we put
 		     *                  PCC_MINUS
 		     *                    /   \
-		     *			 p   PCC_MUL               
+		     *			 p   PCC_MUL
 		     *			      /   \
 		     *			  PCC_DIV  p1
 		     *                      / \
@@ -734,8 +741,8 @@ cstrng:
 			    putop( PCC_MINUS, PCCT_INT );
 		    }
 		    return ( nl + T4INT );
-#		endif tahoe
-#		endif PC
+#		endif /*tahoe*/
+#		endif /*PC*/
 
 	case T_EQ:
 	case T_NE:
@@ -795,7 +802,7 @@ cstrng:
 		    p1 = rvalue(r->expr_node.rhs, p , RREQ );
 		    if (p1 == NLNIL)
 			    return (NLNIL);
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    c1 = classify( p1 );
 		    if ( c1 == TSET || c1 == TSTR || c1 == TREC ) {
@@ -869,13 +876,13 @@ cstrng:
 			putop((int) relops[ r->tag - T_EQ ] , PCCT_INT );
 			sconv(PCCT_INT, PCCT_CHAR);
 		    }
-#		endif PC
+#		endif /*PC*/
 		c = classify(p);
 		c1 = classify(p1);
 		if (nocomp(c) || nocomp(c1))
 			return (NLNIL);
 #		ifdef OBJ
-		    g = NIL;
+		    g = TNONE;
 #		endif
 		switch (c) {
 			case TBOOL:
@@ -945,17 +952,17 @@ cstrng:
 				}
 #				ifdef OBJ
 				    g = TSTR;
-#				endif OBJ
+#				endif /*OBJ*/
 				break;
 			default:
 				panic("rval2");
 		}
 #		ifdef OBJ
 		    return (gen(g, r->tag, width(p), width(p1)));
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    return nl + TBOOL;
-#		endif PC
+#		endif /*PC*/
 clash:
 		error("%ss and %ss cannot be compared - operator was %s", clnames[c], clnames[c1], opname);
 		return (NLNIL);
@@ -976,7 +983,7 @@ nonident:
 			p1 = stkrval(r->expr_node.rhs, NLNIL , (long) RREQ );
 			rt = TR_NIL;
 		    }
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    if (rt != TR_NIL && rt->tag == T_CSET) {
 			if ( precset( rt , NLNIL , &csetd ) ) {
@@ -999,7 +1006,7 @@ nonident:
 			p1 = rvalue(r->expr_node.rhs, NLNIL , LREQ );
 			codeon();
 		    }
-#		endif PC
+#		endif /*PC*/
 		p = stkrval(r->expr_node.lhs, NLNIL , (long) RREQ );
 		if (p == NIL || p1 == NIL)
 			return (NLNIL);
@@ -1018,7 +1025,7 @@ nonident:
 		    else
 			    (void) put(2, O_INCT,
 				(int)(3 + csetd.singcnt + 2*csetd.paircnt));
-#		endif OBJ
+#		endif /*OBJ*/
 #		ifdef PC
 		    if ( rt == TR_NIL || rt->tag != T_CSET ) {
 			putleaf( PCC_ICON , set.lwrb , 0 , PCCT_INT , (char *) 0 );
@@ -1042,7 +1049,7 @@ nonident:
 		    }
 		    putop( PCC_CALL , PCCT_INT );
 		    sconv(PCCT_INT, PCCT_CHAR);
-#		endif PC
+#		endif /*PC*/
 		return (nl+T1BOOL);
 	default:
 		if (r->expr_node.lhs == TR_NIL)
@@ -1065,11 +1072,11 @@ nonident:
 		case T_INT:
 			f.pdouble = atof(r->const_node.cptr);
 conint:
-			if (f.pdouble > MAXINT || f.pdouble < MININT) {
+			if (f.pdouble > XMAXINT || f.pdouble < XMININT) {
 				error("Constant too large for this implementation");
 				return (NLNIL);
 			}
-			l = f.pdouble;
+			l = (long)f.pdouble;
 #			ifdef OBJ
 			    if (bytes(l, l) <= 2) {
 				    (void) put(2, O_CON2, ( short ) l);
@@ -1077,7 +1084,7 @@ conint:
 			    }
 			    (void) put(2, O_CON4, l); 
 			    return (nl+T4INT);
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    switch (bytes(l, l)) {
 				case 1:
@@ -1093,7 +1100,7 @@ conint:
 						(char *) 0);
 				    return nl+T4INT;
 			    }
-#			endif PC
+#			endif /*PC*/
 	
 		/*
 		 * A floating point number
@@ -1101,10 +1108,10 @@ conint:
 		case T_FINT:
 #			ifdef OBJ
 			    (void) put(2, O_CON8, atof(r->const_node.cptr));
-#			endif OBJ
+#			endif /*OBJ*/
 #			ifdef PC
 			    putCON8( atof( r->const_node.cptr ) );
-#			endif PC
+#			endif /*PC*/
 			return (nl+TDOUBLE);
 	
 		/*
@@ -1117,11 +1124,11 @@ conint:
 			if (cp[1] == 0) {
 #				ifdef OBJ
 				    (void) put(2, O_CONC, cp[0]);
-#				endif OBJ
+#				endif /*OBJ*/
 #				ifdef PC
 				    putleaf( PCC_ICON , cp[0] , 0 , PCCT_CHAR ,
 						(char *) 0 );
-#				endif PC
+#				endif /*PC*/
 				return (nl+T1CHAR);
 			}
 			goto cstrng;
@@ -1130,14 +1137,14 @@ conint:
 	}
 }
 
+
 /*
- * Can a class appear
- * in a comparison ?
+ * Can a class appear in a comparison ?
  */
+int
 nocomp(c)
 	int c;
 {
-
 	switch (c) {
 		case TREC:
 			if ( line != reccompline ) {
@@ -1154,8 +1161,10 @@ nocomp(c)
 			error("%ss may not participate in comparisons", clnames[c]);
 			return (1);
 	}
-	return (NIL);
+	return (0);
 }
+
+
 
     /*
      *	this is sort of like gconst, except it works on expression trees
@@ -1235,12 +1244,12 @@ loop:
 			goto restcon;
 		case T_INT:
 			con.crval = atof(cn->const_node.cptr);
-			if (con.crval > MAXINT || con.crval < MININT) {
+			if (con.crval > XMAXINT || con.crval < XMININT) {
 				derror("Constant too large for this implementation");
 				con.crval = 0;
 			}
 restcon:
-			ci = con.crval;
+			ci = (long)con.crval;
 #ifndef PI0
 			if (bytes(ci, ci) <= 2)
 				con.ctype = nl+T2INT;
@@ -1273,3 +1282,4 @@ restcon:
 	}
 	return TRUE;
 }
+

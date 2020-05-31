@@ -31,39 +31,37 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)string.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#include "whoami.h"
-#include "align.h"
-#include "0.h"
+#include <whoami.h>
+#include <align.h>
+#include <0.h>
 #ifndef PI01
 #ifndef PXP
-#include "send.h"
+#include <send.h>
 #endif
 #endif
 
 /*
  * STRING SPACE DECLARATIONS
  *
- * Strng is the base of the current
- * string space and strngp the
- * base of the free area therein.
- * Strp is the array of descriptors.
+ * Strng is the base of the current string space and strngp the
+ * base of the free area therein. Strp is the array of descriptors.
  */
 #ifndef PI0
-STATIC	char strings[STRINC];
-STATIC	char *strng = strings;
-STATIC	char *strngp = strings;
+STATIC	char            strings[STRINC];
+STATIC	char            *strng = strings;
+STATIC	char            *strngp = strings;
 #else
-char	*strng, *strngp;
+char	                *strng, *strngp;
 #endif
 #ifndef PI01
 #ifndef PXP
-STATIC	char *strp[20];
-STATIC	char **stract strp;
-int	strmax;
+STATIC	char            *strp[20];
+STATIC	char            **stract strp;
+int	                strmax;
 #endif
 #endif
 
@@ -97,7 +95,7 @@ savestr(cp)
 
 	i = strlen(cp) + 1;
 	if (strngp + i >= strng + STRINC) {
-		strngp = malloc(STRINC);
+		strngp = calloc(STRINC, 1);
 		if (strngp == 0) {
 			yerror("Ran out of memory (string)");
 			pexit(DIED);
@@ -119,6 +117,7 @@ savestr(cp)
 	return (cp);
 }
 
+
 #ifndef PI1
 #ifndef PXP
 char *
@@ -129,11 +128,11 @@ esavestr(cp)
 #ifdef PI0
 	send(REVENIT);
 #endif
-	strngp = ( (char *) roundup( strngp, A_LONG ) );
+	strngp = (char *) roundup( (long)strngp, A_LONG );      /*XXX*/
 	return (savestr(cp));
 }
-#endif
-#endif
+#endif /*PXP*/
+#endif /*PI1*/
 
 #ifndef PI01
 #ifndef PXP
@@ -155,6 +154,8 @@ soffset(cp)
 		return (i);
 	panic("soffset");
 }
+
+
 #ifdef PI1
 sreloc(i)
 	register int i;
@@ -174,6 +175,6 @@ sreloc(i)
 		panic("sreloc");
 	return (strp[(i / STRINC) - 1] + (i % STRINC));
 }
-#endif
-#endif
+#endif /*PXP*/
+#endif /*PI1*/
 #endif

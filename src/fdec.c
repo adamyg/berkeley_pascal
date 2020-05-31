@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(sccs)
 static char sccsid[] = "@(#)fdec.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
@@ -48,22 +48,22 @@ static char sccsid[] = "@(#)fdec.c	8.1 (Berkeley) 6/6/93";
  * functions and procedures, so that they can be output
  * when their bodies are encountered
  */
-int	bodycnts[ DSPLYSZ ];
+extern   int	bodycnts[ DSPLYSZ ];
 
 #ifdef PC
 #   include "pc.h"
 #   include <pcc.h>
-#endif PC
+#endif /*PC*/
 
 #ifdef OBJ
-int	cntpatch;
-int	nfppatch;
-#endif OBJ
+extern   int	cntpatch;
+extern   int	nfppatch;
+#endif /*OBJ*/
 
+void
 funcfwd(fp)
 	struct nl *fp;
 {
-
 	    /*
 	     *	save the counter for this function
 	     */
@@ -72,14 +72,12 @@ funcfwd(fp)
 	}
 }
 
+
 /*
- * Funcext marks the procedure or
- * function external in the symbol
- * table. Funcext should only be
- * called if PC, and is an error
+ * Funcext marks the procedure or function external in the symbol
+ * table. Funcext should only be called if PC, and is an error
  * otherwise.
  */
-
 struct nl *
 funcext(fp)
 	struct nl *fp;
@@ -87,7 +85,7 @@ funcext(fp)
 
 #ifdef OBJ
 	error("Procedures or functions cannot be declared external.");
-#endif OBJ
+#endif /*OBJ*/
 
 #ifdef PC
 	    /*
@@ -104,10 +102,11 @@ funcext(fp)
 			fp->extra_flags |= NEXTERN;
 			stabefunc( fp -> symbol , fp -> class , line );
 		}
-		else
+		else {
 			error("External procedures and functions can only be declared at the outermost level.");
+		}
 	}
-#endif PC
+#endif /*PC*/
 
 	return(fp);
 }
@@ -134,7 +133,7 @@ funcbody(fp)
 	tmpinit(cbn);
 	gotos[cbn] = NIL;
 	errcnt[cbn] = syneflg;
-	parts[ cbn ] = NIL;
+	parts[ cbn ] = TNONE;
 	dfiles[ cbn ] = FALSE;
 	if (fp == NIL)
 		return (NIL);
@@ -148,9 +147,9 @@ funcbody(fp)
 	if (fp->class != PROG) {
 		for (q = fp->chain; q != NIL; q = q->chain) {
 			(void) enter(q);
-#			ifdef PC
+#ifdef PC
 			    q -> extra_flags |= NPARAM;
-#			endif PC
+#endif /*PC*/
 		}
 	}
 	if (fp->class == FUNC) {
@@ -158,36 +157,33 @@ funcbody(fp)
 		 * For functions, enter the fvar
 		 */
 		(void) enter(fp->ptr[NL_FVAR]);
-#		ifdef PC
+#ifdef PC
 		    q = fp -> ptr[ NL_FVAR ];
 		    if (q -> type != NIL ) {
 			sizes[cbn].curtmps.om_off = q -> value[NL_OFFS];
 			sizes[cbn].om_max = q -> value[NL_OFFS];
 		    }
-#		endif PC
+#endif /*PC*/
 	}
-#	ifdef PTREE
+#ifdef PTREE
 		/*
 		 *	pick up the pointer to porf declaration
 		 */
 	    PorFHeader[ ++nesting ] = fp -> inTree;
-#	endif PTREE
-	return (fp);
+#endif /*PTREE*/
+        return (fp);
 }
 
 /*
- * Segend is called to check for
- * unresolved variables, funcs and
- * procs, and deliver unresolved and
- * baduse error diagnostics at the
- * end of a routine segment (a separately
- * compiled segment that is not the 
- * main program) for PC. This
- * routine should only be called
+ * Segend is called to check for unresolved variables, funcs and
+ * procs, and deliver unresolved and baduse error diagnostics at the
+ * end of a routine segment (a separately compiled segment that is not the 
+ * main program) for PC. This routine should only be called
  * by PC (not standard).
  */
- segend()
- {
+void
+segend()
+{
 #ifdef PC
 	register struct nl *p;
 	register int i,b;
@@ -236,11 +232,10 @@ funcbody(fp)
 			   disptab[i] = p;
 		    }
 	}
-#endif PC
+#endif /*PC*/
 #ifdef OBJ
 	error("Missing program statement and program body");
-#endif OBJ
-
+#endif /*OBJ*/
 }
 
 
@@ -248,34 +243,33 @@ funcbody(fp)
  * Level1 does level one processing for
  * separately compiled routine segments
  */
+void
 level1()
 {
-
-#	ifdef OBJ
+#ifdef OBJ
 	    error("Missing program statement");
-#	endif OBJ
-#	ifdef PC
+#endif /*OBJ*/
+#ifdef PC
 	    if (opt('s')) {
 		    standard();
 		    error("Missing program statement");
 	    }
-#	endif PC
+#endif /*PC*/
 
 	cbn++;
 	tmpinit(cbn);
 	gotos[cbn] = NIL;
 	errcnt[cbn] = syneflg;
-	parts[ cbn ] = NIL;
+	parts[ cbn ] = TNONE;
 	dfiles[ cbn ] = FALSE;
 	progseen = TRUE;
 }
 
 
-
+void
 pnums(p)
 	struct udinfo *p;
 {
-
 	if (p->ud_next != NIL)
 		pnums(p->ud_next);
 	if (pnumcnt == 0) {
@@ -287,9 +281,10 @@ pnums(p)
 }
 
 /*VARARGS*/
-nerror(a1, a2, a3)
-    char *a1,*a2,*a3;
+void
+nerror(const char *fmt, ...)
 {
+        va_list ap;
 
 	if (Fp != NIL) {
 		yySsync();
@@ -302,5 +297,6 @@ nerror(a1, a2, a3)
 		Fp = NIL;
 		elineoff();
 	}
-	error(a1, a2, a3);
+        va_start(ap, fmt);
+        verror(fmt, ap);
 }
