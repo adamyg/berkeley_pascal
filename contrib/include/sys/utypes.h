@@ -1,7 +1,7 @@
 #ifndef LIBW32_SYS_UTYPES_H_INCLUDED
 #define LIBW32_SYS_UTYPES_H_INCLUDED
 //#include <edidentifier.h>
-//__CIDENT_RCSID(gr_libw32_sys_utypes_h,"$Id: utypes.h,v 1.1 2020/05/28 18:03:34 cvsuser Exp $")
+//__CIDENT_RCSID(gr_libw32_sys_utypes_h,"$Id: utypes.h,v 1.2 2020/05/31 20:24:59 cvsuser Exp $")
 //__CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */

@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.1 2020/05/25 23:29:18 cvsuser Exp $
+# $Id: Makefile.in,v 1.2 2020/05/31 20:25:06 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -169,9 +169,11 @@ all:			directories $(BINS)
 $(D_BIN)/pi$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pi$(E):	opcode.h picture.txt ytab.h $(PI_OBJS)
 		$(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
-		
+
 opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > opcode.h
+
+$(D_OBJ)/%$(O): 	opcode.h
 
 picture.txt:		$(D_BIN)/pic$(E)
 		$(D_BIN)/pic > picture.txt

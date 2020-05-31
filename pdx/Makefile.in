@@ -1,0 +1,215 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/31 20:25:01 cvsuser Exp $
+# pdx makefile - Pascal debugger.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# You can redistribute it and/or modify it under the terms of
+# the project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+C=		.c
+E=
+O=		.o
+H=		.h
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+RM=		@RM@
+MV=		@MV@
+RMDIR=		@RMDIR@
+PERL=		@PERL@
+
+# Common flags
+
+XFLAGS=
+COPT=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) -I. -I..\src @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS)
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pdx
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+XFLAGS=
+
+############################################################
+
+BINS=\
+	$(D_BIN)/opc$(E) \
+	$(D_BIN)/pdx$(E)
+
+CFLAGS+=	-Di80x86 -DOBJ -DADDR32
+PDX_CSOURCE=\
+	main/main.c \
+	library.c \
+	\
+	command/remake.c \
+	\
+	sym/attributes.c \
+	sym/predicates.c \
+	sym/print.c \
+	sym/printdecl.c \
+	sym/printval.c \
+	sym/tree.c \
+	sym/which.c \
+	\
+	symtab/symtab.c \
+	\
+	breakpoint/bp.c \
+	breakpoint/bpact.c \
+	breakpoint/fixbps.c \
+	breakpoint/printnews.c \
+	breakpoint/setbps.c \
+	breakpoint/status.c \
+	breakpoint/trcond.c \
+	breakpoint/trinfo.c \
+	\
+	runtime/address.c \
+	runtime/entry.c \
+	runtime/frame.c \
+	runtime/isactive.c \
+	runtime/wheredump.c \
+	\
+	mappings/functab.c \
+	mappings/objaddr.c \
+	mappings/srcfile.c \
+	mappings/srcline.c \
+	\
+	tree/assign.c \
+	tree/build.c \
+	tree/eval.c \
+	tree/misc.c \
+	tree/opinfo.c \
+	tree/prtree.c \
+	tree/tfree.c \
+	tree/tr_equal.c \
+	tree/tracestop.c \
+	\
+	object/maketypes.c \
+	object/readobj.c \
+	object/readsym.c \
+	\
+	source/source.c \
+	\
+	machine/nextaddr.c \
+	machine/optab.c \
+	machine/setbp.c \
+	machine/printdata.c \
+	machine/printerror.c \
+	machine/printinst.c \
+	\
+	process/pstatus.c \
+	process/resume.c \
+	process/runcont.c \
+	process/start.c \
+	process/step.c \
+	\
+	win32/ptrace.c \
+	win32/rdwr.c \
+	win32/callproc.c \
+	\
+	flex/liballoc.c \
+	flex/libyywrap.c \
+	\
+	grammar.c \
+	token.c
+
+OPC_CSOURCE=\
+	opc.c
+
+VPATH=		../src
+
+PDX_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PDX_CSOURCE)))
+OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
+
+LDLIBS=		-L$(D_LIB) -llibcompat
+
+unique_words=	$(if $(1),$(call unique_words,$(wordlist 2,$(words $(1)),$(1)),$(if $(filter $(firstword $(1)),$(2)),$(2),$(firstword $(1)) $(2))),$(2))
+
+OBJDIRS=	$(call unique_words, $(dir $(PDX_OBJS) $(OPC_OBJS)))
+
+CLEANOBJS=	$(PDX_OBJS) $(OPC_OBJS)
+CLEANFILES=	h02opcs.h
+
+CLEANFILES=	h02opcs.h grammar.c ytab.h token.c
+
+#########################################################################################
+
+all:			directories h02opcs.h $(BINS)
+
+$(D_BIN)/pdx$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/pdx$(E):	LDLIBS+=-llibpx -llibpc
+$(D_BIN)/pdx$(E):	$(D_OBJ)/.created $(PDX_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
+		$(D_BIN)/opc > h02opcs.h
+
+grammar.c:		command/grammar.y
+		$(D_BIN)/byacc -d command/grammar.y
+		-@$(RM) $(RMFLAGS) grammar.c
+		-@$(MV) ytab.c grammar.c
+
+token.c:		command/token.l
+		$(D_BIN)/flex -otoken.c command/token.l
+		$(D_BIN)/ex - token.c <command/tokengram >ex.out
+		-@$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
+
+$(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/opc$(E):	$(D_OBJ)/.created $(OPC_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+directories:		$(addsuffix /.created, $(OBJDIRS))
+
+%/.created:
+		-@$(PERL) ../mkdir_p.pl $(@D)
+		@echo "do not delete" > $@
+
+clean:
+		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
+		-@$(PERL) ../rmdir_p.pl $(OBJDIRS)
+
+$(D_OBJ)/%$(O):		%$(C)
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+#end
+

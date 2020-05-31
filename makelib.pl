@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.2 2020/05/25 20:57:57 cvsuser Exp $
+# $Id: makelib.pl,v 1.3 2020/05/31 20:24:58 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
