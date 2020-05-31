@@ -7,7 +7,9 @@ Sun May 24 13:36:18 2020 adamy
 
 	  o Embedded pdx hooks.
 
-	  o WIN32 support, changes marked with either "ifdef WIN32" or "ifndef unix".
+	  o DO_TRACE build option; interpreter execute tracing, optab table borrowed from pdx.
+
+	  o WIN32 support, changes marked with either "ifdef WIN32", "ifndef unix" or MSCVC/WATCOMC.
 
 	  o 32-bit i80x86 target.
 
