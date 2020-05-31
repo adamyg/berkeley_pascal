@@ -1,0 +1,12 @@
+"token tweaks"
+/^extern int isatty*/d
+.
+w!
+q
+
+
+
+
+
+
+
