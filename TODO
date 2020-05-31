@@ -1,0 +1,15 @@
+Sun May 31 20:34:02 2020 adamy
+
+	* Additional test cases, examples
+
+		o Attempt to locate a copy of "Pascal Compiler Validation Suite"
+		o Review FreePascal's FPTest (git://github.com/graemeg/fptest.git)
+		
+Tue May 25 22:54:47 2020 adamy
+
+	* pxp
+
+	* time64, currently is time32
+
+	* string length >256.
+
