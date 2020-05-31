@@ -1,0 +1,26 @@
+Fri May 28 22:18:30 2020 adamy
+
+	* Summary of previous changes;
+
+	  o NIL definition equated to NULL, and redefined 0.h/NIL to TNONE;
+
+		Note NIL was used was being to reprsent,
+
+		 o NULL pointer; retained.
+		 o An undefined type/value; changed to TNONE.
+		 o FALSE; changed to (0), as TRUE was generally by (1).
+		 o Numeric value of zero; changed to explicit (0).
+
+	  o opcode TRUNC, rename TRUNCATE; resolve stdio.h symbol clash.
+
+	  o list hexmode option.
+
+	  o i80x86 (32-bit implied) target.
+
+	  o ANSI/C conversions.
+
+		 - See pdx and libpc changes.
+
+
+
+

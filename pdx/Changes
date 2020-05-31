@@ -1,0 +1,46 @@
+Wed May 27 23:13:14 2020 adamy
+
+	* Summary of previous changes;
+
+	  o step [count], next [count] and restart options.
+
+		- grammer.y, build.c, step.h, command.h
+
+	  o -I and -x options,
+
+		- state one or more source include paths.
+		- partial disasssembly during step operations; beta.
+
+	  o xi command limited to the object size.
+
+		- printins.c
+
+	  o Correct optab (machine/optab.c) definitions.
+
+		- correctly ordered and 'pxpbuf' definition.
+		- defined 'bpt'.
+
+	  o PXEMBEDDED build option.
+
+		- Refactored process control; allowing an alternative implementation.
+
+	  o WIN32 target host
+
+		- changes marked with either "ifdef WIN32" or "ifndef unix".
+		- win32 sub-process control (embedded); win32/ptrace.c, callproc.c and cerror.c
+		- i80x86 (32-bit implied) target.
+
+	  o ANSI/C
+
+		- function prototypes, explicit return types.
+		- static or const static declarations of suitable variables.
+		- explicit variable initialise and extern definitions.
+		- process.h localised.
+		- redefined INFINITY to YINFINITY, HUGE to YHUGE
+		- redefined opcode O_TRUNC to O_TRUNCATE.
+		- redefined MAXINT/MININT to XMAXINT/XMININT.
+		- fopen binary.
+		- va_args.
+		- constness.
+		- printf conversion.
+
