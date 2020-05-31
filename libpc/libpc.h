@@ -148,7 +148,7 @@ extern long		_filefre;		/* last used entry in _actfile */
  */
 extern char		*_maxptr;		/* maximum valid pointer */
 extern char		*_minptr;		/* minimum valid pointer */
-extern char		**_pcargv;		/* values of passed args */
+extern const char	**_pcargv;		/* values of passed args */
 extern int		_pcargc;		/* number of passed args */
 extern long		_stcnt; 		/* statement count */
 extern long		_stlim; 		/* statement limit */
@@ -165,6 +165,19 @@ extern struct iorechd	_err;
 /*
  * Function prototypes
  */
+#if !defined(__attribute__)
+#if !defined(__GNUC__) && !defined(__clang__)
+#define __attribute__(__x)
+#endif
+#endif //__attribute__
+#if !defined(__printf_attribute__)
+#if !defined(_Printf_format_string_)
+#define __printf_attribute__
+#else
+#define __printf_attribute__ _Printf_format_string_
+#endif
+#endif //__printf_attribute_
+
 extern FILE	       *ACTFILE(struct iorec *);
 extern long	       *ADDT(long *, long *, long *, long);
 extern void		APPEND(struct iorec *);
@@ -182,12 +195,12 @@ extern char		CHR(unsigned long);
 extern long		CLCK(void);
 extern double		COS(double);
 extern long	       *CTTOT(long *, long, long, long, long, long);
-extern long	       *CTTOTA(long *, long, long, long, long, long *);
+extern long	       *CTTOTA(long *, long, long, long, long, const long *);
 extern void		DATE(char *);
-extern void		DEFNAME(struct iorec	*, char *, long, long);
-extern void		DFDISPOSE(char	**var, long	size);
+extern void		DEFNAME(struct iorec *, char *, long, long);
+extern void		DFDISPOSE(char	**var, long size);
 extern void		DISPOSE(char **, long );
-extern long		ERROR(const char *msg, ...);
+extern long		ERROR(__printf_attribute__ const char *msg, ...) __attribute__ ((format (printf, 1, 2)));
 extern void		EXCEPT(int);
 extern double		EXP(double);
 extern long		EXPO(double);
@@ -260,7 +273,11 @@ extern void		UNPACK(long, char *, char *, long, long, long, long);
 extern void		UNSYNC(struct iorec *);
 extern void		VWRITEF(struct iorec *, FILE *, char *, va_list);
 extern void		WRITEC(struct iorec *, char, FILE *);
-extern void		WRITEF(struct iorec *, FILE *, char *, ...);
+#if defined(_MSC_VER) && defined(_Printf_format_string_)
+extern void		WRITEF(struct iorec *, FILE *, _Printf_format_string_ const char *, ...);
+#else
+extern void		WRITEF(struct iorec *, FILE *, const char *, ...) __attribute__ ((format (printf, 3, 4)));
+#endif
 extern void		WRITES(struct iorec *, char *, int, int, FILE *);
 extern void		WRITLN(struct iorec *);
 
