@@ -10,3 +10,6 @@
 [submodule "references/pcc-revived"]
 	path = references/pcc-revived
 	url = https://github.com/arnoldrobbins/pcc-revived
+[submodule "references/legacy-cc"]
+	path = references/legacy-cc
+	url = https://github.com/mortdeus/legacy-cc
