@@ -43,8 +43,8 @@ ARGV(subscript, var, siz)
 	register char	*var;		/* pointer to pascal char array */
 	long		siz;		/* sizeof(var) */
 {
-	register char	*cp;
-	register int	size = siz;
+	register const char *cp;
+	register int size = siz;
 
 	if ((int)subscript >= _pcargc) {
 		ERROR("Argument to argv of %ld is out of range\n", subscript);

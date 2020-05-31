@@ -38,7 +38,7 @@ static char sccsid[] = "@(#)CTTOT.c	8.1 (Berkeley) 6/6/93";
 #include "whoami.h"
 #include "h00vars.h"
 
-static const long	_mask[] = {	
+static const long _mask[] = {	
 #ifdef DEC11
 		    0xffffffff , 0xfffffffe , 0xfffffffc , 0xfffffff8 ,
 		    0xfffffff0 , 0xffffffe0 , 0xffffffc0 , 0xffffff80 ,
@@ -93,7 +93,7 @@ CTTOTA(result, lwrbnd, uprbnd, paircnt, singcnt, dataptr)
 	long	uprbnd;			/* upper - lower of set */
 	long	paircnt;		/* number of pairs to construct */
 	long	singcnt;		/* number of singles to construct */
-	register long	*dataptr;	/* ->paircnt plus singcnt data values */
+	register const long *dataptr;	/* ->paircnt plus singcnt data values */
 {
 	int		lowerbnd = lwrbnd;
 	int		upperbnd = uprbnd;
@@ -146,7 +146,7 @@ CTTOTA(result, lwrbnd, uprbnd, paircnt, singcnt, dataptr)
 	for (cnt = 0, cp = (char *)result; cnt < singcnt; cnt++) {
 		lower = *dataptr++ - lowerbnd;
 		if (lower < 0 || lower > upperbnd) {
-			ERROR("Value of %d out of set bounds\n", *--dataptr);
+			ERROR("Value of %ld out of set bounds\n", *--dataptr);
 		}
 		cp[ lower >> LG2BITSBYTE ] |= (1 << (lower & MSKBITSBYTE));
 	}

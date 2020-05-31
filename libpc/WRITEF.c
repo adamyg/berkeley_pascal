@@ -40,7 +40,7 @@ static char sccsid[] = "@(#)WRITEF.c	8.1 (Berkeley) 6/6/93";
 void
 WRITEF(register struct iorec	*curfile,
        FILE			*f,
-       char			*fmt,
+       const char		*fmt,
        ...)
 {
 	va_list ap;
