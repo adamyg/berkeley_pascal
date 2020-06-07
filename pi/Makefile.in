@@ -184,7 +184,7 @@ ytab.h:			../src/gram ../src/pas.y
 		dir
 		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
 		dir
-		type ytab.lst
+		cat ytab.lst
 		$(D_BIN)/ex - ytab.c <../src/gram >ex.out
 		dir
 		-$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
