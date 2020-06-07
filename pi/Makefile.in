@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.2 2020/05/31 20:25:06 cvsuser Exp $
+# $Id: Makefile.in,v 1.3 2020/06/07 02:05:42 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -173,14 +173,14 @@ $(D_BIN)/pi$(E):	opcode.h picture.txt ytab.h $(PI_OBJS)
 opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > opcode.h
 
-$(D_OBJ)/%$(O): 	opcode.h
+$(D_OBJ)/%$(O):		opcode.h
 
 picture.txt:		$(D_BIN)/pic$(E)
 		$(D_BIN)/pic > picture.txt
 
 ytab.h:			../src/gram ../src/pas.y
-		@echo make ytab.h and ytab.c
-		rm -f ytab.h ytab.c
+		@echo building ytab.h and ytab.c ...
+		-@$(RM) $(RMFLAGS) ytab.h ytab.c >/dev/null 2>&1
 		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
 		$(D_BIN)/ex - ytab.c <../src/gram >ex.out
 		-@$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
