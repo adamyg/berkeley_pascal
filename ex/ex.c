@@ -108,7 +108,7 @@ main(ac, av)
 #ifdef TRACE
 	register char *tracef;
 #endif
-#ifdef	vms
+#ifdef vms
 	char termtype[20];
 #endif
 
@@ -150,6 +150,21 @@ main(ac, av)
 	ac--;
 	av++;
 #endif
+
+#if defined(WIN32) || defined(MSDOS)
+	/*
+	 * temporary directory
+	 */
+	if ((NULL != (cp = getenv("TEMP"))   && NULL == strchr(cp, ';')) ||
+	    (NULL != (cp = getenv("TMP"))    && NULL == strchr(cp, ';')) ||
+	    (NULL != (cp = getenv("TMPDIR")) && NULL == strchr(cp, ';'))) {
+		if (strlen(cp) >= sizeof(direct)) {
+			ex_printf("temporary directory <%s>, too large; ignored\n", cp);
+		} else {
+			strcpy(direct, cp);
+		}
+	}
+#endif //WIN32
 
 	/*
 	 * Figure out how we were invoked: ex, edit, vi, view.

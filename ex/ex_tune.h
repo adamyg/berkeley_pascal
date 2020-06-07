@@ -50,7 +50,7 @@
 #define	RHSSIZE		256		/* Size of rhs of substitute */
 #define	NBRA		9		/* Number of re \( \) pairs */
 #define	TAGSIZE		128		/* Tag length */
-#define	ONMSZ		64		/* Option name size */
+#define	ONMSZ		256 /*was64*/	/* Option name size */
 #define	GBSIZE		256		/* Buffer size */
 #define	UXBSIZE		128		/* Unix command buffer size */
 #define	VBSIZE		128		/* Partial line max size in visual */

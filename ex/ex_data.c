@@ -26,24 +26,29 @@ char	direct[ONMSZ] =
 #else
 	{'/', 'v', 'a', 'r', '/', 't', 'm', 'p'};
 #endif
+
 char	paragraphs[ONMSZ] = {
 	'I', 'P', 'L', 'P', 'P', 'P', 'Q', 'P',		/* -ms macros */
 	'P', ' ', 'L', 'I',				/* -mm macros */
 	'p', 'p', 'l', 'p', 'i', 'p',			/* -me macros */
 	'b', 'p'					/* bare nroff */
 };
+
 char	sections[ONMSZ] = {
 	'N', 'H', 'S', 'H',				/* -ms macros */
 	'H', ' ', 'H', 'U',				/* -mm macros */
 	'n', 'h', 's', 'h'				/* -me macros */
 };
+
 char	shell[ONMSZ] =
 	{ '/', 'b', 'i', 'n', '/', 's', 'h' };
+
 char	tags[ONMSZ] = {
 	't', 'a', 'g', 's', ' ',
 	'/', 'v', 'a', 'r', '/', 'd', 'b', '/', 'l', 'i', 'b', 'c', '.',
 	    't', 'a', 'g', 's'
 };
+
 char	ttytype[ONMSZ] =
 	{ 'd', 'u', 'm', 'b' };
 
