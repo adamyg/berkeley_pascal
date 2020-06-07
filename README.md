@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/9tul3xfsk7og2cvy?svg=true)](https://ci.appveyor.com/project/adamyg/berkeley-pascal)
+
 # Berkeley Pascal
 
 Berkeley Pascal was developed within the Computer Science Division; Department of Electrical Engineering and Computer Science;
