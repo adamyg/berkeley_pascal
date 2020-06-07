@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.4 2020/06/07 01:07:48 cvsuser Exp $
+# $Id: makelib.pl,v 1.5 2020/06/07 01:14:30 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -1038,7 +1038,8 @@ sub
 ProgramFiles
 {
     my $path = $ENV{ProgramFiles};
-    $path =~ s/\\/\//g;
+    $path =~ s/\\/\//g
+        if ($path);
     return $path;
 }
 
