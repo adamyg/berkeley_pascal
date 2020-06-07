@@ -5,12 +5,6 @@
  *	pi/pc specific prototypes ....
  */
  
-#if defined(_MSC_VER)
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-#endif 
-
 /* main.c */
 void		pexit __P((int c));
 void            pchr __P((int c));

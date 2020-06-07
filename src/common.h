@@ -4,10 +4,16 @@
 /*
  * common include libpc,px,pi,pxp and pdx.
  */
- 
+
 #define  CONSETS
 #define  CHAR			int
 #define  STATIC			static
+
+#if defined(_MSC_VER)
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -27,6 +33,19 @@
 #endif
 #undef  roundup
 
+#if defined(_MSC_VER)
+
+//  #define open(__a, __b)          _open(__a, __b)
+//  #define open(__a, __b, __c)     _open(__a, __b, __c)
+//  #define close(__a)              _close(__a)
+//  #define lseek(__a, __b, __c)    _lseek(__a, __b, __c)
+//  #define tell(__a)               _tell(__a)
+//  #define unlink(__a)             _unlink(__a)
+//  #define write(__a, __b, __c)    _write(__a, __b, __c)
+
+#pragma warning(disable:4996)  /* 'xxx': The POSIX name for this item is deprecated. ... */
+#endif
+      
 #if defined(O_RANDOM)
 #undef  O_RANDOM
 #endif
