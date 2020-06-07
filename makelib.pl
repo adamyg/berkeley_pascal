@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.5 2020/06/07 01:14:30 cvsuser Exp $
+# $Id: makelib.pl,v 1.6 2020/06/07 02:29:27 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -2395,7 +2395,7 @@ Makefile($$$)           # (type, dir, file)
     $text =~ s/(\nDATADIR=[ \t]*)[^\n]+/$1\/grief/g;
     $text =~ s/-o bin -g bin//g;
 
-    $text =~ s/\Q>\/dev\/null\E/>nul/g;         # nul redirection
+    $text =~ s/\Q>\/dev\/null\E/>NUL/g;         # NUL redirection
 
     # Commands
     if ('dj' ne $type) {
