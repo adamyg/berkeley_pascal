@@ -180,10 +180,14 @@ picture.txt:		$(D_BIN)/pic$(E)
 
 ytab.h:			../src/gram ../src/pas.y
 		@echo building ytab.h and ytab.c ...
-		-@$(RM) $(RMFLAGS) ytab.h ytab.c >/dev/null 2>&1
+		-$(RM) $(RMFLAGS) ytab.h ytab.c >/dev/null 2>&1
+		dir
 		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
+		dir
 		$(D_BIN)/ex - ytab.c <../src/gram >ex.out
-		-@$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
+		dir
+		-$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
+		dir
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
