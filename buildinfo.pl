@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode: perl; -*-
-# $Id: buildinfo.pl,v 1.1 2020/05/25 19:52:08 cvsuser Exp $
+# $Id: buildinfo.pl,v 1.2 2020/06/07 01:07:48 cvsuser Exp $
 # buildinfo generation
 #
 # Copyright Adam Young 2018-2020
@@ -17,20 +17,32 @@ my $name    = undef;
 my $version = "0.0.1";
 my $date    = undef;
 my $build   = "1";
+my $bindir  = undef;
+my $sbindir = undef;
+my $libdir  = undef;
+my $libexecdir = undef;
+my $datadir = undef;
+my $toolchain = undef;
 my $help    = 0;
 
 Usage() if (0 == GetOptions(
-		'output=s'  => \$output,
-		'package=s' => \$package,
-		'name=s'    => \$name,
-		'version=s' => \$version,
-		'date=i'    => \$date,
-		'build=i'   => \$build,
-		'help'      => \$help)
-                    || $help);
+		'output=s'      => \$output,
+		'package=s'     => \$package,
+		'name=s'        => \$name,
+		'version=s'     => \$version,
+		'date=i'        => \$date,
+		'build=i'       => \$build,
+		'bindir:s'      => \$bindir,
+		'sbindir:s'     => \$sbindir,
+		'libdir:s'      => \$libdir,
+		'libexecdir:s'  => \$libexecdir,
+		'datadir:s'     => \$datadir,
+		'toolchain=s'   => \$toolchain,
+		'help'          => \$help)
+			|| $help);
 
-$package = "MC-WIN32" if (! $package);
-$name    = "Midnight Commander WIN32" if (! $name);
+$package = "ucbpascal" if (! $package);
+$name    = "Berkeley Pascal" if (! $name);
 $version = "0.0.1" if (! $version);
 $date    = strftime('%Y%m%d', localtime) if (! $date);
 
@@ -60,6 +72,21 @@ Generate	#()
 #define BUILD_NUMBER "${build}"
 EOT
 
+	print FILE "#define BUILD_BINDIR \"${bindir}\"\n"
+		if ($bindir);
+
+	print FILE "#define BUILD_SBINDIR \"${sbindir}\"\n"
+		if ($sbindir);
+
+	print FILE "#define BUILD_LIBDIR \"${libdir}\"\n"
+		if ($libdir);
+
+	print FILE "#define BUILD_LIBEXECDIR \"${libexecdir}\"\n"
+		if ($libexecdir);
+
+	print FILE "#define BUILD_TOOLCHAIN \"${toolchain}\"\n"
+		if ($toolchain);
+
 	close(FILE);
 }
 
@@ -79,6 +106,12 @@ Options:
     --version <version>     Package version.
     --date <date>           Build date.
     --build <number>        Build number.
+
+    --bindir <path>         bindir path.
+    --sbindir <path>        sbindir path.
+    --libdir <path>         libdir path.
+    --libexecdir<path>      libexecdir path.
+    --datadir <path>        datadir path.
 
     --help                  Help.
 
