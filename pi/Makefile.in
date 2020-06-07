@@ -184,9 +184,11 @@ ytab.h:			../src/gram ../src/pas.y
 		dir
 		$(D_BIN)/eyacc ../src/pas.y >ytab.lst
 		dir
-		cat ytab.lst
+		cat ytab.c
+		cat ../src/gram
 		$(D_BIN)/ex - ytab.c <../src/gram >ex.out
 		dir
+		cat ex.out
 		-$(RM) $(RMFLAGS) ex.out >/dev/null 2>&1
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
