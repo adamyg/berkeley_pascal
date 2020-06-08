@@ -56,7 +56,7 @@ short *rprec;
 char  *rassoc;
 short **derives;
 char *nullable;
-		   
+
 extern char *getenv();
 
 
@@ -79,7 +79,7 @@ void onintr()
     done(1);
 }
 
- 
+
 set_signals()
 {
 #ifdef SIGINT
@@ -231,9 +231,11 @@ create_file_names()
     char *tmpdir;
 
     tmpdir = getenv("TMPDIR");
-    if (tmpdir == 0) tmpdir = getenv("TEMP");	/*APY*/
-    if (tmpdir == 0) tmpdir = getenv("TMP");	/*APY*/
-    if (tmpdir == 0) tmpdir = "/tmp";
+#if defined(WIN32) || defined(MSDOS)
+    if (tmpdir == NULL) tmpdir = getenv("TEMP");
+    if (tmpdir == NULL) tmpdir = getenv("TMP");
+#endif
+    if (tmpdir == NULL) tmpdir = "/tmp";
 
     len = strlen(tmpdir);
     i = len + 13;
