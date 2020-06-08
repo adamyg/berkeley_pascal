@@ -13,3 +13,6 @@
 [submodule "references/legacy-cc"]
 	path = references/legacy-cc
 	url = https://github.com/mortdeus/legacy-cc
+[submodule "references/awk"]
+	path = references/awk
+	url = https://github.com/onetrueawk/awk.git
