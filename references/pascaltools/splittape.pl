@@ -8,15 +8,23 @@ use File::Basename;
 sub usage {
 	my ($msg) = shift;
 	print "splittape: ${msg}\n\n" if ($msg);
-	print "Usage: splittape.pl [-v] in\n";
+	print "Usage: splittape.pl [-h 100] in\n";
+	print "\n";
+	print "  example: splittape -h 100 parsetools.txt\n";
+	print "\n";
 	exit 1;
 }
 
 my $verbose = 0;
+my $header = 0;
 
 while (defined $ARGV[0] && ($ARGV[0] =~ /^--?[a-z]+$/)) {
 	if ($ARGV[0] eq '-v' || $ARGV[0] eq '--verbose') {
 		++$verbose;
+
+	} elsif ($ARGV[0] eq '-h' || $ARGV[0] eq '--header') {
+		shift @ARGV;
+		$header = int($ARGV[0]);
 
 	} else {
 		usage("unknown option <$ARGV[0]>");
@@ -45,7 +53,9 @@ my $size;
 
 while ($line = <IN>) {
 
-	if ($line =~ /^-h- ([^ ]+) (\d+)/) {
+	if ($line =~ /^-h- ([^ ]+) (\d+)/ &&
+		    $. >= $header) {
+
 		my ($filename, $directory, $suffix) = fileparse($1);
 
 		$path = $1;
