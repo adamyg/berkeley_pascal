@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.2 2020/05/31 20:24:58 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2020/06/14 12:54:05 cvsuser Exp $
 # External packages.
 #
 #
@@ -31,9 +31,25 @@
 
 @SET_MAKE@
 
-D_OBJ=		../objects@TOOLCHAINEXT@
-D_LIB=		../lib@TOOLCHAINEXT@
-D_BIN=		../bin@TOOLCHAINEXT@
+# Configuration
+
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
+
+# Directories
+
+D_OBJ=		../objects@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_LIB=		../lib@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_BIN=		../bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+
+
+#########################################################################################
+# Rules
 
 define contrib-all
 	$(MAKE) -C libregex
@@ -45,9 +61,14 @@ define contrib-clean
 	$(MAKE) -C flex clean
 endef
 
-.PHONY:		all
-all:			directories
+.PHONY: 	build release debug
+build:			directories
 		$(contrib-all)
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 .PHONY:		clean
 clean:

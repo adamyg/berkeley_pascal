@@ -1,7 +1,7 @@
 #ifndef WIN32_CONFIG_H_INCLUDED
 #define WIN32_CONFIG_H_INCLUDED
 /* -*- mode: c; set-indent: 4; -*- */
-/* $Id: w32config.hin,v 1.4 2020/05/29 20:50:47 cvsuser Exp $
+/* $Id: w32config.hin,v 1.5 2020/06/13 23:30:13 cvsuser Exp $
  * Machine configuration.
  *
  * System dependent <config.h> configuration template,
@@ -143,6 +143,7 @@
 #undef HAVE_STDALIGN_H
 #undef HAVE_STDATOMIC_H
 #undef HAVE_THREADS_H
+#undef HAVE_XTHREADS_H
 
 #undef HAVE_THREAD_H
 #undef HAVE_PTHREAD_H
@@ -383,15 +384,15 @@
 #undef HAVE_BCMP
 #undef HAVE_BZERO
 
-#undef HAVE_EXPLICIT_BZERO
-#undef HAVE_MEMSET_S
-#undef HAVE_SECUREZEROMEMORY
-
 #undef HAVE_MEMCMP
 #undef HAVE_MEMSET
 #undef HAVE_MEMMOVE
 #undef HAVE_MEMCCPY
 #undef HAVE__MEMCCPY
+
+#undef HAVE_SECUREZEROMEMORY
+#undef HAVE_EXPLICIT_BZERO
+#undef HAVE_MEMSET_S
 
 #undef HAVE_MATHERR
 
@@ -466,6 +467,7 @@
 #undef HAVE_CTIME_R
 #undef HAVE_LOCALTIME_R
 #undef HAVE_GMTIME_R
+#undef HAVE_GMTIME_S
 #undef HAVE_ASCTIME_R
 #undef HAVE__GET_TIMEZONE
 
@@ -521,6 +523,8 @@
 #undef CLOSEDIR_VOID
 #undef GETPGRP_VOID
 
+#undef HAVE_VA_COPY
+#undef HAVE___VA_COPY
 #undef HAVE_VPRINTF
 #if defined(HAVE_VPRINTF) && (HAVE_VPRINTF)
 #undef HAVE_PRINTF

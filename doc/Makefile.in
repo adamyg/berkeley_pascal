@@ -41,38 +41,39 @@ CC=		@CC@
 AR=		@AR@
 RANLIB= 	@RANLIB@
 RM=		@RM@
-RMFLAGS=	-f
-RMDFLAGS=	-rf
 
-# Common flags
+# Configuration
 
-ARFLAGS=	rcv
-XFLAGS=
-COPT=		@CFLAGS@
-CWARN=		@CWARN@
-CDEBUG= 	@CDEBUG@
-LDEBUG= 	@LDEBUG@
-CINCLUDE=	-I$(D_INC) -I. @CINCLUDE@
-CEXTRA= 	@DEFS@
-CFLAGS= 	$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-YFLAGS= 	-d
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS) @LIBS@ @LIBMALLOC@
-
-RMFLAGS=	-f
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
 
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/compat
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/doc
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
-############################################################
+ARFLAGS=	rcv
+RMFLAGS=	-f
 
-all:			installman
+
+#########################################################################################
+# Rules
+
+.PHONY:			build release debug
+build:			installman
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
+
 installman:
 		@echo publishing manpages ...
 		-cp pi.man $(D_BIN)
@@ -81,7 +82,7 @@ installman:
 		-cp pmerge.man $(D_BIN)
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		-@$(RM) $(RMFLAGS) $(D_BIN)/*.man >/dev/null 2>&1
-		
-#end
 
+#end

@@ -8,9 +8,9 @@ use File::Basename;
 sub usage {
 	my ($msg) = shift;
 	print "splittape: ${msg}\n\n" if ($msg);
-	print "Usage: splittape.pl [-h 100] in\n";
+	print "Usage: splittape.pl [-h lines] source\n";
 	print "\n";
-	print "  example: splittape -h 100 parsetools.txt\n";
+	print "  example: splittape -h 400 pascaltools.txt\n";
 	print "\n";
 	exit 1;
 }

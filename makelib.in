@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.4 2020/05/31 20:24:58 cvsuser Exp $
+# $Id: makelib.in,v 1.5 2020/06/13 23:30:12 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -29,7 +29,8 @@
 # ==end==
 #
 
-$PACKAGE        = 'Berkeley_Pascal';
+$PACKAGE        = 'ucbpascal';
+$PACKAGE_NAME   = 'Berkeley_Pascal';
 $PACKAGE_PATH   = 'libcompat';
 $PACKAGE_FILE   = 'package.h';
 

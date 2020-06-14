@@ -41,36 +41,53 @@ CC=		@CC@
 AR=		@AR@
 RANLIB= 	@RANLIB@
 RM=		@RM@
-RMFLAGS=	-f
-RMDFLAGS=	-rf
 
-# Common flags
+# Configuration
 
-ARFLAGS=	rcv
-XFLAGS=
-COPT=		@CFLAGS@
-CWARN=		@CWARN@
-CDEBUG= 	@CDEBUG@
-LDEBUG= 	@LDEBUG@
-CINCLUDE=	-I$(D_INC) -I. @CINCLUDE@
-CEXTRA= 	@DEFS@
-CFLAGS= 	$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-YFLAGS= 	-d
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS) @LIBS@ @LIBMALLOC@
-
-RMFLAGS=	-f
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
 
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/compat
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/compat
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
-############################################################
+# Common flags
+
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	-I$(D_INC) -I. @CINCLUDE@
+
+CEXTRA=		@DEFS@
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
+ARFLAGS=	rcv
+RMFLAGS=	-f
+RMDFLAGS=	-rf
+
+
+#########################################################################################
+# Targets
 
 LIBROOT=	compat
 
@@ -95,9 +112,17 @@ LIBOBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(LIBCSOURCES)))
 
 LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
 
-############################################################
 
-all:			directories $(LIBRARY) installinc
+#########################################################################################
+# Rules
+
+.PHONY:			build release debug
+build:			directories $(LIBRARY) installinc
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 $(LIBRARY):		$(LIBOBJS)
 		$(RM) $(RMFLAGS) $@
@@ -116,6 +141,7 @@ directories:	$(D_OBJ)/.created
 		@echo "do not delete, make managed content" > $@
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		-@$(RM) $(RMFLAGS) $(BAK) $(LIBRARY) $(LIBOBJS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) ../include/a_out.h >/dev/null 2>&1
 

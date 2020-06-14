@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2020/06/07 02:05:42 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2020/06/13 23:30:14 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -48,31 +48,51 @@ XCLEAN=
 CC=		@CC@
 RM=		@RM@
 
-# Common flags
+# Configuration
 
-XFLAGS=
-COPT=		@CFLAGS@
-CWARN=		@CWARN@
-CDEBUG=		@CDEBUG@
-LDEBUG=		@LDEBUG@
-CINCLUDE=	-I$(D_INC) -I. -I..\src @CINCLUDE@
-CEXTRA=		@DEFS@
-CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS)
-
-RMFLAGS=	-f
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
 
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pi
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/pi
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
-############################################################
+# Common flags
+
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	-I. -I..\src -I$(D_INC) @CINCLUDE@
+
+CEXTRA=		@DEFS@
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ -llibcompat @EXTRALIBS@
+
+RMFLAGS=	-f
+RMDFLAGS=	-rf
+
+
+#########################################################################################
+# Targets
 
 BINS=\
 	$(D_BIN)/opc$(E) \
@@ -156,19 +176,24 @@ PI_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PI_CSOURCE)))
 OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
 PIC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PIC_CSOURCE)))
 
-LDLIBS=		-L$(D_LIB)
-
 CLEANOBJS=	$(PI_OBJS) $(OPC_OBJS) $(PIC_OBJS)
 CLEANFILES=	opcode.h picture.txt ytab.h ytab.c ytab.lst
 
 
 #########################################################################################
+# Rules
 
-all:			directories $(BINS)
+.PHONY:			build release debug
+build:			directories $(BINS)
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 $(D_BIN)/pi$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pi$(E):	opcode.h picture.txt ytab.h $(PI_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LXFLAGS) -llibcompat @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LDLIBS) @LDMAPFILE@
 
 opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > opcode.h
@@ -187,11 +212,11 @@ ytab.h:			../src/gram ../src/pas.y
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_BIN)/pic$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pic$(E):	$(PIC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(D_OBJ)/.created
 
@@ -200,6 +225,7 @@ $(D_OBJ)/.created:
 		@echo "do not delete" > $@
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
 

@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.1 2020/05/25 22:52:14 cvsuser Exp $
+# $Id: Makefile.in,v 1.2 2020/06/13 23:30:14 cvsuser Exp $
 # pxp makefile.
 #
 #
@@ -40,7 +40,7 @@ E=
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
 
-# Compxlers, programs
+# Compilers, programs
 
 CC=		@CC@
 AR=		@AR@
@@ -49,32 +49,51 @@ RM=		@RM@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
 
-# Common flags
+# Configuration
 
-ARFLAGS=	rcv
-XFLAGS=
-COPT=		@CFLAGS@
-CWARN=		@CWARN@
-CDEBUG=		@CDEBUG@
-LDEBUG=		@LDEBUG@
-CINCLUDE=	-I$(D_INC) -I. -I..\src -I..\libpc @CINCLUDE@
-CEXTRA=		@DEFS@
-CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS)
-
-RMFLAGS=	-f
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
 
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pxp
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/pxp
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
-############################################################
+# Common flags
+
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	@CINCLUDE@
+
+CEXTRA=		@DEFS@
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
+RMFLAGS=	-f
+RMDFLAGS=	-rf
+
+
+#########################################################################################
+# Targets
 
 VPATH=		../src
 CFLAGS+=	-Di80x86
@@ -113,14 +132,20 @@ VERSION_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(VERSION_CSOURCE)))
 
 #########################
 
-LDLIBS=		-L$(D_LIB) -llibcompat
-
 CLEAN+=		opcode.h Version.c
 CLEANOBJS=	$(PXP_OBJS) $(OPC_OBJS) $(VERSION_OBJS)
 
-#########################################################################################
 
-all:			directories opcode.h Version.c $(LIBS) $(BINS)
+#########################################################################################
+# Rules
+
+.PHONY:			build release debug
+build:			directories opcode.h Version.c $(LIBS) $(BINS)
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc$(E) > $@
@@ -131,15 +156,15 @@ Version.c:		$(D_BIN)/pxpversion$(E)
 $(D_BIN)/pxp$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pxp$(E):	LDLIBS+=-llibpxp -llibpc
 $(D_BIN)/pxp$(E):	$(PXP_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PXP_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(PXP_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_BIN)/pxpversion$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pxpversion$(E):	$(VERSION_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(D_OBJ)/.created
 
@@ -148,6 +173,7 @@ $(D_OBJ)/.created:
 		@echo "do not delete" > $@
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) $(CLEANOBJS) >/dev/null 2>&1
 

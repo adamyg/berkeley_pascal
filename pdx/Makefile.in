@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.1 2020/05/31 20:25:01 cvsuser Exp $
+# $Id: Makefile.in,v 1.2 2020/06/13 23:30:13 cvsuser Exp $
 # pdx makefile - Pascal debugger.
 #
 #
@@ -46,31 +46,50 @@ MV=		@MV@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
 
-# Common flags
+# Configuration
 
-XFLAGS=
-COPT=		@CFLAGS@
-CWARN=		@CWARN@
-CDEBUG=		@CDEBUG@
-LDEBUG=		@LDEBUG@
-CINCLUDE=	-I$(D_INC) -I. -I..\src @CINCLUDE@
-CEXTRA=		@DEFS@
-CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS)
-
-RMFLAGS=	-f
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
 
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/pdx
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/pdx
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
-############################################################
+# Common flags
+
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	-I. -I../src @CINCLUDE@
+
+CEXTRA=		@DEFS@
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
+RMFLAGS=	-f
+RMDFLAGS=	-rf
+
+#########################################################################################
+# Targets
 
 BINS=\
 	$(D_BIN)/opc$(E) \
@@ -171,14 +190,22 @@ CLEANFILES=	h02opcs.h
 
 CLEANFILES=	h02opcs.h grammar.c ytab.h token.c
 
-#########################################################################################
 
-all:			directories h02opcs.h $(BINS)
+#########################################################################################
+# Rules
+
+.PHONY:			build release debug
+build:			directories h02opcs.h $(BINS)
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 $(D_BIN)/pdx$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pdx$(E):	LDLIBS+=-llibpx -llibpc
 $(D_BIN)/pdx$(E):	$(D_OBJ)/.created $(PDX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > h02opcs.h
@@ -195,18 +222,18 @@ token.c:		command/token.l
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(D_OBJ)/.created $(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(addsuffix /.created, $(OBJDIRS))
 
 %/.created:
-		-@$(PERL) ../mkdir_p.pl $(@D)
+		-@$(PERL) ../support/mkdir_p.pl $(@D)
 		@echo "do not delete" > $@
 
 clean:
 		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
-		-@$(PERL) ../rmdir_p.pl $(OBJDIRS)
+		-@$(PERL) ../support/rmdir_p.pl $(OBJDIRS)
 
 $(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<

@@ -7,4 +7,11 @@ bin.*/
 *.ref/
 msvc2015/
 Makefile
+.#*
+*.bak
+*.old
+*.sav
 *.err
+*.obj
+*.o
+*~

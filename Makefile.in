@@ -112,16 +112,28 @@ E=		.exe
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
 
+# Configuration
+
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
+
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)
 LW=		$(D_LIB)/$(LP)
+
 # Compilers, programs
 
 CC=		@CC@
+CXX=		@CXX@
 AR=		@AR@
 RM=		@RM@
 RMDIR=		@RMDIR@
@@ -138,15 +150,38 @@ ifeq ($(INNO),) # Inno5: allowing legacy XP installations
 INNO=		"C:/Program Files (x86)/Inno Setup 5/Compil32"
 endif
 
-BUSYBOX=	$(shell which busybox 2>/dev/null)
-ifeq ($(BUSYBOX),)
 BUSYBOX=	@BUSYBOX@
+ifeq ($(BUSYBOX),busybox)
+BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
+
 # Common flags
 
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	@CINCLUDE@
+
+CEXTRA=		@DEFS@
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
+ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
+#########################################################################################
 # Targets
 
 ifeq ("wcl386","$(CC)")
@@ -192,18 +227,23 @@ IMPORT+=\
 	$(D_BIN)/$(PLBRNAME).dll
 endif
 
-#########################################################################################
-# rules
 
-.DEFAULT:
-.PHONY:			build
+#########################################################################################
+# Rules
+
+.PHONY:			build release debug
 build:			directories buildinfo utils libs bins import doc
 
-#	release:		build package
-#	new_release:		new_buildnumber
-#			$(MAKE) release
-#	.PHONY: package
-#	package:
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
+
+#new_release:		new_buildnumber
+#		$(MAKE) release
+#
+#.PHONY: package
+#package:
 #		$(INNO) ./support/pascal-inno-setup.iss
 
 # Build support
@@ -216,12 +256,14 @@ BUILD_NUMBER=		$(shell $(BUSYBOX) cat BUILDNUMBER)
 endif
 
 .PHONY: 		buildinfo new_buildnumber
+buildinfo.h:		buildinfo
 buildinfo:
 		@echo updating buildinfo.h ...
-		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) -p "$(PACKAGE)" -n "$(PKG_NAME)" -v "$(PKG_VERSION)" --date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" \
-			--toolchain="@TOOLCHAIN@" --bindir="$(BINDIR)" --sbindir="$(SBINDIR)" --libexecdir="$(LIBEXECDIR)" --libdir="$(LIBDIR)" --datadir="$(DATADIR)"
+		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAIN@" --type="$(BUILD_TYPE)" \
+			--bindir="$(BINDIR)" --sbindir="$(SBINDIR)" --libexecdir="$(LIBEXECDIR)" --libdir="$(LIBDIR)" --datadir="$(DATADIR)"
 
-buildinfo.h:		BUILDNUMBER
+buildinfo.h:		BUILDNUMBER buildinfo.pl
 
 ifneq ($(APPVEYOR_BUILD_NUMBER),)
 BUILDNUMBER:
@@ -236,21 +278,21 @@ new_buildnumber:
 			if [ ! -f BUILDNUMBER ]; then echo 1 >BUILDNUMBER; fi;\
 			echo $$(($$(cat BUILDNUMBER) + 1)) >BUILDNUMBER;\
 			"
-		-@chmod -w BUILDNUMBER >nul 2>&1
+		-@chmod -w BUILDNUMBER >/dev/null 2>&1
 
 # Components
 
 directories:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created $(D_INC)/.created
 
 %/.created:
-		-@mkdir $(@D)
+		-@$(PERL) ./support/mkdir_p.pl $(@D)
 		@echo "++ do not delete, managed content ++" > $@
 
 bins:			$(BINS)
 
 $(D_BIN)/%$(E):		libs
 		@echo --- building $@
-		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
+		$(MAKE) -C $(notdir $(basename $@))
 
 utils:			$(UTILS)
 
@@ -259,11 +301,11 @@ libs:			$(LIBS)
 .PHONY: contrib
 contrib:
 		@echo --- building $@
-		$(MAKE) -C contrib $(MAKEFLAGS)
+		$(MAKE) -C contrib
 
 $(LW)%:
 		@echo --- building $@
-		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
+		$(MAKE) -C $(notdir $(basename $@))
 
 .PHONY: import
 import:				$(IMPORT)
@@ -284,7 +326,7 @@ endif
 
 .PHONY: doc
 doc:
-		$(MAKE) -C doc $(MAKEFLAGS)
+		$(MAKE) -C doc
 
 install:		all
 		-mkdir -p $(BINDIR)
@@ -292,6 +334,7 @@ install:		all
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/xxx$(E) $(BINDIR)
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		$(MAKE) -C pmerge clean
 		$(MAKE) -C pdx clean
 		$(MAKE) -C pi clean
