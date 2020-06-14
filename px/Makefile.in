@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.2 2020/06/13 23:30:14 cvsuser Exp $
+# $Id: Makefile.in,v 1.3 2020/06/14 13:22:07 cvsuser Exp $
 # px makefile.
 #
 #
@@ -76,7 +76,7 @@ CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
 LDRELEASE=	@LDRELEASE@
 
-CINCLUDE=	-I. -I..\src -I..\libpc -I$(D_INC) @CINCLUDE@
+CINCLUDE=	-I. -I../src -I../libpc -I$(D_INC) @CINCLUDE@
 
 CEXTRA=		@DEFS@
 ifeq ("$(BUILD_TYPE)","release")
@@ -158,7 +158,7 @@ debug:
 h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc$(E) > $@
 
-tsVersion.c:		$(D_BIN)/pxversion$(E)
+Version.c:		$(D_BIN)/pxversion$(E)
 		$(D_BIN)/pxversion$(E) > $@
 
 $(D_LIB)/$(LP)px$(A):	$(LIBPX_OBJS)
