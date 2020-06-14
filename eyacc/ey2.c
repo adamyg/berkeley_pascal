@@ -52,8 +52,8 @@ setup(argc,argv) int argc; char *argv[];
 		argc--;
 		}
 
-#if defined(MSDOS) || defined(WIN32)
-	ftable = copen( oflag ? "yacc.tmp" : "ytab.c" , 'w' );       
+#if defined(_WIN32) || defined(WIN32) || defined(MSDOS)
+	ftable = copen( oflag ? "yacc.tmp" : "ytab.c" , 'w' );
 #else
 	ftable = copen( oflag ? "yacc.tmp" : "y.tab.c" , 'w' );
 #endif
@@ -110,7 +110,7 @@ setup(argc,argv) int argc; char *argv[];
 					continue;
 			case NUMBER:
 				trmset[j].value = numbval;
-				if( j < ndefout && j>2 ) 
+				if( j < ndefout && j>2 )
 					error("please define type # of %s earlier", trmset[j].name );
 				continue;
 			default:	error("bad precedence syntax, input %d", t );
@@ -170,14 +170,14 @@ setup(argc,argv) int argc; char *argv[];
 				while (( c=fgetc( cin)) != EOF ) fputc(c,cout);
 				}
 			return;
-	case PREC:	
+	case PREC:
 		if( i==0 ) error( "%%prec must appear inside rule" );
 		if( gettok()!=IDENTIFIER)error("illegal %%prec syntax" );
 		j=chfind(2);
 		if(j>=NTBASE)error("nonterminal %s illegal after %%prec", nontrst[j-NTBASE].name);
 		levprd[nprod]=trmlev[j];
 		continue;
-	case LCURLY:	
+	case LCURLY:
 		if( i!=0 ) error( "%%{ appears within a rule" );
 		cpycode();
 		continue;
@@ -317,7 +317,7 @@ begin:
 		goto begin;}
 	j=0;
 	switch(c){
-	case '"':	
+	case '"':
 	case '\'':	match = c;
 			ctokn = cnamp;
 			chstash( ' ' );
