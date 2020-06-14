@@ -128,7 +128,7 @@ debug:
 
 $(D_BIN)/flex$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/flex$(E):	$(FLEX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 parse.h:		parse.c
 
