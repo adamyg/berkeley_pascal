@@ -67,7 +67,7 @@ static char sccsid[] = "@(#)nextaddr.c	8.1 (Berkeley) 6/6/93";
 #define EVEN 1
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #define DISASSEMBLE
 #endif
 

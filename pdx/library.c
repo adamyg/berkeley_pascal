@@ -41,7 +41,7 @@ static char sccsid[] = "@(#)library.c	8.2 (Berkeley) 5/27/94";
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <io.h>
 #endif
 #include <errno.h>

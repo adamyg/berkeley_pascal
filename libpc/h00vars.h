@@ -46,9 +46,17 @@
 #include "../px/px.h"				/* px interface */
 #include "libpc.h"				/* public interface */
 
-#if defined(_MSC_VER) || defined(__WATCOMC__)
+#if defined(_MSC_VER)
+#include <process.h>
+#include <io.h>
+
 #define unlink(__x)	_unlink(__x)
 #define getpid()	_getpid()
+
+#elif defined(__WATCOMC__)
+#include <io.h>
+#define unlink(__x)	_unlink(__x)
+
 #endif
 
 #if (0)

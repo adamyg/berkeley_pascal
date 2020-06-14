@@ -33,6 +33,10 @@
 #endif
 #undef  roundup
 
+#if defined(_WIN32) && !defined(WIN32)
+#define WIN32
+#endif
+
 #if defined(_MSC_VER)
 
 //  #define open(__a, __b)          _open(__a, __b)

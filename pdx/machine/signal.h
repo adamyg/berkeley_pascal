@@ -5,7 +5,7 @@
 
 #include <signal.h>
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 #if defined(__WATCOMC__)
 #define  SIGTRAP        (_SIGMAX+1)
 #else

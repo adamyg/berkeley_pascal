@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 #define  WINDOWS_MEAN_AND_LEAN
 #include <windows.h>
 
@@ -91,8 +91,8 @@ typedef struct node NODE;	/* expression tree node */
 typedef short OP;		/* tree operator */
 typedef struct opinfo OPINFO;	/* tree operator information table */
 typedef struct frame FRAME;	/* runtime activation record */
-
-#ifndef WIN32
+	
+#if !defined(WIN32) && !defined(_WIN32)
 typedef int BOOLEAN;
 typedef unsigned int WORD;	/* machine word */
 typedef unsigned char BYTE;	/* machine byte */

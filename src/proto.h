@@ -23,7 +23,7 @@ void            inithash __P((void));
 int *		hash __P((char *s, int save));
 
 /* mktemp.c */
-#if defined(WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__))
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__))
 char *		xmktemp __P((char *path, char *result, size_t pathlen));
 #define mktemp(__x) mktemp(__x)
 #endif				       

@@ -14,7 +14,7 @@
 #include <strings.h>
 #endif
 
-#if defined(HAVE_SECUREZEROMEMORY) && defined(WIN32)
+#if defined(HAVE_SECUREZEROMEMORY) && (defined(WIN32) || defined(_WIN32))
 #define WINDOWS_MEAN_AND_LEAN
 #include <Windows.h>
 #endif

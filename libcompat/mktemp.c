@@ -41,6 +41,7 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 
 #include "libcompat.h"
 
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -53,7 +54,7 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 #include <process.h>
 #include <io.h>
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 #define  WINDOWS_MEAN_AND_LEAN
 #include <Windows.h>
 #endif
@@ -62,7 +63,7 @@ static char sccsid[] = "@(#)mktemp.c	8.1 (Berkeley) 6/4/93";
 #define getpid() _getpid()
 #endif
 
-#if defined(WIN32) && !defined(S_ISDIR)
+#if (defined(WIN32) || defined(_WIN32)) && !defined(S_ISDIR)
 #define S_ISDIR(m) (m & _S_IFDIR)
 #endif
 #endif
@@ -80,7 +81,8 @@ mkstemp(char *path)
 		return fd;
 	}
 
-#if defined(WIN32)	/* "/tmp/", reference system temporary path */
+#if defined(WIN32) || defined(_WIN32)
+	/* "/tmp/", reference system temporary path */
 	if (path && 0 == memcmp(path, "/tmp/", 5)) {
 
 		int  pathlen, tmplen;
@@ -136,7 +138,7 @@ xmktemp(char *path, char *result, size_t length)
 		return result;
 	}
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 	if (path && result && length && 0 == memcmp(path, "/tmp/", 5)) {
 
 		int  pathlen, tmplen;
