@@ -14,6 +14,10 @@ static char sccsid[] = "@(#)ex_temp.c	7.8 (Berkeley) 4/17/91";
 #include "ex_tty.h"
 #include "pathnames.h"
 
+#if defined(_WIN32) && !defined(WIN32)
+#define WIN32
+#endif
+
 /*
  * Editor temporary file routines.
  * Very similar to those of ed, except uses 2 input buffers.

@@ -189,7 +189,7 @@ error1(MSGSTR str)
 		putNFL();
 	if (die)
 		ex_exit(1);
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
 	if (!inintr)			/* stop ^c deadlock processing */
 #endif
 		lseek(ex_stdin, 0L, SEEK_END /*2*/);
@@ -199,7 +199,7 @@ error1(MSGSTR str)
 		ignchar();
 	ungetchar(0);
 	endline = 1;
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
 	if (inintr)			/* handled thru replacement read() */
 		ex_intr(ex_stdin);
 	else

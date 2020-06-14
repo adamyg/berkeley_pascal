@@ -151,7 +151,7 @@ main(ac, av)
 	av++;
 #endif
 
-#if defined(WIN32) || defined(MSDOS)
+#if defined(_WIN32) || defined(WIN32) || defined(MSDOS)
 	/*
 	 * temporary directory
 	 */
@@ -285,7 +285,7 @@ main(ac, av)
 				ac--, av++;
 				cp = av[0];
 			} else {
-				smerror("-c expected filename\n");                     
+				smerror("-c expected filename\n");
 			}
 			ex_stdin = open(cp, O_RDONLY);
 			if (ex_stdin < 0)

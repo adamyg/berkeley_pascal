@@ -231,7 +231,7 @@ create_file_names()
     char *tmpdir;
 
     tmpdir = getenv("TMPDIR");
-#if defined(WIN32) || defined(MSDOS)
+#if defined(_WIN32) || defined(WIN32) || defined(MSDOS)
     if (tmpdir == NULL) tmpdir = getenv("TEMP");
     if (tmpdir == NULL) tmpdir = getenv("TMP");
 #endif

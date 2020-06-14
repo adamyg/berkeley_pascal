@@ -1165,7 +1165,7 @@ iostats()
 # define index strchr
 # define rindex strrchr
 #endif
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
 # define index strchr
 # define rindex strrchr
 #endif

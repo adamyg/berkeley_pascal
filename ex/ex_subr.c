@@ -185,7 +185,7 @@ getmark(c)
 	register int c;
 {
 	register line *addr;
-	
+
 	for (addr = one; addr <= dol; addr++)
 		if (names[c - 'a'] == (*addr &~ 01)) {
 			return (addr);
@@ -871,7 +871,7 @@ onintr(int sig)
 	} else
 		vraw();
 #endif
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
 	inintr++;
 #endif
 	error("\nInterrupt" + inopen);

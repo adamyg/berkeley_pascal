@@ -19,7 +19,7 @@ static char sccsid[] = "@(#)ex_data.c	7.11 (Berkeley) 4/17/91";
  * to confuse xstr so it will leave them alone.
  */
 char	direct[ONMSZ] =
-#if defined(WIN32) || defined(MSDOS)
+#if defined(_WIN32) || defined(WIN32) || defined(MSDOS)
 	{'/', 't', 'm', 'p'};
 #elif defined(vms)
 	{'t', 'm', 'p', ':'}; 
