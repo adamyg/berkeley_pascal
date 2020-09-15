@@ -48,6 +48,9 @@ XCLEAN=
 CC=		@CC@
 MV=		@MV@
 RM=		@RM@
+CP=		@CP@
+YACC=		@YACC@
+LEX=		@LEX@
 
 # Configuration
 

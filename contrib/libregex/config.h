@@ -14,7 +14,7 @@
 #endif
 #endif
 
-#undef INFINITY 			/*redef*/
+#undef INFINITY                         /*redef*/
 
 #if !defined(_DIAGASSERT)
 #define _DIAGASSERT(__x)                /*not used*/

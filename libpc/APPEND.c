@@ -45,7 +45,7 @@ APPEND(filep)
 #ifdef unix
 	filep->fbuf = fopen(filep->fname, "a");
 #else
-	if (filep->fname[0] == '/' && filep->fname[0] == 'd' &&
+	if (filep->fname[0] == '/' && filep->fname[1] == 'd' &&
 			0 == strcmp(filep->fname, "/dev/null")) {
 		filep->fbuf = fopen("NUL", "ab");
 	} else {
