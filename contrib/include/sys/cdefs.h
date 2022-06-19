@@ -8,7 +8,7 @@
  *
  * win32 declaration helpers
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  * ==end==
  */
@@ -24,31 +24,50 @@
 #pragma warning(disable:4115)   /* forward reference of struct * */
 #endif
 
-/*
+/* 
  *  Library binding.
  */
 #if !defined(LIBW32_API)
 
+#if defined(LIBW32_DYNAMIC) && defined(LIBW32_STATIC)
+#error LIBW32_DYNAMIC and LIBW32_STATIC are mutually exclusive
+#endif
+
 #if defined(LIBW32_DYNAMIC)
     #if defined(LIBW32_LIBRARY)     /* library source */
-        #define LIBW32_API __declspec(dllexport)
+        #ifdef __GNUC__
+            #define LIBW32_API __attribute__((dllexport)) extern
+        #elif defined(__WATCOMC__)
+            #define LIBW32_API extern __declspec(dllexport)
+        #else
+            #define LIBW32_API __declspec(dllexport)
+        #endif
     #else
-        #define LIBW32_API __declspec(dllimport)
+        #ifdef __GNUC__
+            #define LIBW32_API __attribute__((dllimport)) extern
+        #elif defined(__WATCOMC__)
+            #define LIBW32_API extern __declspec(dllimport)
+        #else
+            #define LIBW32_API __declspec(dllimport)
+        #endif
     #endif
 
 #else   /*static*/
     #if defined(LIBW32_LIBRARY)     /* library source */
         #ifndef LIBW32_STATIC                   /* verify STATIC/DYNAMIC configuration */
-        #error  LIBW32 static library yet LIB32_STATIC not defined.
+            #error  LIBW32 static library yet LIB32_STATIC not defined.
         #endif
         #ifdef _WINDLL                          /*verify target configuration */
-        #error  LIBW32 static library yet _WINDLL defined.
+            #error  LIBW32 static library yet _WINDLL defined.
         #endif
     #endif
 #endif
 
 #ifndef LIBW32_API
 #define LIBW32_API
+#define LIBW32_VAR extern
+#else
+#define LIBW32_VAR LIBW32_API
 #endif
 
 #endif //!LIBW32_API
@@ -112,7 +131,7 @@
  * remove const cast-away warnings
  */
 #ifndef __DECONST
-#define __DECONST(__t,__a)      ((__t *)(const void *)(__a))
+#define __DECONST(__t,__a)      ((__t)(const void *)(__a))
 #endif
 #ifndef __UNCONST
 #define __UNCONST(__a)          ((void *)(const void *)(__a))
@@ -267,7 +286,7 @@
 #define __dead2                 __attribute__((__noreturn__))
 #define __pure2                 __attribute__((__const__))
 #define __unused
-#elif __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#elif __GNUC__ >= 2 || (_GNUC__ == 2 && __GNUC_MINOR__ >= 7)
 #define __dead2                 __attribute__((__noreturn__))
 #define __pure2                 __attribute__((__const__))
 #define __unused                __attribute__((__unused__))
