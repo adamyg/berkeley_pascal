@@ -3,7 +3,7 @@
 # flex makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -49,8 +49,10 @@ CC=		@CC@
 MV=		@MV@
 RM=		@RM@
 CP=		@CP@
+HAVE_BISON=	1
 YACC=		@YACC@
 LEX=		@LEX@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -80,8 +82,11 @@ LDDEBUG=	@LDDEBUG@
 LDRELEASE=	@LDRELEASE@
 
 CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@
-
 CEXTRA=		@DEFS@
+ifeq ("yes","@ISWIN32@")
+CEXTRA+=	-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
+endif
+
 ifeq ("$(BUILD_TYPE)","release")
 CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDRELEASE) @LDFLAGS@
@@ -91,6 +96,8 @@ LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
 LDLIBS=		-L$(D_LIB) @LIBS@ -llibcompat @EXTRALIBS@
 
+YFLAGS=		-d
+ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 

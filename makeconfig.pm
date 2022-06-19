@@ -4,17 +4,22 @@
 # Automake emulation for non-unix environments.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
-# This file is part of the Midnight Commander.
-#
-# The Midnight Commander is free software: you can redistribute it
+# The applications are free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation, either version 3 of the License,
-# or (at your option) any later version.
+# published by the Free Software Foundation, version 3.
 #
-# The Midnight Commander is distributed in the hope that it will be useful,
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The applications are distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -34,9 +39,36 @@ my  $x_env = undef;
 my  $x_tokens = undef;
 my  $o_verbose = undef;
 
+our $PACKAGE        = undef;
+our $PACKAGE_NAME   = '';
+our $PACKAGE_VERSION = '';
+
+our $PACKAGE_BUGREPORT = '';
+our $PACKAGE_TARNAME = '';
+our $PACKAGE_URL    = '';
+
+our $PACKAGE_PATH   = undef;
+our $PACKAGE_H      = undef;                    # defunct, use PACKAGE_FILE
+our $PACKAGE_FILE   = 'package.h';
+
+our $CONFIG_PATH    = undef;
+our $CONFIG_FILE    = 'w32config.h';
+
+our $TOOLCHAIN      = undef;
+
+our @MAKEFILES      = ();                       # local makefiles; build order
+
+our @LIBRARIES      = ();                       # local libraries -l<xxx> lib<xxx>.lib
+our @LIBRARIES2     = ();                       # local libraries -l<xxx> xxx.lib
+our @TESTLIBRARIES  = ();                       # external libraries, tested whether linkable
+our @OPTLIBRARIES   = ();                       # optional libraries
+
 my  $CC = '';
+my  $CCVER = '';
 my  $CXX = '';
+my  $CXXVER = '';
 my  $RTLIBRARY = '';
+my  $WINSDKLIB = '';
 
 my  %DEFS = ();
 my  %CDEFS = ();
@@ -67,45 +99,97 @@ use constant {
 
 my  @__target_configurations = (ALL, RELEASE, DEBUG);
 
-our $TOOLCHAIN = undef;
+
+# Function:
+#   Constructor
+sub New()
+{
+    my ($class) = shift;
+    my $self = {};
+    bless $self, $class;
+    return $self;
+}
 
 
 # Function:
-#   Import the user defined configuration profile.
+#   Import the build profile.
 #
 # Returns:
 #   nothing
 #
-sub Import($$$$) {
-    my ($type_, $env_, $tokens_, $verbose_) = @_;
+sub LoadProfile($$)
+{
+    my ($self, $makelib) = @_;
 
-    # Import default profile
+    print "loading:  ${makelib}\n";
+    require $makelib or
+        die "${makelib}: error processsing\n";
+    die "${makelib}: PACKAGE not defined\n"
+        if (! $PACKAGE);
+}
+
+
+# Function:
+#   Import the full configuration profile.
+#
+# Returns:
+#   nothing
+#
+sub LoadConfigure($$$$$$)
+{
+    my ($self, $makelib, $type_, $env_, $tokens_, $verbose_) = @_;
 
     $x_env = $env_;
     $x_tokens = $tokens_;
     $o_verbose = $verbose_;
 
-    __ReadTokens();
+    $self->__ImportConfigurations($makelib);
 
-    print "loading <makeconfig.in> ...\n";
-    require './makeconfig.in' or
-        die "makeconfig.in: error processsing\n";
+    print "loading:  ${makelib}, <${TOOLCHAIN}>\n";
+    require $makelib or
+        die "${makelib}: error processsing\n";
 
-    __WriteTokens();
+    Configure();
+    die "${makelib}: PACKAGE not defined\n"
+        if (! $PACKAGE);
+
+    if (defined $PACKAGE_H) {
+        print "\n";
+        print "WARNING: importing legacy PACKAGE_H from <${makelib}>, replace with PACKAGE_FILE\n";
+        print "\n";
+        $PACKAGE_FILE = $PACKAGE_H;
+    }
+
+    $self->__ExportConfigurations();
+    $x_tokens = undef;
+    $x_env = undef;
 }
 
 
-sub __ReadTokens {
+sub __ImportConfigurations
+{
+    my ($self, $makelib) = @_;
+
     $TOOLCHAIN = $$x_tokens{TOOLCHAIN};
+    $TOOLCHAIN = '' if (!$TOOLCHAIN);
 
     $CC = $$x_tokens{CC}                                            # Program for compiling C programs.
         if (defined $$x_tokens{CC});
 
+    $CCVER = $$x_tokens{CCVER}                                      # C standard
+        if (defined $$x_tokens{CCVER});
+
     $CXX = $$x_tokens{CXX}                                          # Program for compiling C++ programs.
         if (defined $$x_tokens{CXX});
 
+    $CXXVER = $$x_tokens{CXXVER}                                    # C++ standard
+        if (defined $$x_tokens{CXXVER});
+
     $RTLIBRARY = $$x_tokens{RTLIBRARY}                              # Default Run-Time library.
         if (defined $$x_tokens{RTLIBRARY});
+
+    $WINSDKLIB = $$x_tokens{WINSDKLIB}                              # SDK library path.
+        if (defined $$x_tokens{WINSDKLIB});
 
     push @{$DEFS{ALL}},         split(/ /, $$x_tokens{DEFS})        # Common definitions
         if (defined $$x_tokens{DEFS});
@@ -150,7 +234,7 @@ sub __ReadTokens {
                 push @CINCLUDE, $incs[$i];
 
             } else {
-                die "makeconfig.in: illformed CINCLUDE <${inc}>\n";
+                die "${makelib}: illformed CINCLUDE <${inc}>\n";
             }
         }
     }
@@ -171,7 +255,7 @@ sub __ReadTokens {
                 push @CXXINCLUDE, $incs[$i];
 
             } else {
-                die "makeconfig.in: illformed CXXINCLUDE <${inc}>\n";
+                die "${makelib}: illformed CXXINCLUDE <${inc}>\n";
             }
         }
     }
@@ -199,7 +283,10 @@ sub __ReadTokens {
 }
 
 
-sub __WriteTokens {
+sub __ExportConfigurations
+{
+    my ($self) = shift;
+
     if ($o_verbose >= 3) {
             print "Raw configuration:\n";
 
@@ -218,9 +305,33 @@ sub __WriteTokens {
         }
     }
 
+    $self->{PACKAGE}        = $PACKAGE if (defined $PACKAGE);
+    $self->{PACKAGE_NAME}   = $PACKAGE_NAME;
+    $self->{PACKAGE_PATH}   = $PACKAGE_PATH if ($PACKAGE_PATH);
+    $self->{PACKAGE_H}      = $PACKAGE_H    if ($PACKAGE_H);
+    $self->{PACKAGE_FILE}   = $PACKAGE_FILE if ($PACKAGE_FILE);
+
+    $self->{CONFIG_PATH}    = $CONFIG_PATH  if ($CONFIG_PATH);
+    $self->{CONFIG_FILE}    = $CONFIG_FILE  if ($CONFIG_FILE);
+
+    $self->{MAKEFILES}      = \@MAKEFILES;
+    $self->{LIBRARIES}      = \@LIBRARIES;
+    $self->{LIBRARIES2}     = \@LIBRARIES2;
+    $self->{TESTLIBRARIES}  = \@TESTLIBRARIES;
+    $self->{OPTLIBRARIES}   = \@OPTLIBRARIES;
+
+    $$x_tokens{PACKAGE_VERSION} = $PACKAGE_VERSION;
+    $$x_tokens{PACKAGE_STRING} = $PACKAGE_NAME . ' ' . $PACKAGE_VERSION;
+    $$x_tokens{PACKAGE_URL} = $ PACKAGE_URL;
+    $$x_tokens{PACKAGE_BUGREPORT} = $PACKAGE_BUGREPORT;
+    $$x_tokens{PACKAGE_TARNAME} = $PACKAGE_TARNAME;
+
     $$x_tokens{CC}          = $CC;
+    $$x_tokens{CCVER}       = $CCVER;
     $$x_tokens{CXX}         = $CXX;
+    $$x_tokens{CXXVER}      = $CXXVER;
     $$x_tokens{RTLIBRARY}   = $RTLIBRARY;
+    $$x_tokens{WINSDKLIB}   = $WINSDKLIB;
 
     $$x_tokens{INCLUDE}     = __PrintArrayX('', ';', \@INCLUDE);
     $$x_tokens{XINCLUDE}    = __PrintArrayX('', ';', \@XINCLUDE);
@@ -240,7 +351,7 @@ sub __WriteTokens {
     $$x_tokens{LDRELEASE}   = __PrintArray($LDFLAGS{RELEASE});
     $$x_tokens{LDDEBUG}     = __PrintArray($LDFLAGS{DEBUG});
     $$x_tokens{LDMAPFILE}   = $LDMAPFILE;
-    
+
     $$x_tokens{LDLIBS}      = __PrintArray(\@LDLIBS);
     $$x_tokens{LIBS}        = __PrintArray(\@LIBS);
     $$x_tokens{EXTRALIBS}   = __PrintArray(\@EXTRALIBS);
@@ -257,6 +368,7 @@ sub __WriteTokens {
             print "\n";
             print "          DEFS   $$x_tokens{DEFS}\n";
             print "     RTLIBRARY   ${RTLIBRARY}\n" if ($RTLIBRARY);
+            print "     WINSDKLIB   ${WINSDKLIB}\n" if ($WINSDKLIB);
             print "        CFLAGS   $$x_tokens{CFLAGS}\n";
             print "      CRELEASE   $$x_tokens{CRELEASE}\n";
             print "        CDEBUG   $$x_tokens{CDEBUG}\n";
@@ -278,7 +390,8 @@ sub __WriteTokens {
 }
 
 
-sub __PrintArray {
+sub __PrintArray
+{
     my $s = '';
     for (my $i = 0; $i < scalar @_; ++$i) {
         my $value = $_[$i];
@@ -295,7 +408,8 @@ sub __PrintArray {
 }
 
 
-sub __PrintArrayX {
+sub __PrintArrayX
+{
     my $prefix = shift || '';
     my $suffix = shift || '';
     my $s = '';
@@ -312,6 +426,52 @@ sub __PrintArrayX {
         }
     }
     return $s;
+}
+
+
+# Function:
+#   set_c_standard
+# Parameters:
+#   standard - C standad, 90, 99, 11, 17, 23
+#
+sub
+set_c_standard($)
+{
+    my ($standard) = @_;
+    my $version = int($standard);
+
+    ($version == 98 || $version == 99 || $version == 11 || $version == 17) or
+        die "set_C_standard: invalid standard <${standard}>\n";
+
+    if ('gcc' eq $CC || 'g++' eq $CC) {
+        $CCVER = "-std=c${version}";
+
+    } else {
+        die "set_c_standard: unsupport toolchain <${CC}>\n";
+    }
+}
+
+
+# Function:
+#   set_cxx_standard
+# Parameters:
+#   standard - C++ standad, 98, 11, 14, or 17.
+#
+sub
+set_cxx_standard($)
+{
+    my ($standard) = @_;
+    my $version = int($standard);
+
+    ($version == 98 || $version == 11 || $version == 14 || $version == 17) or
+        die "set_CXX_standard: invalid standard <${standard}>\n";
+
+    if ('gcc' eq $CC || 'g++' eq $CC) {
+        $CXXVER = "-std=c++${version}";
+
+    } else {
+        die "set_cxx_standard: unsupport toolchain <${CC}>\n";
+    }
 }
 
 
@@ -344,7 +504,8 @@ sub __PrintArrayX {
 #           into the .obj file so that the linker will use LIBCMTD.lib to resolve external symbols.
 #
 sub
-set_msvc_runtime($;$) {
+set_msvc_runtime($;$)
+{
     my ($type, $suffix) = @_;
 
     $suffix = '$(BUILD_TYPE)'
@@ -402,6 +563,24 @@ set_msvc_runtime($;$) {
 
 
 # Function:
+#   set_winsdk - Windows SDK configuration.
+# Parameters:
+#   lib - library path.
+# Returns:
+#   nothing
+sub
+set_winsdk($;$)
+{
+    my ($lib, $inc) = @_;
+
+    $WINSDKLIB = $lib
+        if (defined $lib);
+
+    verbose("set_winsdk: <${WINSDKLIB}>");
+}
+
+
+# Function:
 #   remove_define - Remove the matching definition.
 # Parameters:
 #   def - Definition.
@@ -409,7 +588,8 @@ set_msvc_runtime($;$) {
 #   1 if matched, otherwise 0.
 #
 sub
-remove_define($;$) {
+remove_define($;$)
+{
     my ($def, $type) = @_;
     my ($var, $val) = split(/=/, $def);
 
@@ -437,7 +617,8 @@ remove_define($;$) {
 #   nothing
 #
 sub
-add_define($;$) {
+add_define($;$)
+{
     my ($def, $type) = @_;
     my ($var, $val) = split(/=/, $def);
 
@@ -462,7 +643,8 @@ add_define($;$) {
 
 
 sub
-add_cdefine($;$) {
+add_cdefine($;$)
+{
     my ($def, $type) = @_;
     my ($var, $val) = split(/=/, $def);
 
@@ -486,7 +668,8 @@ add_cdefine($;$) {
 
 
 sub
-add_cxxdefine($;$) {
+add_cxxdefine($;$)
+{
     my ($def, $type) = @_;
     my ($var, $val) = split(/=/, $def);
 
@@ -518,7 +701,8 @@ add_cxxdefine($;$) {
 #   nothing
 #
 sub
-add_cflag($;$) {
+add_cflag($;$)
+{
     my ($flag,$type) = @_;
     $type = ALL if (! $type);
     verbose("add_cflag:\t <${flag},${type}>");
@@ -535,7 +719,8 @@ add_cflag($;$) {
 #   nothing
 #
 sub
-add_cxxflag($;$) {
+add_cxxflag($;$)
+{
     my ($flag,$type) = @_;
     $type = ALL if (! $type);
     verbose("add_cxxflag:\t <${flag},${type}>");
@@ -552,7 +737,8 @@ add_cxxflag($;$) {
 #   nothing
 #
 sub
-add_ldflag($;$) {
+add_ldflag($;$)
+{
     my ($flag,$type) = @_;
     $type = ALL if (! $type);
     verbose("add_ldflag:\t <${flag},${type}>");
@@ -568,7 +754,8 @@ add_ldflag($;$) {
 #   nothing
 #
 sub
-add_include($) {
+add_include($)
+{
     my ($inc) = shift;
 
     verbose("add_include:\t <${inc}>");
@@ -577,7 +764,8 @@ add_include($) {
 
 
 sub
-add_cinclude($) {
+add_cinclude($)
+{
     my ($inc) = shift;
 
     verbose("add_cinclude:\t <${inc}>");
@@ -586,7 +774,8 @@ add_cinclude($) {
 
 
 sub
-add_xinclude($) {
+add_xinclude($)
+{
     my ($inc) = shift;
 
     verbose("add_xinclude:\t <${inc}>");
@@ -596,7 +785,8 @@ add_xinclude($) {
 
 
 sub
-add_cxxinclude($) {
+add_cxxinclude($)
+{
     my ($inc) = shift;
 
     verbose("add_cxxinclude:\t <${inc}>");
@@ -612,7 +802,8 @@ add_cxxinclude($) {
 #   nothing
 #
 sub
-add_application_library($) {
+add_application_library($)
+{
     my ($lib) = shift;
 
     verbose("add_application_library:\t <${lib}>");
@@ -628,13 +819,31 @@ add_application_library($) {
 #   nothing
 #
 sub
-add_system_library($) {
+add_system_library($)
+{
     my ($lib) = shift;
 
     verbose("add_system_library:\t <${lib}>");
     push @EXTRALIBS, $lib;
 }
 
+
+#TODO
+#
+#   AC_INIT
+#   AC_ARG_ENABLE
+#   AC_COPYRIGHT
+#   AC_REVISION
+#   AC_DEFINE
+#   AC_SUBST
+#   AC_CHECK_SIZEOF
+#   AC_CHECK_HEADERS
+#   AC_CHECK_FUNCTION
+#   AC_CHECK_MEMBERS
+#   AC_CHECK_LIB
+#   AC_ERROR
+#   AC_CONFIG_FILES
+#
 
 sub
 verbose {

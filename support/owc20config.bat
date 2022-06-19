@@ -1,6 +1,6 @@
 @echo off
 rem
-rem Microsoft Visual Studio C/C++ 2019+
+rem Open Watcom C/C++ 2.0
 rem
 if not defined GNUWIN32 (
         set GNUWIN32=\devl\gnuwin32
@@ -8,5 +8,5 @@ if not defined GNUWIN32 (
 if not defined PERL (
         set PERL=perl
 )
-%PERL% makelib.pl --gnuwin32=%GNUWIN32% --icu=auto vc2019 %1 %2 %3 %4
+%PERL% makelib.pl --gnuwin32=%GNUWIN32% owc20 %1 %2 %3 %4
 

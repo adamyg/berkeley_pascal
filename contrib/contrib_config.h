@@ -4,7 +4,7 @@
  * contrib <config.h> ...
  *
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  *
  * The applications are free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as
@@ -38,13 +38,27 @@
 #define _WIN32
 #define _WIN32_NT=0x400
 #endif
+
 #define APPLICATIONDIR "pascal"                 /* FIXME, edconfig.h */
 
-#if defined(__MINGW32__) || defined(unix)
+#if defined(unix)
 #include "../../config.h"
 #else
 #include "../../libcompat/w32config.h"
 #include <sys/utypes.h>                         /* unix types */
+#endif
+
+#if !defined(HAVE_STRTOUL)
+#error  HAVE_STRTOUL
+#define HAVE_STRTOUL
+#endif
+#if !defined(HAVE_RENAME)
+#error  HAVE_RENAME
+#define HAVE_RENAME
+#endif
+#if !defined(HAVE_STRERROR)
+#error  HAVE_STRERROR
+#define HAVE_STRERROR
 #endif
 
 /*warnings*/
@@ -95,16 +109,11 @@ typedef unsigned long long uintmax_t;
 #define HAVE_DECL_INT64_MAX 1
 #define HAVE_DECL_INT64_MIN 1
 #endif
-#if defined(_MSC_VER)
-typedef int ssize_t;
-#endif
 
 #else /*!HAVE_STDINT_H*/
 #define INTMAX_MIN LLONG_MAX
 #define INTMAX_MAX LLONG_MIN
 #define UINTMAX_MAX ULLONG_MAX
-#if defined(_MSC_VER)
-typedef int ssize_t;
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 typedef signed short int16_t;
@@ -115,6 +124,11 @@ typedef signed long long int64_t;
 typedef unsigned long long uint64_t;
 #endif
 #endif /*HAVE_STDINT_H*/
+
+#if defined(_MSC_VER)
+#if !defined(ssize_t) && !defined(SSIZE_T)
+typedef int ssize_t;
+#endif
 
 #if !defined(HAVE_U_INT32_T)
 #if !defined(__WATCOMC__)

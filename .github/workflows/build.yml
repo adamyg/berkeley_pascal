@@ -1,0 +1,97 @@
+name: build
+on: [push]
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            toolchain: vc2022,
+            toolversion: vs170
+          }
+        - {
+           name: "Windows Latest MinGW",
+           os: windows-latest,
+           toolchain: mingw64,
+           toolversion: mingw64
+          }
+        - {
+           name: "Windows Latest OWC",
+           os: windows-latest,
+           toolchain: owc20,
+           toolversion: owc20
+          }
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: |
+        git submodule update --init --recursive
+
+    - name: MSVC setup
+      uses: ilammy/msvc-dev-cmd@v1
+      if: startsWith(matrix.config.name, 'Windows Latest MSVC')
+      with:
+        arch: x86
+
+    - name: MinGW64 setup
+      if: startsWith(matrix.config.name, 'Windows Latest MinGW')
+      shell: cmd
+      run: |
+        c:\msys64\usr\bin\pacman --noconfirm -S base-devel
+        c:\msys64\usr\bin\pacman --noconfirm -S mingw-w64-x86_64-gcc
+        c:\msys64\usr\bin\pacman --noconfirm -S mingw-w64-i686-gcc
+
+    - name: OpenWatcom setup
+      uses: open-watcom/setup-watcom@v0
+      if: startsWith(matrix.config.name, 'Windows Latest OWC')
+      with:
+        version: "2.0"
+        location: "C:\\Watcom"
+
+    - name: Windows, generate
+      if: startsWith(matrix.config.name, 'Windows Latest')
+      shell: cmd
+      run: |
+        @if "${{ matrix.config.toolchain }}"=="mingw32" set PATH=c:\msys64\mingw32\bin;%PATH%
+        @if "${{ matrix.config.toolchain }}"=="mingw64" set PATH=c:\msys64\mingw64\bin;%PATH%
+        @if "${{ matrix.config.toolchain }}"=="owc20"  call .\support\owc20setenv.bat C:\Watcom
+        @if NOT "${{ matrix.config.toolchain }}"=="mingw64" c:\msys64\usr\bin\pacman --noconfirm -S bison
+        @set PERL=c:/Strawberry/perl/bin/perl
+        c:/Strawberry/perl/bin/perl makelib.pl --perlpath=c:/Strawberry/perl/bin --busybox=./win32/busybox --bison=c:/msys64/usr/bin/bison --flex=./bin.${{ matrix.config.toolchain }}/flex "${{ matrix.config.toolchain }}"
+
+    - name: Windows, compile
+      if: startsWith(matrix.config.name, 'Windows Latest')
+      shell: cmd
+      run: |
+        @if "${{ matrix.config.toolchain }}"=="mingw32" set PATH=c:\msys64\mingw32\bin;%PATH%
+        @if "${{ matrix.config.toolchain }}"=="mingw64" set PATH=c:\msys64\mingw64\bin;%PATH%
+        @if "${{ matrix.config.toolchain }}"=="owc20"  call .\support\owc20setenv.bat C:\Watcom
+        @set PERL=c:/Strawberry/perl/bin/perl
+        .\win32\gmake-42 release
+
+    - name: Ubuntu, generate
+      if: startsWith(matrix.config.name, 'Ubuntu Latest')
+      shell: bash
+      run: |
+        ./support/config_standard
+
+    - name: Ubuntu, compile
+      if: startsWith(matrix.config.name, 'Ubuntu Latest')
+      shell: bash
+      run: |
+        make release
+
+    - name: Package
+      uses: actions/upload-artifact@v2
+      with:
+        name: package-${{ matrix.config.toolchain }}
+        path: ./bin.${{ matrix.config.toolversion }}/release/*
+
