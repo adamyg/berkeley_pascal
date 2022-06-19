@@ -2,7 +2,7 @@
 # libcompat makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -28,6 +28,7 @@ top_builddir=	@top_builddir@
 
 C=		.c
 O=		.o
+E=
 H=		.h
 A=		.a
 LP=		lib
@@ -39,8 +40,9 @@ XCLEAN=
 
 CC=		@CC@
 AR=		@AR@
-RANLIB= 	@RANLIB@
+RANLIB=		@RANLIB@
 RM=		@RM@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -56,7 +58,7 @@ endif
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/compat
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/libcompat
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
@@ -64,6 +66,9 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq (gcc,$(findstring gcc,$(CC)))
+CWARN+=		-Wno-unused-result -Wno-unused-parameter -Wno-dangling-else
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
@@ -92,19 +97,32 @@ RMDFLAGS=	-rf
 LIBROOT=	compat
 
 LIBCSOURCES=\
-		strcatn.c	\
-		strndup.c	\
-		strnlen.c	\
-		strlcat.c	\
-		strlcpy.c	\
-		strtonum.c	\
-		bzero.c		\
-		explicit_bzero.c \
-		index.c		\
-		rindex.c	\
-		getw.c		\
-		putw.c		\
-		mktemp.c
+		asprintf.c		\
+		basename.c		\
+		bzero.c			\
+		dirname.c		\
+		explicit_bzero.c	\
+		getline.c		\
+		getw.c			\
+		index.c			\
+		memmem.c		\
+		mktemp.c		\
+		putw.c			\
+		reallocarray.c		\
+		recallocarray.c		\
+		rindex.c		\
+		strcasecmp.c		\
+		strcatn.c		\
+		strlcat.c		\
+		strlcpy.c		\
+		strncasecmp.c		\
+		strndup.c		\
+		strnlen.c		\
+		strsep.c		\
+		strtok_r.c		\
+		strtonum.c		\
+		timegm.c		\
+		vasprintf.c
 
 CFLAGS+=	-DLIBCOMPAT_SOURCE=1
 
@@ -112,12 +130,16 @@ LIBOBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(LIBCSOURCES)))
 
 LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
 
+BINARIES=	\
+	$(D_BIN)/dirname$(E)	\
+	$(D_BIN)/basename$(E)
+
 
 #########################################################################################
 # Rules
 
 .PHONY:			build release debug
-build:			directories $(LIBRARY) installinc
+build:			directories $(LIBRARY) $(BINARIES) installinc
 
 release:
 		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
@@ -129,9 +151,20 @@ $(LIBRARY):		$(LIBOBJS)
 		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 		$(RANLIB) $@
 
+$(D_BIN)/dirname$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/dirname$(E):	LINKLIBS=lcompat
+$(D_BIN)/dirname$(E):	$(D_OBJ)/dirname_main$(O)
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS) @LDMAPFILE@
+
+$(D_BIN)/basename$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/basename$(E):	LINKLIBS=lcompat
+$(D_BIN)/basename$(E):	$(D_OBJ)/basename_main$(O)
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS) @LDMAPFILE@
+
 .PHONY:		installinc
 installinc:		../include/.created
 		@echo publishing headers ...
+		-cp libcompat.h ../include
 		-cp a_out.h ../include
 
 directories:	$(D_OBJ)/.created
@@ -145,8 +178,11 @@ clean:
 		-@$(RM) $(RMFLAGS) $(BAK) $(LIBRARY) $(LIBOBJS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) ../include/a_out.h >/dev/null 2>&1
 
-$(D_OBJ)/%$(O): 	%$(C)
+$(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%_main$(O):	%$(C)
+		$(CC) $(CFLAGS) -DMAIN=1 -o $@ -c $<
 
 #end
 
