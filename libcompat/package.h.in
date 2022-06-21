@@ -1,7 +1,7 @@
 #ifndef PACKAGE_H_INCLUDED
 #define PACKAGE_H_INCLUDED
 /* -*- mode: h; set-indent: 4; -*- */
-/* $Id: package.h.in,v 1.2 2020/05/25 21:06:38 cvsuser Exp $
+/* $Id: package.h.in,v 1.3 2022/06/20 16:01:49 cvsuser Exp $
  * Package configuration.
  *
  *

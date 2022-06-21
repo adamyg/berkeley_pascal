@@ -67,7 +67,9 @@ XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
 ifeq (gcc,$(findstring gcc,$(CC)))
-CWARN+=		-Wno-unused-result -Wno-unused-parameter -Wno-dangling-else
+CWARN+=		-Wno-sign-compare
+CWARN+=		-Wno-unused-result -Wno-unused-parameter
+CWARN+=		-Wno-dangling-else
 endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
