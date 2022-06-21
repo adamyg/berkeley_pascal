@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 16:04:13 cvsuser Exp $
 # flex makefile.
 #
 #
@@ -139,7 +139,7 @@ debug:
 
 $(D_BIN)/flex$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/flex$(E):	$(FLEX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 parse.h:		parse.c
 
