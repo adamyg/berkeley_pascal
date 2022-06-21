@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode: perl; -*-
-# $Id: buildinfo.pl,v 1.3 2020/06/13 23:30:12 cvsuser Exp $
+# $Id: buildinfo.pl,v 1.4 2022/06/20 14:13:23 cvsuser Exp $
 # buildinfo generation
 #
 # Copyright Adam Young 2018-2022

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.5 2020/06/13 23:30:12 cvsuser Exp $
+# $Id: makelib.in,v 1.6 2022/06/20 14:13:23 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -29,8 +29,8 @@
 # ==end==
 #
 
-$PACKAGE        = 'ucbpascal';
-$PACKAGE_NAME   = 'Berkeley_Pascal';
+$PACKAGE        = 'Berkeley_Pascal';
+$PACKAGE_NAME   = 'ucbpascal';
 $PACKAGE_URL    = 'https://github.com/adamyg/berkeley_pascal';
 $PACKAGE_PATH   = 'libcompat';
 $PACKAGE_FILE   = 'package.h';
@@ -39,19 +39,20 @@ $CONFIG_PATH    = 'libcompat';
 
 ## External
 
-@LIBRARIES      = ();  # local libraries -l<xxx> lib<xxx>.lib
-
-@LIBRARIES2     = (    # local libraries -l<xxx> xxx.lib
-        'libregex',
-        'libcompat',
-        'libpc',
-        'libpx'
+@LIBRARIES      = (    # local libraries -l<xxx> lib<xxx>.lib
+        'regex',
+        'compat',
+        'pc',
+        'px'
         );
 
 ##      'pc',
 ##      'pc0',
 ##      'pc2',
 ##      'pc3'
+
+@LIBRARIES2     = (    # local libraries -l<xxx> xxx.lib
+        );
 
 @TESTLIBRARIES  = ();  # library test
 @OPTLIBRARIES   = ();  # optional libraries

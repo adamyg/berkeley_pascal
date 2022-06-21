@@ -1,7 +1,7 @@
 #ifndef LIBW32_SYS_CDEFS_H_INCLUDED
 #define LIBW32_SYS_CDEFS_H_INCLUDED
 //#include <edidentifier.h>
-//__CIDENT_RCSID(gr_libw32_sys_cdefs_h,"$Id: cdefs.h,v 1.2 2020/05/31 20:24:59 cvsuser Exp $")
+//__CIDENT_RCSID(gr_libw32_sys_cdefs_h,"$Id: cdefs.h,v 1.3 2022/06/21 12:30:21 cvsuser Exp $")
 //__CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*-

@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2020/06/14 13:22:07 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 12:30:21 cvsuser Exp $
 # px makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # You can redistribute it and/or modify it under the terms of
@@ -71,6 +71,16 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+##CWARN+=		-Wno-shadow -Wno-sign-compare -Wno-type-limits
+CWARN+=		-Wno-sign-compare
+##CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function
+##CWARN+=		-Wno-implicit-fallthrough
+##CWARN+=		-Wno-clobbered -Wno-parentheses -Wno-implicit-int
+CWARN+=		-Wno-missing-field-initializers 
+CWARN+=		-Wno-pointer-sign -Wno-incompatible-pointer-types
+CWARN+=		-Wno-empty-body -Wno-main
+endif 
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
@@ -86,7 +96,7 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ -llibcompat @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) @LIBS@ -lcompat @EXTRALIBS@
 
 ARFLAGS=	rcv
 RMFLAGS=	-f
@@ -167,17 +177,17 @@ $(D_LIB)/$(LP)px$(A):	$(LIBPX_OBJS)
 		$(RANLIB) $@
 
 $(D_BIN)/px$(E):	MAPFILE=$(basename $@).map
-$(D_BIN)/px$(E):	LDLIBS+=-llibpx -llibpc
+$(D_BIN)/px$(E):	LDLIBS+=-lpx -lpc
 $(D_BIN)/px$(E):	$(PX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PX_OBJS) $(LDLIBS) -llibcompat @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(PX_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) -llibcompat @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 $(D_BIN)/pxversion$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pxversion$(E):	$(VERSION_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LDLIBS) -llibcompat @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 directories:		$(D_OBJ)/.created
 

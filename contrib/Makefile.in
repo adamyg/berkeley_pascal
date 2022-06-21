@@ -1,9 +1,9 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.4 2020/06/14 12:54:05 cvsuser Exp $
+# $Id: Makefile.in,v 1.5 2022/06/21 12:30:21 cvsuser Exp $
 # External packages.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it

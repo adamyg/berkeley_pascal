@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.1 2020/05/31 20:29:24 cvsuser Exp $
+# $Id: Makefile.in,v 1.2 2022/06/21 12:30:21 cvsuser Exp $
 # pc0 makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # You can redistribute it and/or modify it under the terms of

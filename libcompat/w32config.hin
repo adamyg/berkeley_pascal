@@ -1,7 +1,7 @@
 #ifndef WIN32_CONFIG_H_INCLUDED
 #define WIN32_CONFIG_H_INCLUDED
 /* -*- mode: c; set-indent: 4; -*- */
-/* $Id: w32config.hin,v 1.5 2020/06/13 23:30:13 cvsuser Exp $
+/* $Id: w32config.hin,v 1.6 2022/06/20 16:01:49 cvsuser Exp $
  * Machine configuration.
  *
  * System dependent <config.h> configuration template,

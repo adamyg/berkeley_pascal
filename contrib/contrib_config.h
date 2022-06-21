@@ -1,6 +1,6 @@
 #ifndef CONTRIB_CONFIG_H_INCLUDED
 #define CONTRIB_CONFIG_H_INCLUDED
-/* $Id: contrib_config.h,v 1.1 2020/05/28 18:03:32 cvsuser Exp $
+/* $Id: contrib_config.h,v 1.2 2022/06/21 12:30:21 cvsuser Exp $
  * contrib <config.h> ...
  *
  *
