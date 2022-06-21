@@ -80,7 +80,7 @@ yymain()
 #ifdef PXP
 	if (bracket == 0) {
 #endif
-		if (getline() == -1) {
+		if (xgetline() == -1) {
 			Perror(filename, "No lines in file");
 			pexit(NOSTART);
 		}

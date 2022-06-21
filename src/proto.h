@@ -99,7 +99,7 @@ void            brerror __P((int where, const char *what));
 
 /* yyget.c */
 int             readch __P((void));
-int             getline __P((void));
+int             xgetline __P((void));
 int             includ __P((void));
 char            *skipbl __P((char *ocp));
 int             uninclud __P((void));
