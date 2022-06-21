@@ -199,7 +199,7 @@ gen(p, o, w1, w2)
 		default:
 			panic("gen");
 		case O_AS2:
-		case NIL:
+		case TNONE /*was NIL*/:
 			i = j = -1;
 			/*
 			 * Take the log2 of the widths and linearize them for indexing.

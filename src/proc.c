@@ -470,7 +470,7 @@ proc(r)
 				stkcnt += sizeof(double);
 			     tdouble:
 				switch (fmtspec) {
-				case NIL:
+				case TNONE /*NIL*/:
 					field = 14 + (5 + EXPOSIZE);
 				        prec = field - (5 + EXPOSIZE);
 					fmt = 'e';
@@ -618,7 +618,7 @@ proc(r)
 				panic("fmt2");
 			case SKIP:
 				break;
-			case NIL:
+			case TNONE /*NIL*/:
 				sprintf(&format[1], "%%%c", fmt);
 				goto fmtgen;
 			case CONWIDTH:

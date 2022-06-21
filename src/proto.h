@@ -8,6 +8,11 @@
 #include <tree_ty.h>
 #include <objfmt.h>
 
+struct yytok;
+struct tmps;
+struct nl;
+struct tnode;
+
 /* ato.c */
 long            a8tol __P((char *));
 
