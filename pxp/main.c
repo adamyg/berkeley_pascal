@@ -90,6 +90,11 @@ main(argc, argv)
 	register char *cp;
 	register c;
 
+#ifndef lint
+	(void) copyright;
+	(void) sccsid;
+#endif
+
 	if (argv[0][0] == 'a')
 		howfile += 9;
 	argc--, argv++;
