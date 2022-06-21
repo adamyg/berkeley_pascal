@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.6 2022/06/21 14:03:47 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2022/06/21 15:49:13 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -71,6 +71,12 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+CWARN+=		-Wno-shadow -Wno-sign-compare -Wno-type-limits
+CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function
+CWARN+=		-Wno-implicit-fallthrough
+CWARN+=		-Wno-implicit-int
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@

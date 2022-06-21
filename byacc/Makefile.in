@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.4 2022/06/21 14:03:47 cvsuser Exp $
+# $Id: Makefile.in,v 1.5 2022/06/21 15:49:12 cvsuser Exp $
 # byacc makefile.
 #
 #
@@ -66,6 +66,12 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+CWARN+=		-Wshadow
+CWARN+=		-Wno-missing-prototypes -Wno-implicit-function-declaration
+CWARN+=		-Wno-return-type -Wno-implicit-int
+CWARN+=		-Wno-implicit-fallthrough
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
