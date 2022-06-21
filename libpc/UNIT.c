@@ -43,7 +43,7 @@ UNIT(curfile)
 	register struct iorec	*curfile;
 {
 	if (curfile->fblk >= MAXFILES || _actfile[curfile->fblk] != curfile) {
-		ERROR("Reference to an inactive file\n", 0);
+		ERROR("Reference to an inactive file\n" /*, 0*/);
 		return NULL;
 	}
 	if (curfile->funit & FDEF) {

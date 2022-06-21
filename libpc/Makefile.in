@@ -2,7 +2,7 @@
 # libpc makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -61,11 +61,12 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
 
-# Common flags
-
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+CWARN+=		-Wno-dangling-else -Wno-empty-body
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
