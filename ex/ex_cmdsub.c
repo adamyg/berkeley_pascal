@@ -780,13 +780,14 @@ zop(hadpr)
 	zop2(lines, op);
 }
 
+static void splitit(void);
+
 void
 zop2(lines, op)
 	register int lines;
 	register int op;
 {
 	register line *split;
-	static void splitit();
 
 	split = NULL;
 	switch (op) {
@@ -863,7 +864,7 @@ zop2(lines, op)
 }
 
 static void
-splitit()
+splitit(void)
 {
 	register int l;
 

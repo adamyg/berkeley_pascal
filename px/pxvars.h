@@ -168,7 +168,7 @@ extern long		_lino;			/* current line number */
 extern long		_mode;			/* execl by PX, PIPE, or PIX */
 extern long		_rtns;			/* number of routine cntrs */
 extern long		_runtst;		/* TRUE => runtime tests */
-extern int		_nodump;		/* TRUE => no post mortum dump */
+extern bool		_nodump;		/* TRUE => no post mortum dump */
 extern long		_createtime;		/* image creation time */
 						/* source version.c */
 

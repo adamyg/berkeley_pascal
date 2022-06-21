@@ -41,7 +41,7 @@ static char copyright[] =
 static char sccsid[] = "@(#)version.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 

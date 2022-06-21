@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
+#if !defined(lint) && (0)
 static char copyright[] =
 "@(#) Copyright (c) 1980, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";

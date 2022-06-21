@@ -261,7 +261,7 @@ tryps:
  * End of paragraphs/sections are respective
  * macros as well as blank lines and form feeds.
  */
-endPS()
+endPS(void)
 {
 
 	return (linebuf[0] == 0 ||
@@ -395,9 +395,8 @@ lsmatch(cp)
 	cursor = scurs;
 }
 
-ltosolid()
+ltosolid(void)
 {
-
 	return (ltosol1("()"));
 }
 
@@ -440,9 +439,8 @@ lskipbal(parens)
 	return (1);
 }
 
-lskipatom()
+lskipatom(void)
 {
-
 	return (lskipa1("()"));
 }
 
