@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 16:08:42 cvsuser Exp $
 # pmerge makefile.
 #
 #
@@ -42,6 +42,7 @@ XCLEAN=
 
 CC=		@CC@
 RM=		@RM@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -117,7 +118,7 @@ debug:
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)
