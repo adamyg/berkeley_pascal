@@ -788,7 +788,7 @@ caseline:
 			nonzero();
 			if (seensemi)
 				addr1 = addr2;
-			getline(*addr1);
+			ex_getline(*addr1);
 			if (c == CTRL('k')) {
 				flush1();
 				destline--;

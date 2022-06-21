@@ -314,7 +314,7 @@ void		tclose __P((int fd));
 /* ex_temp.c */
 void		fileinit __P((void));
 void		cleanup __P((bool all));
-void		getline __P((line tl));
+void		ex_getline __P((line tl));
 int		putline __P((void));
 char *		getblock __P((line atl, int iof));
 void		blkio __P((int b, char *buf, io_t iofcn));
@@ -461,7 +461,7 @@ void		takeout __P((char *BUF));
 int		ateopr __P((void));
 void		vappend __P((int ch, int cnt, int indent));
 void		back1 __P((void));
-char *		vgetline __P((int cnt, char *gcursor, bool *aescaped, int commch));
+char *		ex_vgetline __P((int cnt, char *gcursor, bool *aescaped, int commch));
 void		vdoappend __P((char *lp));
 int		vgetsplit __P((void));
 int		vmaxrep __P((int ch, int cnt));

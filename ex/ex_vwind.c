@@ -187,24 +187,24 @@ vcontext(addr, where)
 {
 	register line *top;
 
-	getline(*addr);
+	ex_getline(*addr);
 	if (state != VISUAL)
 		top = addr;
 	else switch (where) {
 
 	case '^':
 		addr = vback(addr, basWLINES - vdepth());
-		getline(*addr);
+		ex_getline(*addr);
 		/* fall into ... */
 
 	case '-':
 		top = vback(addr, basWLINES - vdepth());
-		getline(*addr);
+		ex_getline(*addr);
 		break;
 
 	case '.':
 		top = vback(addr, basWLINES / 2 - vdepth());
-		getline(*addr);
+		ex_getline(*addr);
 		break;
 
 	default:
@@ -322,7 +322,7 @@ vback(tp, cnt)
 
 	if (cnt > 0)
 		for (; tp > one; tp--) {
-			getline(tp[-1]);
+			ex_getline(tp[-1]);
 			d = vdepth();
 			if (d > cnt)
 				break;
@@ -343,7 +343,7 @@ vfit(tp, cnt)
 	j = 0;
 	while (cnt > 0) {
 		cnt--;
-		getline(tp[cnt]);
+		ex_getline(tp[cnt]);
 		j += vdepth();
 	}
 	if (tp > dot)

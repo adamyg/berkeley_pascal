@@ -582,7 +582,7 @@ errlab:
 			markDOT();
 		if (wcursor) {
 			vsave();
-			getline(*wdot);
+			ex_getline(*wdot);
 			if (wcursor > strend(linebuf))
 				wcursor = 0;
 			getDOT();

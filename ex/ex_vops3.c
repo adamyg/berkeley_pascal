@@ -283,7 +283,7 @@ again:
 		register int cnt = 0;
 
 		addr--;
-		getline(*addr);
+		ex_getline(*addr);
 		for (cp = linebuf; *cp; cp++)
 			if (*cp == '(')
 				cnt++;
@@ -480,7 +480,7 @@ lnext()
 			return (0);
 		}
 		wdot++;
-		getline(*wdot);
+		ex_getline(*wdot);
 		wcursor = linebuf;
 		return (1);
 	} else {
@@ -496,7 +496,7 @@ lnext()
 			return (0);
 		}
 		wdot--;
-		getline(*wdot);
+		ex_getline(*wdot);
 		wcursor = linebuf[0] == 0 ? linebuf : strend(linebuf) - 1;
 		return (1);
 	}
@@ -515,7 +515,7 @@ lbrack(c, f)
 			addr -= dir;
 			break;
 		}
-		getline(*addr);
+		ex_getline(*addr);
 		if (linebuf[0] == '{' ||
 #ifdef LISPCODE
 		    value(LISP) && linebuf[0] == '(' ||
@@ -523,7 +523,7 @@ lbrack(c, f)
 		    isa(svalue(SECTIONS))) {
 			if (c == ']' && f != vmoveop) {
 				addr--;
-				getline(*addr);
+				ex_getline(*addr);
 			}
 			break;
 		}

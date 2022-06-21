@@ -145,7 +145,7 @@ cleanup(all)
 }
 
 void
-getline(tl)
+ex_getline(tl)
 	line tl;
 {
 	register char *bp, *lp;
@@ -707,7 +707,7 @@ YANKreg(c)
 	}
 	CP(savelb,linebuf);
 	for (addr = addr1; addr <= addr2; addr++) {
-		getline(*addr);
+		ex_getline(*addr);
 		if (sp->rg_flags) {
 			if (addr == addr2)
 				*wcursor = 0;

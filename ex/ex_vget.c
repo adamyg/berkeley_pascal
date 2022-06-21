@@ -274,7 +274,7 @@ readecho(c)
 		vglobp = INS;
 	}
 	OP = Pline; Pline = normline;
-	ignore(vgetline(0, genbuf + 1, &waste, c));
+	ignore(ex_vgetline(0, genbuf + 1, &waste, c));
 	if (Outchar == termchar)
 		ex_putchar('\n');
 	vscrap();
@@ -624,7 +624,7 @@ char *s;
 //		fprintf(trace, "%o ", *p);
 		fprintf(trace, "%03d:%05d",
 			(*p >> OFFBTS) & BLKMSK, (*p << SHFT) & LBTMSK);
-		getline(*p);
+		ex_getline(*p);
 		fprintf(trace, "'%s'\n", linebuf);
 	}
 	fprintf(trace, "]\n");
