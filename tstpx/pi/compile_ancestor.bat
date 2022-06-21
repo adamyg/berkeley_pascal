@@ -4,22 +4,22 @@ setlocal enableDelayedExpansion
 set PIOPTIONS=-krlzyxg
 
 if "%1" == "--owc19" (
-	set PI=..\..\bin.owc19\pi %PIOPTIONS%
+	set PI=..\..\bin.owc19\debug\pi %PIOPTIONS%
 
 ) else if "%1" == "--vs140" (
-	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+	set PI=..\..\bin.vs140\debug\pi %PIOPTIONS%
 ) else if "%1" == "--vc2015" (
-	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+	set PI=..\..\bin.vs140\debug\pi %PIOPTIONS%
 
 ) else if "%1" == "--vs141" (
-	set PI=..\..\bin.vs141\pi %PIOPTIONS%
+	set PI=..\..\bin.vs141\debug\pi %PIOPTIONS%
 ) else if "%1" == "--vc2017" (
-	set PI=..\..\bin.vs140\pi %PIOPTIONS%
+	set PI=..\..\bin.vs140\debug\pi %PIOPTIONS%
 
 ) else if "%1" == "--vs142" (
-	set PI=..\..\bin.vs142\pi %PIOPTIONS%
+	set PI=..\..\bin.vs142\debug\pi %PIOPTIONS%
 ) else if "%1" == "--vc2019" (
-	set PI=..\..\bin.vs142\pi %PIOPTIONS%
+	set PI=..\..\bin.vs142\debug\pi %PIOPTIONS%
 
 ) else (
 	echo Error: missing target toolchain.
