@@ -101,6 +101,10 @@ main(int argc, char *argv[])
 	int i;
 #endif
 
+#ifndef lint
+	(void) copyright;
+#endif
+
 	if (argv[0][0] == 'a')
 		err_file += err_pathlen, how_file += how_pathlen;
 

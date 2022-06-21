@@ -126,6 +126,11 @@ int main(argc, argv)
 	for (i = 0; i < MAXNAM ; i++)
 		name[i] = 0;
 
+#ifndef lint
+	(void) copyright;
+	(void) sccsid;
+#endif
+
 	signal(SIGINT, onintr);
 
 	curfile = files[PRGFILE] =
