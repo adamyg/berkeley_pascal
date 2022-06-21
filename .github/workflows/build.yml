@@ -17,8 +17,8 @@ jobs:
         - {
            name: "Windows Latest MinGW",
            os: windows-latest,
-           toolchain: mingw64,
-           toolversion: mingw64
+           toolchain: mingw32,
+           toolversion: mingw32
           }
         - {
            name: "Windows Latest OWC",
