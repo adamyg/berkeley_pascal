@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.5 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.6 2022/06/21 14:03:47 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -47,6 +47,7 @@ XCLEAN=
 
 CC=		@CC@
 RM=		@RM@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -193,7 +194,7 @@ debug:
 
 $(D_BIN)/pi$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pi$(E):	opcode.h picture.txt ytab.h $(PI_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(PI_OBJS) $(LDLIBS) @LDMAPFILE@
 
 opcode.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > opcode.h
@@ -212,11 +213,11 @@ ytab.h:			../src/gram ../src/pas.y
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_BIN)/pic$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pic$(E):	$(PIC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(PIC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(D_OBJ)/.created
 

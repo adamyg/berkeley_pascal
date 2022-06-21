@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 14:03:47 cvsuser Exp $
 # pdx makefile - Pascal debugger.
 #
 #
@@ -45,6 +45,7 @@ RM=		@RM@
 MV=		@MV@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -211,7 +212,7 @@ debug:
 $(D_BIN)/pdx$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pdx$(E):	LINKLIBS+=-lpx -lpc
 $(D_BIN)/pdx$(E):	$(D_OBJ)/.created $(PDX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > h02opcs.h
@@ -228,7 +229,7 @@ token.c:		command/token.l
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(D_OBJ)/.created $(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(addsuffix /.created, $(OBJDIRS))
 

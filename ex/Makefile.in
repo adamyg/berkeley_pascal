@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 14:03:47 cvsuser Exp $
 # ex makefile.
 #
 #
@@ -44,6 +44,7 @@ CC=		@CC@
 RM=		@RM@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -72,7 +73,7 @@ CWARN+=		-Wno-shadow -Wno-sign-compare -Wno-type-limits
 CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function
 CWARN+=		-Wno-missing-field-initializers -Wno-implicit-fallthrough
 CWARN+=		-Wno-clobbered -Wno-parentheses -Wno-implicit-int
-endif 
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
@@ -102,39 +103,39 @@ TARGET=		ex$(E)
 CFLAGS+=	-DTRACE -DADEBUG -DMDEBUG -DTDEBUG -DIDEBUG -DRDEBUG -DFDEBUG -DLISPCODE -DFASTTAG -DVMUNIX -DCHDIR
 
 CSOURCES=\
-	ex.c\
-	ex_addr.c\
-	ex_cmds.c\
-	ex_cmds2.c\
-	ex_cmdsub.c\
-	ex_data.c\
-	ex_extern.c\
-	ex_get.c\
-	ex_io.c\
-	ex_printf.c\
-	ex_put.c\
-	ex_re.c\
-	ex_set.c\
-	ex_subr.c\
-	ex_tagio.c\
-	ex_temp.c\
-	ex_tty.c\
-	ex_v.c\
-	ex_vadj.c\
-	ex_vget.c\
-	ex_vmain.c\
-	ex_voper.c\
-	ex_vops.c\
-	ex_vops2.c\
-	ex_vops3.c\
-	ex_vput.c\
+	ex.c \
+	ex_addr.c \
+	ex_cmds.c \
+	ex_cmds2.c \
+	ex_cmdsub.c \
+	ex_data.c \
+	ex_extern.c \
+	ex_get.c \
+	ex_io.c \
+	ex_printf.c \
+	ex_put.c \
+	ex_re.c \
+	ex_set.c \
+	ex_subr.c \
+	ex_tagio.c \
+	ex_temp.c \
+	ex_tty.c \
+	ex_v.c \
+	ex_vadj.c \
+	ex_vget.c \
+	ex_vmain.c \
+	ex_voper.c \
+	ex_vops.c \
+	ex_vops2.c \
+	ex_vops3.c \
+	ex_vput.c \
 	ex_vwind.c
 
 CSOURCES+=\
-	win32/ex_term.c\
+	win32/ex_term.c \
 	win32/ex_win32.c
 
-VPATH=		
+VPATH=
 
 OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
@@ -159,7 +160,7 @@ debug:
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(addsuffix /.created, $(OBJDIRS))
 
@@ -171,7 +172,7 @@ clean:
 		-@$(RM) $(RMFLAGS) $(BAK) $(D_BIN)/$(TARGET) $(TARGET) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
 		-@$(PERL) ../support/rmdir_p.pl $(OBJDIRS)
-		
+
 $(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
 

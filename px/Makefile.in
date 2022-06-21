@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.4 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.5 2022/06/21 14:03:47 cvsuser Exp $
 # px makefile.
 #
 #
@@ -48,6 +48,7 @@ RANLIB= 	@RANLIB@
 RM=		@RM@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -116,9 +117,9 @@ LIBS=\
 	$(D_LIB)/$(LP)px$(A)
 
 LIBPX_CSOURCE=\
-	int.c\
-	interp.c\
-	utilities.c\
+	int.c \
+	interp.c \
+	utilities.c \
 	Version.c
 
 LIBPX_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(LIBPX_CSOURCE)))
@@ -179,15 +180,15 @@ $(D_LIB)/$(LP)px$(A):	$(LIBPX_OBJS)
 $(D_BIN)/px$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/px$(E):	LDLIBS+=-lpx -lpc
 $(D_BIN)/px$(E):	$(PX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PX_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(PX_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 $(D_BIN)/pxversion$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/pxversion$(E):	$(VERSION_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(VERSION_OBJS) $(LDLIBS) -lcompat @LDMAPFILE@
 
 directories:		$(D_OBJ)/.created
 

@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.3 2022/06/21 12:30:21 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 14:03:47 cvsuser Exp $
 # byacc makefile.
 #
 #
@@ -42,6 +42,7 @@ XCLEAN=
 
 CC=		@CC@
 RM=		@RM@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -93,20 +94,20 @@ RMDFLAGS=	-rf
 TARGET=		byacc$(E)
 
 CSOURCES=\
-	main.c\
-	closure.c\
-	error.c\
-	lalr.c\
-	lr0.c\
-	mkpar.c\
-	output.c\
-	reader.c\
-	skeleton.c\
-	symtab.c\
-	verbose.c\
+	main.c			\
+	closure.c		\
+	error.c			\
+	lalr.c			\
+	lr0.c			\
+	mkpar.c			\
+	output.c		\
+	reader.c		\
+	skeleton.c		\
+	symtab.c		\
+	verbose.c		\
 	warshall.c
 
-VPATH=		
+VPATH=
 
 OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
@@ -124,7 +125,7 @@ debug:
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 %/.created:
 		-@mkdir $(@D)

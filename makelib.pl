@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.9 2022/06/20 14:13:23 cvsuser Exp $
+# $Id: makelib.pl,v 1.10 2022/06/21 14:03:47 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -3079,15 +3079,15 @@ Makefile($$$)           # (type, dir, file)
                         s/(\$\(CXXFLAGS\).*) -o \$\@/$1 -Fo=\$(subst \/,\\,\$@)/;
                         s/(\$\(LDFLAGS\).*) -o \$@/$1 -Fe=\$(subst \/,\\,\$@)/;
 
-                        s/-Fe(.*) \$\(([A-Z_]*OBJS)\)/-Fe$1 \$(subst \/,\\,\$($2))/;
-                        s/-Fe(.*) \$\^/-Fe$1 \$(subst \/,\\,\$^)/;
+                        s/-Fe(.*) \$\(([A-Z_]*OBJS)\)/-Fe$1 \$(subst \/,\\\\,\$($2))/;
+                        s/-Fe(.*) \$\^/-Fe$1 \$(subst \/,\\\\,\$^)/;
 
-                        s/-L([^\s]+)/-"LIBPATH \$(subst \/,\\,$1)"/;
+                        s/-L([^\s]+)/-"LIBPATH \$(subst \/,\\\\,$1)"/;
                             # -"<linker directive>"
 
                     } else {
-                        s/\$\(LDFLAGS\) (.*) \$\(([A-Z_]*OBJS)\)/\$(LDFLAGS) $1 \$(subst \/,\\,\$($2))/;
-                        s/\$\(LDFLAGS\) (.*) \$</\$(LDFLAGS) $1 \$(subst \/,\\,\$<)/;
+                        s/\$\(LDFLAGS\) (.*) \$\(([A-Z_]*OBJS)\)/\$(LDFLAGS) $1 \$(subst \/,\\\\,\$($2))/;
+                        s/\$\(LDFLAGS\) (.*) \$</\$(LDFLAGS) $1 \$(subst \/,\\\\,\$<)/;
 
                         s/-L([^\s]+)/-"Wl,LIBPATH \$(subst \/,\\,$1)"/;
                             # -Wl,<linker directive>
@@ -3102,8 +3102,8 @@ Makefile($$$)           # (type, dir, file)
                         s/-I ([^\s]+)/-i=\$(subst \/,\\,$1)/g;
                     }
 
-                    s/\$</\$(subst \/,\\,\$<)/;
-                    s/\$\^/\$(subst \/,\\,\$^)/;
+                    s/\$</\$(subst \/,\\\\,\$<)/;
+                    s/\$\^/\$(subst \/,\\\\,\$^)/;
 
                 } elsif (/[\\]$/) {
                     $continuation = 1;          # LIBTOOL, continuation?
