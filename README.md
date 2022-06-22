@@ -7,7 +7,7 @@ University of California, Berkeley initial by Ken Thompson, then by William N. J
 
 Interpretive P-code is produced, providing fast translation at the expense of slower execution speed. The interpreter runs at a fraction of the speed of equivalent compiled C code, with this fraction varying from 1/5 to 1/15.
 
-This project is an investigation into retargeting to modern hosts, with the intention of exploring use within embedded systems/applications, plus for general nostalgia.  
+This project is an investigation into retargeting to modern hosts, with the intention of exploring use within embedded systems/applications, plus for general nostalgia.
 
 The original source is from the 4th series of Berkeley Distributions, namely BSD4.3 and BSD4.4-Lite.
 
@@ -16,35 +16,35 @@ The original source is from the 4th series of Berkeley Distributions, namely BSD
     pi -          Pascal interpreter.
 
     px -          Pascal byte-code compiler.
- 
+
     pdx -         Pascal debugger.
 
     doc -         Reference and design documents.
- 
+
     src -         Command source for px, pi and pdx.
 
     libpc -       Pascal run-time library.
-    
+
     pmerge -      Pascal file merger.
 
     libcompat -   Compatibility library, implements omitted functionality assumed to be available.
 
     tstpx -       Test cases and associated expected results.
- 
+
     byacc -       Berkeley yacc, is a LALR(1) parser generator.
 
     eyacc -       Modified yacc allowing much improved error recovery; needed by the Pascal parser.
-    
-    ex -          Stream editor.    
-  
+
+    ex -          Stream editor.
+
     contrib/flex - Flex (Fast Lexical analyzer generator) 2.5.2.
-    
+
     contrib/libregex - Henry Spencer's regex package; required by Flex.
 
 ## Source Reference:
 
-The following source modules are included for reference: 
-   
+The following source modules are included for reference:
+
     pxref -       Cross-reference generator
 
     pxp -         Pascal execution profiler.
@@ -55,34 +55,40 @@ The following source modules are included for reference:
 
     pcextern -    External symbol stabs generator.
 
-    px_header -   libexec loader. 
- 
- 
+    px_header -   libexec loader.
+
+
 ## Install
- 
-Initial port has been retargeted to Windows (32-bit), using either Open Watcom or Microsoft Visual C/C++.
+
+Initial port has been retargeted to Windows (32-bit), using either Open Watcom, Microsoft Visual C/C++ or MingW64 (32-bit).
 Additional targets, including Linux are roadmapped, yet shall be simplier once the initial retargeting.
-  
+
 * Install the gnuwin32 tool set or similar; for example Source, http://unxutils.sourceforge.net/.
 
-* If you dont have perl available, download and install; ActivePerl is one of the better options. 
+* If you dont have perl available, download and install; ActivePerl is one of the better options otherwise Strawberry.
 
 * Run the <makelib.pl> perl script by typing:
 
        o MSVC 2008 or greater
 
-```
-          $ perl makelib.pl [--gnuwin32=<path-gnuwin32-bin>] vc[2015|2017|2019]
-```
+````
+          $ perl makelib.pl --busybox=./support/busybox vc[2015|2017|2019]
+````
 
        o Open Watcom
 
-```
-          $ perl makelib.pl owc[19|20]
-```
+````
+          $ perl makelib.pl --busybox=./support/busybox owc[19|20]
+````
+
+       o MinGW64-W64 (32-bit)
+
+````
+          $ perl makelib.pl --busybox=./support/busybox mingw32
+````
 
 * Build the entire tree with:
 
-```
+````
           $ gmake
-```
+````
