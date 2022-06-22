@@ -69,26 +69,19 @@ Additional targets, including Linux are roadmapped, yet shall be simplier once t
 
 * Run the <makelib.pl> perl script by typing:
 
-       o MSVC 2008 or greater
+  o MSVC 2008 or greater
 
-````
-          $ perl makelib.pl --busybox=./support/busybox vc[2015|2017|2019]
-````
+    ```` $ perl makelib.pl --busybox=./support/busybox vc[2015|2017|2019] ````
 
-       o Open Watcom
+  o Open Watcom
 
-````
-          $ perl makelib.pl --busybox=./support/busybox owc[19|20]
-````
+    ```` $ perl makelib.pl --busybox=./support/busybox owc[19|20] ````
 
-       o MinGW64-W64 (32-bit)
+  o MinGW64-W64 (32-bit)
 
-````
-          $ perl makelib.pl --busybox=./support/busybox mingw32
-````
+    ```` $ perl makelib.pl --busybox=./support/busybox mingw32 ````
 
 * Build the entire tree with:
 
-````
-          $ gmake
-````
+    ```` $ gmake debug|release ````
+    
