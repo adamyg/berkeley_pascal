@@ -140,6 +140,8 @@ void		checkjunk __P((int c));
 void		setin __P((line *addr));
 
 /* ex_io.c */
+struct glob;
+
 void		filename __P((int comm));
 int		getargs __P((void));
 void		glob __P((struct glob *gp));
@@ -181,7 +183,7 @@ void		termreset __P((void));
 void		draino __P((void));
 void		flusho __P((void));
 void		putnl __P((void));
-void		putS __P((char *cp));
+void		ex_putS __P((char *cp));
 void		putch __P((int c));
 void		putpad __P((char *cp));
 void		setoutt __P((void));
@@ -312,7 +314,7 @@ void		tclose __P((int fd));
 /* ex_temp.c */
 void		fileinit __P((void));
 void		cleanup __P((bool all));
-void		getline __P((line tl));
+void		ex_getline __P((line tl));
 int		putline __P((void));
 char *		getblock __P((line atl, int iof));
 void		blkio __P((int b, char *buf, io_t iofcn));
@@ -459,7 +461,7 @@ void		takeout __P((char *BUF));
 int		ateopr __P((void));
 void		vappend __P((int ch, int cnt, int indent));
 void		back1 __P((void));
-char *		vgetline __P((int cnt, char *gcursor, bool *aescaped, int commch));
+char *		ex_vgetline __P((int cnt, char *gcursor, bool *aescaped, int commch));
 void		vdoappend __P((char *lp));
 int		vgetsplit __P((void));
 int		vmaxrep __P((int ch, int cnt));
@@ -467,16 +469,16 @@ int		vmaxrep __P((int ch, int cnt));
 /* ex_vops3.c */
 int		xlfind __P((bool pastatom, int cnt, opf_t f, line *limit));
 int		endsent __P((bool pastatom));
-int		endPS __P(());
+int		endPS __P((void));
 #ifdef LISPCODE
 int		lindent __P((line *));
 #endif
 int		lmatchp __P((line *addr));
 void		lsmatch __P((char *cp));
-int		ltosolid __P(());
+int		ltosolid __P((void));
 int		ltosol1 __P((char *parens));
 int		lskipbal __P((char *parens));
-int		lskipatom __P(());
+int		lskipatom __P((void));
 int		lskipa1 __P((char *parens));
 int		lnext __P((void));
 int		lbrack __P((int c, opf_t f));

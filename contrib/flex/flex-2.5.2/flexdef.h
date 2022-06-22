@@ -26,9 +26,9 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-/* @(#) $Header: /cvs/berkeley_pascal/contrib/flex/flex-2.5.2/flexdef.h,v 1.1 2020/05/28 18:03:33 cvsuser Exp $ (LBL) */
+/* @(#) $Header: /cvs/berkeley_pascal/contrib/flex/flex-2.5.2/flexdef.h,v 1.2 2022/06/21 16:27:54 cvsuser Exp $ (LBL) */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 

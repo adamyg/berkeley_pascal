@@ -228,7 +228,7 @@ vappend(ch, cnt, indent)
 		if (ch == 'r' && repcnt == 0)
 			escape = 0;
 		else {
-			gcursor = vgetline(repcnt, gcursor, &escape, ch);
+			gcursor = ex_vgetline(repcnt, gcursor, &escape, ch);
 
 			/*
 			 * After an append, stick information
@@ -427,7 +427,7 @@ back1()
  * involved, including the prompt for readline.
  */
 char *
-vgetline(cnt, gcursor, aescaped, commch)
+ex_vgetline(cnt, gcursor, aescaped, commch)
 	int cnt;
 	register char *gcursor;
 	bool *aescaped;

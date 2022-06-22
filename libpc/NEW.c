@@ -46,7 +46,7 @@ NEW(var, size)
 
 	memblk = (char *)calloc((int)size, 1);
 	if (memblk == NULL) {
-		ERROR("Ran out of memory\n", 0);
+		ERROR("Ran out of memory\n" /*, 0*/);
 		return;
 	}
 	*var = memblk;

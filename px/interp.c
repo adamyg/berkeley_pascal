@@ -92,7 +92,7 @@ struct iorechd		_err = {
 	&_errwin,				/* fileptr */
 	0,					/* lcount  */
 	0x7fffffff,				/* llimit  */
-#if defined(_MSC_VER) || defined(__WATCOMC__)
+#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__GNUC__)
 	NULL, 					/* fbuf    */
 #else
 	stderr, 				/* fbuf    */
@@ -108,7 +108,7 @@ struct iorechd		output = {
 	&_outwin,				/* fileptr */
 	0,					/* lcount  */
 	0x7fffffff,				/* llimit  */
-#if defined(_MSC_VER) || defined(__WATCOMC__)
+#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__GNUC__)
 	NULL, 					/* fbuf    */
 #else
 	stdout, 				/* fbuf    */
@@ -124,7 +124,7 @@ struct iorechd		input = {
 	&_inwin,				/* fileptr */
 	0,					/* lcount  */
 	0x7fffffff,				/* llimit  */
-#if defined(_MSC_VER) || defined(__WATCOMC__)
+#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__GNUC__)
 	NULL, 					/* fbuf    */
 #else
 	stdin,					/* fbuf    */
@@ -224,7 +224,7 @@ px_interpreter(base)
 	FILE   *tf;
 	/* register */ union progcntr stack;	/* Interpreted stack */
 
-#if defined(_MSC_VER) || defined(__WATCOMC__)	/* remove/resolve initialisation order issues */
+#if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__GNUC__) /* remove/resolve initialisation order issues */
 	input.fbuf = stdin;
 	output.fbuf = stdout;
 	_err.fbuf = stderr;
@@ -517,7 +517,7 @@ asm("_loopaddr:");
 			stp = _dp->stp;
 			while (tstp != stp) {
 				if (_dp == &_display.frame[1])
-					ERROR("Active frame not found in non-local goto\n", 0); /* exiting prog ??? */
+					ERROR("Active frame not found in non-local goto\n" /*, 0*/); /* exiting prog ??? */
 				PCLOSE(CAST(struct iorec, _dp->locvars));	/* close local files */
 				curfile = stp->file;	/* restore active file */
 				*_dp = stp->odisp;	/* old display entry */
@@ -525,7 +525,7 @@ asm("_loopaddr:");
 				stp = _dp->stp;
 			}
 			/* pop locals, stack frame, parms, and return values */
-			popsp((long)(stp->tos - pushsp((long)(0))));
+			popsp((long)((signed char *)stp->tos - pushsp((long)(0))));
 			continue;
 		case O_LINO:		/* set line number, count statements */
 			if (_dp->stp->tos != pushsp((long)(0)))
@@ -1697,7 +1697,7 @@ asm("_loopaddr:");
 			tcp = popaddr();		/* Format */
 			{
 				va_list ap;			/* Addr of printf's args */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__GNUC__)
 				ap = refsp();
 #elif defined(__WATCOMC__)
 				ap[0] = refsp();

@@ -177,7 +177,7 @@ void
 getDOT()
 {
 
-	getline(*dot);
+	ex_getline(*dot);
 }
 
 line *

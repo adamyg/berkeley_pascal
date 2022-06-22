@@ -261,7 +261,7 @@ tryps:
  * End of paragraphs/sections are respective
  * macros as well as blank lines and form feeds.
  */
-endPS()
+endPS(void)
 {
 
 	return (linebuf[0] == 0 ||
@@ -283,7 +283,7 @@ again:
 		register int cnt = 0;
 
 		addr--;
-		getline(*addr);
+		ex_getline(*addr);
 		for (cp = linebuf; *cp; cp++)
 			if (*cp == '(')
 				cnt++;
@@ -395,9 +395,8 @@ lsmatch(cp)
 	cursor = scurs;
 }
 
-ltosolid()
+ltosolid(void)
 {
-
 	return (ltosol1("()"));
 }
 
@@ -440,9 +439,8 @@ lskipbal(parens)
 	return (1);
 }
 
-lskipatom()
+lskipatom(void)
 {
-
 	return (lskipa1("()"));
 }
 
@@ -482,7 +480,7 @@ lnext()
 			return (0);
 		}
 		wdot++;
-		getline(*wdot);
+		ex_getline(*wdot);
 		wcursor = linebuf;
 		return (1);
 	} else {
@@ -498,7 +496,7 @@ lnext()
 			return (0);
 		}
 		wdot--;
-		getline(*wdot);
+		ex_getline(*wdot);
 		wcursor = linebuf[0] == 0 ? linebuf : strend(linebuf) - 1;
 		return (1);
 	}
@@ -517,7 +515,7 @@ lbrack(c, f)
 			addr -= dir;
 			break;
 		}
-		getline(*addr);
+		ex_getline(*addr);
 		if (linebuf[0] == '{' ||
 #ifdef LISPCODE
 		    value(LISP) && linebuf[0] == '(' ||
@@ -525,7 +523,7 @@ lbrack(c, f)
 		    isa(svalue(SECTIONS))) {
 			if (c == ']' && f != vmoveop) {
 				addr--;
-				getline(*addr);
+				ex_getline(*addr);
 			}
 			break;
 		}

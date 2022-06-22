@@ -8,6 +8,11 @@
 #include <tree_ty.h>
 #include <objfmt.h>
 
+struct yytok;
+struct tmps;
+struct nl;
+struct tnode;
+
 /* ato.c */
 long            a8tol __P((char *));
 
@@ -94,7 +99,7 @@ void            brerror __P((int where, const char *what));
 
 /* yyget.c */
 int             readch __P((void));
-int             getline __P((void));
+int             xgetline __P((void));
 int             includ __P((void));
 char            *skipbl __P((char *ocp));
 int             uninclud __P((void));

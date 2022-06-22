@@ -101,6 +101,10 @@ main(int argc, char *argv[])
 	int i;
 #endif
 
+#ifndef lint
+	(void) copyright;
+#endif
+
 	if (argv[0][0] == 'a')
 		err_file += err_pathlen, how_file += how_pathlen;
 
@@ -402,7 +406,7 @@ pexit(c)
 	int c;
 {
 	if (opt('l') && c != DIED && c != NOSTART)
-		while (getline() != -1)
+		while (xgetline() != -1)
 			continue;
 	yyflush();
 	switch (c) {
@@ -415,7 +419,7 @@ pexit(c)
 				close(ofil);
 				unlink(obj);
 			}
-                         
+
 			/*
 			 * remove symbol table temp files
 			 */
@@ -428,7 +432,7 @@ pexit(c)
 			}
 #endif /*PC*/
 			break;
-                case AOK:
+		case AOK:
 #ifdef OBJ
 			pflush();
 
@@ -438,7 +442,7 @@ pexit(c)
 			copynlfile();
 			close(ofil);
 #endif /*OBJ*/
-#ifdef PC               
+#ifdef PC
 			puteof();
 #endif /*PC*/
 			break;
@@ -458,7 +462,7 @@ pexit(c)
 #ifdef PTREE
 	    pFinish();
 #endif
-        exit(c);
+	exit(c);
 }
 
 void

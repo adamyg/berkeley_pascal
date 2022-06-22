@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.2 2020/06/13 23:30:13 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 16:04:13 cvsuser Exp $
 # flex makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -49,8 +49,10 @@ CC=		@CC@
 MV=		@MV@
 RM=		@RM@
 CP=		@CP@
+HAVE_BISON=	1
 YACC=		@YACC@
 LEX=		@LEX@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -74,14 +76,18 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+CWARN+=		-Wno-shadow -Wno-sign-compare -Wno-type-limits
+CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-label
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
 LDRELEASE=	@LDRELEASE@
 
 CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@
-
 CEXTRA=		@DEFS@
+
 ifeq ("$(BUILD_TYPE)","release")
 CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDRELEASE) @LDFLAGS@
@@ -89,8 +95,10 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ -llibcompat @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) @LIBS@ -lcompat @EXTRALIBS@
 
+YFLAGS=		-d
+ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
@@ -131,7 +139,7 @@ debug:
 
 $(D_BIN)/flex$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/flex$(E):	$(FLEX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(FLEX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 parse.h:		parse.c
 

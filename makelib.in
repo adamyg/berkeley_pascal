@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.5 2020/06/13 23:30:12 cvsuser Exp $
+# $Id: makelib.in,v 1.6 2022/06/20 14:13:23 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -29,25 +29,37 @@
 # ==end==
 #
 
-$PACKAGE        = 'ucbpascal';
-$PACKAGE_NAME   = 'Berkeley_Pascal';
+$PACKAGE        = 'Berkeley_Pascal';
+$PACKAGE_NAME   = 'ucbpascal';
+$PACKAGE_URL    = 'https://github.com/adamyg/berkeley_pascal';
 $PACKAGE_PATH   = 'libcompat';
 $PACKAGE_FILE   = 'package.h';
 
 $CONFIG_PATH    = 'libcompat';
 
-@x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
+## External
 
-@x_libraries2   = (     # local libraries -l<xxx> xxx.lib
-        'libregex',
-        'libcompat',
-        'libpc',
-        'libpx'
+@LIBRARIES      = (    # local libraries -l<xxx> lib<xxx>.lib
+        'regex',
+        'compat',
+        'pc',
+        'px'
         );
 
-@x_optlibraries  = ();  # optional libraries
+##      'pc',
+##      'pc0',
+##      'pc2',
+##      'pc3'
 
-@x_makefiles     = (    # local makefiles
+@LIBRARIES2     = (    # local libraries -l<xxx> xxx.lib
+        );
+
+@TESTLIBRARIES  = ();  # library test
+@OPTLIBRARIES   = ();  # optional libraries
+
+## Makefiles
+
+@MAKEFILES      = (    # local makefiles
         '.',
         'libcompat',
         'byacc',
@@ -66,10 +78,160 @@ $CONFIG_PATH    = 'libcompat';
         'doc'
         );
 
-##      'pc',
-##      'pc0',
-##      'pc2',
-##      'pc3'
+## Toolchain
+
+sub
+ResolveWINKITx86()
+{
+        my $ProgramFiles = $ENV{"ProgramFiles(x86)"};
+        $ProgramFiles =~ s/\\/\//g;
+
+        my @WINKIT = (                                  # Vista+
+                # https://en.wikipedia.org/wiki/Microsoft_Windows_SDK
+                "${ProgramFiles}/Windows Kits/8.0/Lib/win8/um/x86",
+                "${ProgramFiles}/Windows Kits/8.1/Lib/winv6.3/um/x86",
+                "${ProgramFiles}/Windows Kits/10",
+                "${ProgramFiles}/Windows Kits/11"
+                );
+
+        my @sdks;
+        foreach (@WINKIT) {
+                my $sdk = $_;
+                next if (! -d $sdk);
+
+                if (/\/1[01]$/) {                       # "Lib/10.0.xxxxx.0/um/x86"
+                    my @winsdk10 = glob("'${sdk}/Lib/*/um/x86'");
+                    foreach (@winsdk10) {
+                        next if (! -f "$_/Kernel32.lib");
+                        push @sdks, $_;
+                    }
+
+                } else {
+                    next if (! -f "${sdk}/Kernel32.lib");
+                    push @sdks, $sdk;
+                }
+        }
+
+        die "cannot locate any suitable winsdks\n"
+                if (! scalar @sdks);
+
+        foreach (@sdks) {
+                print "WINKIT:   $_\n";
+        }
+
+        set_winsdk($sdks[0]);
+}
+
+
+sub
+Configure()
+{
+        ################################################################################
+        # Common
+
+        ################################################################################
+        # Visual studio
+
+        if ($TOOLCHAIN =~ /^vs/) {
+
+                set_msvc_runtime('dynamic', '$(RTSUFFIX)');
+
+                remove_define('WIN32');
+                add_define('HAVE_CONFIG_H');
+                add_define('WIN32_WINNT=0x501');
+                add_define('_CRT_SECURE_NO_WARNINGS');
+                add_define('_CRT_SECURE_NO_DEPRECATE');
+                add_define('_CRT_NONSTDC_NO_DEPRECATE');
+
+        }
+
+        ################################################################################
+        # OpenWatcom
+
+        if ($TOOLCHAIN =~ /^owc/) {
+
+                remove_define('WIN32');
+                add_define('HAVE_CONFIG_H');
+                add_define('WIN32_WINNT=0x501');
+                add_define('__STDC_WANT_LIB_EXT1__');
+
+        }
+
+        ################################################################################
+        # MingGW
+
+        if ($TOOLCHAIN =~ /^mingw/) {
+
+                remove_define('WIN32');
+                add_define('HAVE_CONFIG_H');
+                add_define('_WIN32_WINNT=0x501');       # Windows SDK
+                add_define('_WIN32_VER=0x501');
+
+                if ($TOOLCHAIN =~ /^mingw(64|32)/) {    # newer libraries
+                        add_system_library('-lDbghelp');
+                        add_system_library('-lBcrypt');
+                        add_system_library('-lNcrypt');
+                }
+
+                add_system_library('-lComctl32');       # updater, common controls
+                add_system_library('-lOleAut32');
+
+                add_system_library('-lMswsock');
+                add_system_library('-lCrypt32');
+                add_system_library('-lRpcrt4');
+                add_system_library('-lWinmm');
+                add_system_library('-lIphlpapi');
+                add_system_library('-lVersion');
+
+                push @TESTLIBRARIES, "pthread|LIBTHREAD";
+        }
+}
+
+# Example usage
+#
+#   # Configuration
+#   ifeq ("$(BUILD_TYPE)","")   #default
+#   BUILD_TYPE= debug
+#   MAKEFLAGS+= BUILD_TYPE=debug
+#   endif
+#   ifneq ("$(BUILD_TYPE)","release")
+#   # MSVC Run-time suffix
+#   RTSUFFIX=d
+#   endif
+#
+#   # Common flags
+#   XFLAGS=
+#   CFLAGS=         @CFLAGS@
+#   CWARN=          @CWARN@ $(CWALL)
+#   CDEBUG=         @CDEBUG@
+#   CRELEASE=       @CRELEASE@
+#
+#   CXXFLAGS=       @CXXFLAGS@
+#   CXXDEBUG=       @CXXDEBUG@
+#   ifeq ("$(CXXDEBUG)","")
+#   CXXDEBUG=       $(CDEBUG)
+#   endif
+#   CXXRELEASE=     @CXXRELEASE@
+#   ifeq ("$(CXXRELEASE)","")
+#   CXXRELEASE=     $(CRELEASE)
+#   endif
+#
+#   LDDEBUG=        @LDDEBUG@
+#   LDRELEASE=      @LDRELEASE@
+#
+#   CINCLUDE=       <additional> @CINCLUDE@
+#   CEXTRA=         @DEFS@ <additional>
+#
+#   ifeq ("$(BUILD_TYPE)","release")
+#   CFLAGS+=        $(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+#   CXXFLAGS+=      $(CXXRELEASE) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+#   LDFLAGS=        $(LDRELEASE) @LDFLAGS@
+#   else
+#   CFLAGS+=        $(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+#   CXXFLAGS+=      $(CXXDEBUG) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+#   LDFLAGS=        $(LDDEBUG) @LDFLAGS@
+#   endif
+#   LDLIBS=         -L$(D_LIB) @LDLIBS@ @LIBS@ @EXTRALIBS@
+#
 
 1;
-

@@ -59,7 +59,7 @@ char *nullable;
 
 extern char *getenv();
 
-
+void
 done(k)
 int k;
 {

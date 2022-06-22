@@ -41,7 +41,7 @@ static char copyright[] =
 static char sccsid[] = "@(#)pmerge.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
@@ -125,6 +125,11 @@ int main(argc, argv)
 
 	for (i = 0; i < MAXNAM ; i++)
 		name[i] = 0;
+
+#ifndef lint
+	(void) copyright;
+	(void) sccsid;
+#endif
 
 	signal(SIGINT, onintr);
 

@@ -6,8 +6,8 @@
  */
 
 #define  CONSETS
-#define  CHAR			int
-#define  STATIC			static
+#define  CHAR		int
+#define  STATIC		static
 
 #if defined(_MSC_VER)
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -38,15 +38,6 @@
 #endif
 
 #if defined(_MSC_VER)
-
-//  #define open(__a, __b)          _open(__a, __b)
-//  #define open(__a, __b, __c)     _open(__a, __b, __c)
-//  #define close(__a)              _close(__a)
-//  #define lseek(__a, __b, __c)    _lseek(__a, __b, __c)
-//  #define tell(__a)               _tell(__a)
-//  #define unlink(__a)             _unlink(__a)
-//  #define write(__a, __b, __c)    _write(__a, __b, __c)
-
 #pragma warning(disable:4996)  /* 'xxx': The POSIX name for this item is deprecated. ... */
 #endif
       
@@ -54,25 +45,22 @@
 #undef  O_RANDOM
 #endif
 #if !defined(O_BINARY)
-#define O_BINARY		0
+#define O_BINARY	0
 #endif
 
 #if !defined(__P)
 #if defined(__STDC__) || defined(__cplusplus) || \
           defined(_MSC_VER) || defined(__WATCOMC__)
-# define __P(s)     s
+# define __P(s)		s
 #else
-# define __P(s)     ()
+# define __P(s)		()
 #endif
 #endif
 
 typedef enum {FALSE, TRUE} bool;
 
 #ifndef NIL
-#define NIL			NULL
+#define NIL		NULL
 #endif
 
 #endif /*SRC_COMMON_H_INCLUDED*/
-
-
-

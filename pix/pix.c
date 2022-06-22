@@ -57,7 +57,7 @@ char	*name = &argname[2];
 
 int	onintr();
 
-#define	ETXTBSY	26
+#define ETXTBSY	26
 
 main(argc, argv)
 	int argc;
@@ -66,7 +66,12 @@ main(argc, argv)
 	register char **av;
 	register int ac;
 	int i, io, pid, status;
-	extern errno;
+//	extern errno;
+
+#ifndef lint
+	(void) copyright;
+	(void) sccsid;
+#endif
 
 	do
 		io = open("/dev/null", 0);

@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.2 2020/06/13 23:30:13 cvsuser Exp $
+# $Id: Makefile.in,v 1.4 2022/06/21 14:03:47 cvsuser Exp $
 # pdx makefile - Pascal debugger.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # You can redistribute it and/or modify it under the terms of
@@ -45,6 +45,7 @@ RM=		@RM@
 MV=		@MV@
 RMDIR=		@RMDIR@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 
 # Configuration
 
@@ -68,6 +69,13 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+CWARN+=		-Wno-shadow -Wno-sign-compare
+CWARN+=		-Wno-missing-prototypes
+CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-function
+CWARN+=		-Wno-missing-field-initializers -Wno-missing-braces
+CWARN+=		-Wno-implicit-fallthrough
+endif 
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
@@ -83,7 +91,8 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+LINKLIBS=
+LDLIBS=		-L$(D_LIB) $(LINKLIBS) -lcompat @LIBS@ @EXTRALIBS@
 
 RMFLAGS=	-f
 RMDFLAGS=	-rf
@@ -179,8 +188,6 @@ VPATH=		../src
 PDX_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PDX_CSOURCE)))
 OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
 
-LDLIBS=		-L$(D_LIB) -llibcompat
-
 unique_words=	$(if $(1),$(call unique_words,$(wordlist 2,$(words $(1)),$(1)),$(if $(filter $(firstword $(1)),$(2)),$(2),$(firstword $(1)) $(2))),$(2))
 
 OBJDIRS=	$(call unique_words, $(dir $(PDX_OBJS) $(OPC_OBJS)))
@@ -203,9 +210,9 @@ debug:
 		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 $(D_BIN)/pdx$(E):	MAPFILE=$(basename $@).map
-$(D_BIN)/pdx$(E):	LDLIBS+=-llibpx -llibpc
+$(D_BIN)/pdx$(E):	LINKLIBS+=-lpx -lpc
 $(D_BIN)/pdx$(E):	$(D_OBJ)/.created $(PDX_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(PDX_OBJS) $(LDLIBS) @LDMAPFILE@
 
 h02opcs.h:		$(D_BIN)/opc$(E) ../src/OPnames.h
 		$(D_BIN)/opc > h02opcs.h
@@ -222,7 +229,7 @@ token.c:		command/token.l
 
 $(D_BIN)/opc$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/opc$(E):	$(D_OBJ)/.created $(OPC_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OPC_OBJS) $(LDLIBS) @LDMAPFILE@
 
 directories:		$(addsuffix /.created, $(OBJDIRS))
 

@@ -8,6 +8,7 @@
 #if defined(__STDC__)
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #endif
 
 #if defined(__WATCOMC__)
@@ -306,15 +307,18 @@ extern short final_state;
 
 /* global functions */
 
-extern char *allocate();
-extern bucket *lookup();
-extern bucket *make_bucket();
+extern void done(int k);
+extern char *allocate(unsigned n);
+extern bucket *lookup(char *name);
+extern bucket *make_bucket(char *name);
 
 
 /* system variables */
 
+#if !defined(__STDC__)
 #if !defined(errno)
 extern int errno;
+#endif
 #endif
 
 

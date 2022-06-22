@@ -2,7 +2,8 @@
 // compat_rindex - character string operations.
 //
 
-#include <sys/types.h>
+#include "libcompat.h"
+
 #include <string.h>
  
 #if !defined(HAVE_RINDEX)

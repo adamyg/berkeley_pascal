@@ -2,22 +2,22 @@
 setlocal enableDelayedExpansion
 
 if "%1" == "--owc19" (
-	set PX=..\..\..\bin.owc19\px
+	set PX=..\..\..\bin.owc19\debug\px
 
 ) else if "%1" == "--vs140" (
-	set PX=..\..\..\bin.vs140\px
+	set PX=..\..\..\bin.vs140\debug\px
 ) else if "%1" == "--vc2015" (
-	set PX=..\..\..\bin.vs140\px
+	set PX=..\..\..\bin.vs140\debug\px
 
 ) else if "%1" == "--vs141" (
-	set PX=..\..\..\bin.vs141\px
+	set PX=..\..\..\bin.vs141\debug\px
 ) else if "%1" == "--vc2017" (
-	set PX=..\..\..\bin.vs141\px
+	set PX=..\..\..\bin.vs141\debug\px
 
 ) else if "%1" == "--vs142" (
-	set PX=..\..\..\bin.vs142\px
+	set PX=..\..\..\bin.vs142\debug\px
 ) else if "%1" == "--vc2019" (
-	set PX=..\..\..\bin.vs142\px
+	set PX=..\..\..\bin.vs142\debug\px
 
 ) else (
 	echo Error: missing target toolchain.

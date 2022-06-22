@@ -213,7 +213,7 @@ loop:
 				case TSTR:
 					con.cpval = (char *) np->ptr[0];
 					break;
-				case NIL:
+				case TNONE /*was NIL*/:
 					con.ctype = NIL;
 					return;
 				default:

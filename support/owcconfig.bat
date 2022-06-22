@@ -8,4 +8,5 @@ if not defined GNUWIN32 (
 if not defined PERL (
         set PERL=perl
 )
-%PERL% makelib.pl --gnuwin32=%GNUWIN32% %1 %2 %3 %4 owc
+%PERL% makelib.pl --gnuwin32=%GNUWIN32% --busybox=./support/busybox --bison=d:\Cygwin\bin\bison owc %1 %2 %3 %4
+

@@ -165,9 +165,9 @@ char *s;
 tokenized_start(s)
 char *s;
 {
-     fprintf(stderr, "%s: e - line %d of \"%s\", the start symbol %s cannot be \
+    fprintf(stderr, "%s: e - line %d of \"%s\", the start symbol %s cannot be \
 declared to be a token\n", myname, lineno, input_file_name, s);
-     done(1);
+    done(1);
 }
 
 

@@ -45,6 +45,6 @@ ASRT(cond)
 {
 	if (cond)
 		return;
-	ERROR(EASRT, 0);
+	ERROR(EASRT /*, 0*/);
 	return;
 }

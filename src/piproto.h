@@ -4,7 +4,13 @@
 /*
  *	pi/pc specific prototypes ....
  */
- 
+
+struct yytok;
+struct tmps;
+struct nl;
+struct tnode;
+struct entry_exit_cookie;
+
 /* main.c */
 void		pexit __P((int c));
 void            pchr __P((int c));

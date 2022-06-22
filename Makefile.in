@@ -1,7 +1,8 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
 # Berkeley Pascal - top level makefile.
 #
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # The applications are free software: you can redistribute it
@@ -30,7 +31,7 @@
 @SET_MAKE@
 ROOT		= @abs_top_builddir@
 
-PACKAGE		= Berkeley_Pascal
+PACKAGE		= @PACKAGE@
 PKG_BUGREPORT	= @PACKAGE_BUGREPORT@
 PKG_NAME	= @PACKAGE_NAME@
 PKG_STRING	= @PACKAGE_STRING@
@@ -77,7 +78,7 @@ libdir		= @libdir@
 datadir		= @datadir@
 
         # package directories
-pkgname		= ucbpascal
+pkgname		= @PACKAGE_NAME@
 ifeq (rief,$(findstring rief,$(libexecdir)))
 pkglibexecdir	= $(libexecdir)
 pkglibdir	= $(libdir)
@@ -110,16 +111,61 @@ LP=		lib
 E=		.exe
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
-XCLEAN=
+XCLEAN=		$(D_BIN)/*.map
 
 # Configuration
 
-ifeq ("$(BUILD_TYPE)","")	#default
-BUILD_TYPE=	debug
-MAKEFLAGS+=	BUILD_TYPE=debug
+ifeq ("win32","@build_os@")
+BUSYBOX=	@BUSYBOX@
+ifeq ($(BUSYBOX),busybox)
+BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
-ifneq ("$(BUILD_TYPE)","release")
+ECHO=		$(BUSYBOX) echo
+else
+ECHO=		echo
+endif
+
+ifeq ("$(BUILD_TYPE)","")	#default
+
+.PHONY:				help clean vclean build package
+help clean vclean build package:
+ifneq ("$(word 1,$(MAKECMDGOALS))","debug")
+ifneq ("$(word 1,$(MAKECMDGOALS))","release")
+	@$(ECHO) -n -e "\
+		|\n\
+		| make [release or debug] target \n\
+		|\n\
+		|	Build one or more of the following targets recursively within each sub-directory\n\
+		|	for the toolchain @TOOLCHAIN@. \n\
+		|\n\
+		| Targets: \n\
+		|\n\
+		|	build   - build everything. \n\
+		|	package - build package. \n\
+		|	clean   - delete everything which can be remade. \n\
+		|	vclean  - delete all. \n\
+		|	help    - command line usage. \n\
+		"
+endif
+endif
+	@echo .
+
+.PHONY:				release
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+
+.PHONY:				debug
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
+
+else	# BUILD_TYPE
+
+ifeq ("$(BUILD_TYPE)","debug")
 RTSUFFIX=d
+else
+ifneq ("$(BUILD_TYPE)","release")
+$(error invalid BUILD_TYPE; debug or release expected)
+endif
 endif
 
 # Directories
@@ -128,32 +174,38 @@ D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)
-LW=		$(D_LIB)/$(LP)
+
+BUILDNUMBER=	BUILDNUMBER.in
+BUILDINFO=	include/buildinfo.h
 
 # Compilers, programs
 
 CC=		@CC@
 CXX=		@CXX@
 AR=		@AR@
+RANLIB=		@RANLIB@
 RM=		@RM@
 RMDIR=		@RMDIR@
 CP=		@CP@
 RC=		@RC@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 TAR=		@TAR@
+LEX=		@LEX@
+YACC=		@YACC@
+WGET=		@WGET@
+
 INSTALL=	@INSTALL@
 INSTALL_PROGRAM=@INSTALL_PROGRAM@
 INSTALL_DATA=	@INSTALL_DATA@
 
+ifeq ("win32","@build_os@")
 INNO=		@INNO@
 ifeq ($(INNO),) # Inno5: allowing legacy XP installations
 INNO=		"C:/Program Files (x86)/Inno Setup 5/Compil32"
 endif
-
-BUSYBOX=	@BUSYBOX@
-ifeq ($(BUSYBOX),busybox)
-BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
+
 
 # Common flags
 
@@ -175,14 +227,17 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) @LDLIBS@ @LIBS@ @EXTRALIBS@
 
 ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
+
 #########################################################################################
 # Targets
+
+LW=		$(D_LIB)/$(LP)
 
 ifeq ("wcl386","$(CC)")
 ifeq ("@TOOLCHAIN@","owc20")
@@ -194,12 +249,19 @@ CLBRNAME=	clbr19
 MT7RNAME=	mt7r19
 PLBRNAME=	plbr19
 endif
+
+	# As path format is dependent on which variant,
+	# firstly resolve using WATCOM envvar, otherwise fallback to which.
+LIBCLBRPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(CLBRNAME).dll))
+ifeq ("","$(LIBCLBRPATH)")
 LIBCLBRPATH=	$(shell which $(CLBRNAME).dll)
 LIBMT7RPATH=	$(shell which $(MT7RNAME).dll)
 LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
+else
+LIBMT7RPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(MT7RNAME).dll))
+LIBPLBRPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(PLBRNAME).dll))
 endif
-
-BUILDINFO=	include/buildinfo.h
+endif
 
 UTILS=\
 	$(LW)compat			\
@@ -209,7 +271,7 @@ UTILS=\
 
 LIBS=\
 	$(LW)pc
-	
+
 BINS=\
 	$(D_BIN)/eyacc$(E)		\
 	$(D_BIN)/byacc$(E)		\
@@ -234,51 +296,31 @@ endif
 .PHONY:			build release debug
 build:			directories buildinfo utils libs bins import doc
 
+.PHONY:				help
+help:
+	@$(ECHO) -e "\
+		|\n\
+		| make [release or debug] target \n\
+		|\n\
+		|	Build one or more of the following targets recursively within each sub-directory\n\
+		|	for the toolchain @TOOLCHAIN@. \n\
+		|\n\
+		| Targets: \n\
+		|\n\
+		|	build   - build everything. \n\
+		|	package - build all packages. \n\
+		|	clean   - delete everything which can be remade. \n\
+		|	help    - command line usage. \n\
+		"
+
+.PHONY:				release
 release:
 		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+
+.PHONY:				debug
 debug:
 		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
-#new_release:		new_buildnumber
-#		$(MAKE) release
-#
-#.PHONY: package
-#package:
-#		$(INNO) ./support/pascal-inno-setup.iss
-
-# Build support
-
-BUILD_DATE=		$(shell $(BUSYBOX) date +'%Y%m%d')
-ifneq ($(APPVEYOR_BUILD_NUMBER),)
-BUILD_NUMBER=		$(APPVEYOR_BUILD_NUMBER)
-else
-BUILD_NUMBER=		$(shell $(BUSYBOX) cat BUILDNUMBER)
-endif
-
-.PHONY: 		buildinfo new_buildnumber
-buildinfo.h:		buildinfo
-buildinfo:
-		@echo updating buildinfo.h ...
-		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
-			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAIN@" --type="$(BUILD_TYPE)" \
-			--bindir="$(BINDIR)" --sbindir="$(SBINDIR)" --libexecdir="$(LIBEXECDIR)" --libdir="$(LIBDIR)" --datadir="$(DATADIR)"
-
-buildinfo.h:		BUILDNUMBER buildinfo.pl
-
-ifneq ($(APPVEYOR_BUILD_NUMBER),)
-BUILDNUMBER:
-		@echo importing appveyor build number  ...
-		@echo $(APPVEYOR_BUILD_NUMBER)>$@
-endif
-
-new_buildnumber:
-		-@chmod +w BUILDNUMBER >nul 2>&1
-		@echo incrementing build number ...
-		-@$(BUSYBOX) sh -c "\
-			if [ ! -f BUILDNUMBER ]; then echo 1 >BUILDNUMBER; fi;\
-			echo $$(($$(cat BUILDNUMBER) + 1)) >BUILDNUMBER;\
-			"
-		-@chmod -w BUILDNUMBER >/dev/null 2>&1
 
 # Components
 
@@ -290,22 +332,6 @@ directories:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created $(D_INC)/.cr
 
 bins:			$(BINS)
 
-$(D_BIN)/%$(E):		libs
-		@echo --- building $@
-		$(MAKE) -C $(notdir $(basename $@))
-
-utils:			$(UTILS)
-
-libs:			$(LIBS)
-
-.PHONY: contrib
-contrib:
-		@echo --- building $@
-		$(MAKE) -C contrib
-
-$(LW)%:
-		@echo --- building $@
-		$(MAKE) -C $(notdir $(basename $@))
 
 .PHONY: import
 import:				$(IMPORT)
@@ -324,11 +350,90 @@ $(D_BIN)/$(PLBRNAME).dll:	$(LIBPLBRPATH)
 		@$(CP) -f $(subst /,\,$^) $@
 endif
 
+
+#########################################################################################
+# Applications
+
+BUILD_DATE=		$(shell date +'%Y%m%d')
+ifneq ($(APPVEYOR_BUILD_NUMBER),)
+BUILD_NUMBER=		$(APPVEYOR_BUILD_NUMBER)
+else ifneq ($(GITHUB_RUN_NUMBER),)
+BUILD_NUMBER=		$(GITHUB_RUN_NUMBER)
+else
+BUILD_NUMBER=		$(shell cat ./$(BUILDNUMBER))
+endif
+
+.PHONY:				buildinfo
+$(BUILDINFO):		Makefile $(BUILDNUMBER) buildinfo
+buildinfo:
+		@echo updating buildinfo.h ...
+		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAINEXT@" --type="$(BUILD_TYPE)" \
+			--bindir="$(BINDIR)" --sbindir="$(SBINDIR)" --libexecdir="$(LIBEXECDIR)" --libdir="$(LIBDIR)" --datadir="$(DATADIR)"
+
+.PHONY:				packageinfo
+packageinfo:
+		-@$(PERL) ./buildinfo.pl -o $(PACKAGEINFO) --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAINEXT@" --type="$(BUILD_TYPE)"
+
+buildinfo.h:			BUILDNUMBER buildinfo.pl
+
+ifneq ($(APPVEYOR_BUILD_NUMBER),)
+BUILDNUMBER:
+		@echo importing appveyor build number ...
+		@echo $(APPVEYOR_BUILD_NUMBER)>$@
+endif
+
+ifneq ($(GITHUB_RUN_NUMBER),)
+BUILDNUMBER:
+		@echo importing github build number ...
+		@echo $(GITHUB_RUN_NUMBER)>$@
+endif
+
+.PHONY:			new_buildnumber
+new_buildnumber:
+		-@chmod +w $(BUILDNUMBER)
+
+$(BUILDNUMBER):		Makefile
+		-@sh -c "\
+if [ ! -f $(BUILDNUMBER) ]; then echo 1 >$(BUILDNUMBER); fi;\
+if [ -w $(BUILDNUMBER) ]; then \
+echo incrementing build number ...; \
+echo $$(($$(cat $(BUILDNUMBER)) + 1)) >$(BUILDNUMBER);\
+fi;\
+"
+		-@chmod -w $(BUILDNUMBER)
+
+#########################################################################################
+# Rules
+
 .PHONY: doc
 doc:
 		$(MAKE) -C doc
 
-install:		all
+$(D_BIN)/%$(E):		libs
+		@echo --- building $@
+		$(MAKE) -C $(notdir $(basename $@))
+
+utils:			$(UTILS)
+
+libs:			$(LIBS)
+
+.PHONY: contrib
+contrib:
+		@echo --- building $@
+		$(MAKE) -C contrib
+
+$(LW)%:
+		@echo --- building $@
+		$(MAKE) -C $(notdir $(basename $@))
+
+
+#########################################################################################
+# Support rules
+
+.PHONY: install
+install:		build
 		-mkdir -p $(BINDIR)
 		-mkdir -p $(DATADIR)
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/xxx$(E) $(BINDIR)
@@ -368,3 +473,5 @@ distclean:		clean
 			Makefile
 
 #end
+
+endif	# BUILD_TYPE

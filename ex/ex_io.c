@@ -586,7 +586,7 @@ rop2()
 		for (a=first; a<=last; a++) {
 			if (a==first+5 && last-first > 10)
 				a = last - 4;
-			getline(*a);
+			ex_getline(*a);
 			checkmodeline(linebuf);
 		}
 	}
@@ -944,7 +944,7 @@ int isfilter;
 	nib = bsize;
 	fp = genbuf;
 	do {
-		getline(*a1++);
+		ex_getline(*a1++);
 		lp = linebuf;
 		for (;;) {
 			if (--nib < 0) {

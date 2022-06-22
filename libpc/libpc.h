@@ -178,6 +178,9 @@ extern struct iorechd	_err;
 #endif
 #endif //__printf_attribute_
 
+struct iorec;
+struct formalrtn;
+
 extern FILE	       *ACTFILE(struct iorec *);
 extern long	       *ADDT(long *, long *, long *, long);
 extern void		APPEND(struct iorec *);

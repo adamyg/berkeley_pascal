@@ -44,7 +44,7 @@ NILPTR(ptr)			/* XXX - was NIL() */
 	char	*ptr;		/* pointer to struct */
 {
 	if (ptr > _maxptr || ptr < _minptr) {
-		ERROR(ENIL, 0);
+		ERROR(ENIL /*, 0*/);
 	}
 	return ptr;
 }

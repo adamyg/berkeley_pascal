@@ -45,7 +45,7 @@ DISPOSE(var, siz)
 	register int size = siz;
 
 	if (*var == 0 || *var + size > _maxptr || *var < _minptr) {
-		ERROR("Pointer value out of legal range\n", 0);
+		ERROR("Pointer value out of legal range\n" /*, 0*/);
 		return;
 	}
 	free(*var);

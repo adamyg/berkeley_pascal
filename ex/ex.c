@@ -345,7 +345,7 @@ main(ac, av)
 		if (ac == 0) {
 			ppid = 0;
 			setrupt();
-			execl(_PATH_EXRECOVER, "exrecover", "-r", 0);
+			execl(_PATH_EXRECOVER, "exrecover", "-r", NULL);
 			filioerr(_PATH_EXRECOVER);
 			ex_exit(1);
 		}

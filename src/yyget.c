@@ -60,7 +60,7 @@ int readch()
 #ifdef PXP
 		yytokcnt = 0;
 #endif
-		if (getline() < 0)
+		if (xgetline() < 0)
 			return (-1);
 	}
 	c = *++bufp;
@@ -126,7 +126,7 @@ char		*bufp		= NULL;
  * YyLinpt is the seek pointer to the beginning of the
  * next line in the file.
  */
-int           yyLinpt = 0;
+int		yyLinpt = 0;
 
 
 
@@ -135,7 +135,7 @@ int           yyLinpt = 0;
  * from the input stream in the
  * line buffer, returning -1 at YEOF.
  */
-int getline()
+int xgetline()
 {
 	register char *cp;
 	register CHAR c;

@@ -43,7 +43,7 @@ TEOF(filep)
 {
 	if (filep->fblk >= MAXFILES || _actfile[filep->fblk] != filep ||
 	    (filep->funit & FDEF)) {
-		ERROR("Reference to an inactive file\n", 0);
+		ERROR("Reference to an inactive file\n" /*, 0*/);
 		return FALSE;
 	}
 	if (filep->funit & (EOFF|FWRITE))
