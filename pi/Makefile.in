@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2022/06/21 15:49:13 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2022/06/22 12:25:50 cvsuser Exp $
 # pi makefile.
 #
 #
@@ -184,7 +184,7 @@ OPC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(OPC_CSOURCE)))
 PIC_OBJS=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(PIC_CSOURCE)))
 
 CLEANOBJS=	$(PI_OBJS) $(OPC_OBJS) $(PIC_OBJS)
-CLEANFILES=	opcode.h picture.txt ytab.h ytab.c ytab.lst
+XCLEAN+=	opcode.h picture.txt ytab.h ytab.c ytab.lst
 
 
 #########################################################################################
@@ -210,6 +210,7 @@ $(D_OBJ)/%$(O):		opcode.h
 picture.txt:		$(D_BIN)/pic$(E)
 		$(D_BIN)/pic > picture.txt
 
+ytab.c:			Makefile ytab.h
 ytab.h:			../src/gram ../src/pas.y
 		@echo building ytab.h and ytab.c ...
 		-@$(RM) $(RMFLAGS) ytab.h ytab.c >/dev/null 2>&1
@@ -234,7 +235,7 @@ $(D_OBJ)/.created:
 clean:
 		@echo $(BUILD_TYPE) clean
 		-@$(RM) $(RMFLAGS) $(BAK) $(BINS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
-		-@$(RM) $(RMFLAGS) $(CLEANOBJS) $(CLEANFILES) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(CLEANOBJS) >/dev/null 2>&1
 
 $(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
